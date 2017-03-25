@@ -1,8 +1,10 @@
 import os
-from snappy import ProductIO
 from pathlib import Path
-from MetaSubProcess import MetaSubProcess
+
 import numpy as np
+from snappy import ProductIO
+
+from scripts.MetaSubProcess import MetaSubProcess
 
 
 class CreateLonLat(MetaSubProcess):
