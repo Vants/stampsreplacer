@@ -16,42 +16,40 @@ class CreateLonLat(MetaSubProcess):
         self.geo_ref_product = geo_ref_product
 
     def start_process(self, save_process=False):
-        pscands = self.load_pscands()
-        pscands_size = pscands.__sizeof__()
-
-        if pscands_size == 0:
-            raise FileNotFoundError("pscands file is empty")
-        elif pscands_size is None:
-            raise FileNotFoundError("pscands file is None")
-
         product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
         lon_band, lat_band = self.get_lon_bans(product_with_geo_ref)
 
         if lon_band is None or lat_band is None:
             raise FileNotFoundError("lon_band, lat_band missing")
 
-        lonlat = np.zeros((pscands_size, 2), dtype=self.ARRAY_TYPE)
+        lonlat = []
+        with self.load_pscands() as pscands:
+            for row in pscands:
+                if row == '':
+                    break
 
-        for row_num in range(pscands_size):
-            line = pscands.readline().split(' ')
-            x = int(line[1])
-            y = int(line[2])
+                line = row.split(' ')
+                row_num = int(line[1])
+                y = int(line[1])
+                x = int(line[2])
 
-            # Ajutine on vajalik seepärast, et readPixels tagastab kolmanda parameertina kui palju
-            # (massiivis x sihis), aga puudub parameeter mis piiraks massiivi y'it
-            # ning see täidab palju on võimalik.
-            # See aga võib olla üks koht kuidas optimeerida, et massiivi laetakse kõik väärtused ja
-            # siis ainult täidab lonlat massiivi
-            tmp_array = np.zeros((pscands_size, 1), dtype=self.ARRAY_TYPE)
-            self.readPixel(x, y, lon_band, tmp_array)
-            lonlat[row_num, 0] = tmp_array[0]
-            self.readPixel(x, y, lat_band, tmp_array)
-            lonlat[row_num, 1] = tmp_array[0]
+                # Ajutine tmp__pixel_array on vajalik seepärast, et readPixels tagastab kolmanda parameertina kui palju
+                # (massiivis x sihis), aga puudub parameeter mis piiraks massiivi y'it
+                # ning see täidab palju on võimalik.
+                # See aga võib olla üks koht kuidas optimeerida, et massiivi laetakse kõik väärtused ja
+                # siis ainult täidab lonlat massiivi
+                tmp__pixel_array = np.zeros((1, 1), dtype=self.ARRAY_TYPE)
+                tmp_lonlat = np.zeros((1, 2), dtype=self.ARRAY_TYPE)
+                self.readPixel(x, y, lon_band, tmp__pixel_array)
+                tmp_lonlat[0, 0] = tmp__pixel_array[0]
+                self.readPixel(x, y, lat_band, tmp__pixel_array)
+                tmp_lonlat[0, 1] = tmp__pixel_array[0]
 
-        pscands.close()
+                lonlat.append(tmp_lonlat)
 
-        return lonlat
+        return np.reshape(lonlat, (len(lonlat), 2))
 
+    #TODO kõige aeglasem koht
     def readPixel(self, x, y, band, tmp_array):
         band.readPixels(x, y, 1, 1, tmp_array)
 
