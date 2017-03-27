@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import numpy as np
@@ -62,7 +61,7 @@ class CreateLonLat(MetaSubProcess):
     def load_pscands(self):
         if self.path.is_dir():
             # TODO Kontroll kui juba on seal kaustas
-            path_to_pscands = Path(os.path.join(self.path, self.PATCH), "pscands.1.ij")
+            path_to_pscands = Path(self.path.joinpath(self.PATCH), "pscands.1.ij")
             if path_to_pscands.exists():
                 return path_to_pscands.open()
             else:
