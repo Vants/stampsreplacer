@@ -4,10 +4,11 @@ import numpy as np
 from snappy import ProductIO
 
 from scripts.MetaSubProcess import MetaSubProcess
+from scripts.utils.FolderConstants import FolderConstants
 
 
 class CreateLonLat(MetaSubProcess):
-    __PATCH = "PATCH_1"
+    __PATCH = FolderConstants.PATCH_FOLDER
     __ARRAY_TYPE = np.float32
 
     def __init__(self, path: str, geo_ref_product: str):

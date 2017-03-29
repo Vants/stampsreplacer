@@ -3,6 +3,7 @@ import scipy.io
 from unittest import TestCase
 
 from scripts.processes.CreateLonLat import CreateLonLat
+from scripts.utils.FolderConstants import FolderConstants
 
 
 class TestCreateLonLat(TestCase):
@@ -11,7 +12,7 @@ class TestCreateLonLat(TestCase):
         os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'resources'))
     _GEO_DATA_FILE = os.path.join(_PATH,
                                   'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
-    _PATCH_1_FOLDER = os.path.join(_PATH, 'PATCH_1')
+    _PATCH_1_FOLDER = os.path.join(_PATH, FolderConstants.PATCH_FOLDER)
     _PLACES = 5
 
     def test_start_process(self):
