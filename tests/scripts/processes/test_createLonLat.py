@@ -19,6 +19,8 @@ class TestCreateLonLat(TestCase):
         process = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
         lonlat_actual = process.start_process()
 
+        pscands_actual = process.pscands_ij_array
+
         lonlat_expected = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'lonlat.mat')).get(
             'lonlat')
 
@@ -26,6 +28,9 @@ class TestCreateLonLat(TestCase):
         self.assertIsNotNone(lonlat_expected, "lonlat.mat not found (is None)")
         self.assertEqual(len(lonlat_expected), len(lonlat_actual),
                          "Made lonlat does not equal with .mat file")
+
+        self.assertIsNotNone(pscands_actual)
+        self.assertEqual(len(pscands_actual), len(lonlat_actual))
 
         for row_num in range(len(lonlat_actual) - 1):
             self.assertAlmostEqual(lonlat_expected[row_num, 0], lonlat_actual[row_num, 0],

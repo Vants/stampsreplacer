@@ -11,6 +11,9 @@ class CreateLonLat(MetaSubProcess):
     __PATCH = FolderConstants.PATCH_FOLDER
     __ARRAY_TYPE = np.float32
 
+    # Seda on tarvis pärast PsFiles protsessis andmete laadisel
+    pscands_ij_array = None
+
     def __init__(self, path: str, geo_ref_product: str):
         self.path = Path(path)
         self.geo_ref_product = geo_ref_product
@@ -48,12 +51,23 @@ class CreateLonLat(MetaSubProcess):
 
                 lonlat.append(tmp_lonlat)
 
+                self.__add_to_pscands_array(int(line[0]), int(line[1]), int(line[2]))
+
+        self.pscands_ij_array = np.reshape(self.pscands_ij_array, (len(self.pscands_ij_array), 3))
+
         return np.reshape(lonlat, (len(lonlat), 2))
 
     # TODO kõige aeglasem koht
     # noinspection PyMethodMayBeStatic
     def __read_pixel(self, x, y, band, tmp_array):
         band.readPixels(x, y, 1, 1, tmp_array)
+
+    def __add_to_pscands_array(self, arr1: int, arr2: int, arr3: int):
+        """Samal ajal kui me käime läbi seda listi me täidame lisaks array algsete väärtustega"""
+        if (self.pscands_ij_array is None):
+            self.pscands_ij_array = []
+
+        self.pscands_ij_array.append(np.array([arr1, arr2, arr3]))
 
     # noinspection PyMethodMayBeStatic
     def __get_lon_bans(self, product_with_geo_ref):
