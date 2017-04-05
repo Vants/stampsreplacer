@@ -1,0 +1,14 @@
+import numpy as np
+
+
+class MatrixUtils:
+    @staticmethod
+    def sort_matrix_with_sort_array(matrix: np.matrix, sort_ind: np.ndarray):
+        """Numpy ei luba lexsortiga sorteerida maatrikseid. 
+        Selle jaoks tehakse siin massiivi (np.ndarray) view maatriksist.
+        Sorteeritud maatriks tagastatakse input parameertiga (mitte return'iga)
+        
+        Allikas http://stackoverflow.com/questions/13338110/python-matrix-sorting-via-one-column"""
+
+        tmp = matrix.view(np.ndarray)
+        matrix = np.asmatrix(tmp[sort_ind])

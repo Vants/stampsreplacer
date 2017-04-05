@@ -1,0 +1,20 @@
+Opening unwrap.1.node.
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  1
+
+Writing unwrap.2.node.
+Writing unwrap.2.ele.
+Writing unwrap.2.edge.
+
+Output milliseconds:  3
+Total running milliseconds:  5
+
+Statistics:
+
+  Input vertices: 682
+
+  Mesh vertices: 682
+  Mesh triangles: 1255
+  Mesh edges: 1936
+  Mesh exterior boundary edges: 107
+

@@ -1,0 +1,325 @@
+07-Mar-2017 18:22:48 STAMPS           
+Processing PATCH /export/students/mihkel/bc/s2/tmp/PATCH_1
+07-Mar-2017 18:22:48 PS_LOAD_INITIAL_GAMMA Starting
+07-Mar-2017 18:22:48 READPARM         heading:=247.87063145362325 
+07-Mar-2017 18:22:48 READPARM         radar_frequency:=5.40500045433435E9 
+07-Mar-2017 18:22:49 READPARM         range_pixel_spacing:=2 
+07-Mar-2017 18:22:49 READPARM         near_range_slc:=864104.5325420259 
+07-Mar-2017 18:22:49 READPARM         sar_to_earth_center:=7067583.822277612 
+07-Mar-2017 18:22:49 READPARM         earth_radius_below_sensor:=6358177.233985796 
+07-Mar-2017 18:22:49 READPARM         center_range_slc:=864104.5325420259 
+07-Mar-2017 18:22:49 READPARM         azimuth_lines:=557 
+07-Mar-2017 18:22:49 READPARM         prf:=1717.128973878037 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 28.45059108734131 12.748866081237793 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.06335320957807598 0.07779691668039512 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 81.52837753295898 9.357165813446045 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.4832397862340345 0.042709664904308685 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 33.01472473144531 11.438427925109863 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.19594432016784002 0.07549958969430032 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 32.20088195800781 8.514472007751465 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.14578012372275448 0.037458211037376586 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 75.71269989013672 16.77681827545166 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.18576539444483534 -0.014143287419522123 
+07-Mar-2017 18:22:49 READPARM         initial_baseline(TCN):=0.0000000 -46.31269454956055 16.500069618225098 
+07-Mar-2017 18:22:49 READPARM         initial_baseline_rate:=0.0000000 -0.11865988412280451 0.09826079860268577 
+07-Mar-2017 18:22:53 PS_LOAD_INITIAL_GAMMA Finished
+07-Mar-2017 18:22:53 PS_EST_GAMMA_QUICK Starting
+07-Mar-2017 18:22:53 PS_EST_GAMMA_QUICK Estimating gamma for candidate pixels
+07-Mar-2017 18:22:53 GETPARM          filter_grid_size=50 
+07-Mar-2017 18:22:53 GETPARM          filter_weighting='P-square'
+07-Mar-2017 18:22:53 GETPARM          clap_win=32 
+07-Mar-2017 18:22:53 GETPARM          clap_low_pass_wavelength=800 
+07-Mar-2017 18:22:53 GETPARM          clap_alpha=1 
+07-Mar-2017 18:22:53 GETPARM          clap_beta=0.3 
+07-Mar-2017 18:22:53 GETPARM          max_topo_err=5 
+07-Mar-2017 18:22:53 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:22:53 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:22:53 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:22:54 PS_EST_GAMMA_QUICK n_trial_wraps=0.041324
+07-Mar-2017 18:22:54 PS_EST_GAMMA_QUICK Initialising random distribution...
+07-Mar-2017 18:23:05 PS_EST_GAMMA_QUICK 388117 PS candidates to process
+07-Mar-2017 18:23:05 PS_EST_GAMMA_QUICK iteration #1
+07-Mar-2017 18:23:05 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:23:10 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:23:26 PS_EST_GAMMA_QUICK gamma_change_change=0.689425
+07-Mar-2017 18:23:26 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:23:27 PS_EST_GAMMA_QUICK iteration #2
+07-Mar-2017 18:23:27 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:23:32 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:23:50 PS_EST_GAMMA_QUICK gamma_change_change=-0.624715
+07-Mar-2017 18:23:50 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:23:51 PS_EST_GAMMA_QUICK iteration #3
+07-Mar-2017 18:23:51 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:23:56 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:26:52 STAMPS           
+Processing PATCH /export/students/mihkel/bc/s2/tmp/PATCH_1
+07-Mar-2017 18:26:52 PS_LOAD_INITIAL_GAMMA Starting
+07-Mar-2017 18:26:52 READPARM         heading:=247.87063145362325 
+07-Mar-2017 18:26:52 READPARM         radar_frequency:=5.40500045433435E9 
+07-Mar-2017 18:26:53 READPARM         range_pixel_spacing:=2 
+07-Mar-2017 18:26:53 READPARM         near_range_slc:=864104.5325420259 
+07-Mar-2017 18:26:53 READPARM         sar_to_earth_center:=7067583.822277612 
+07-Mar-2017 18:26:53 READPARM         earth_radius_below_sensor:=6358177.233985796 
+07-Mar-2017 18:26:53 READPARM         center_range_slc:=864104.5325420259 
+07-Mar-2017 18:26:53 READPARM         azimuth_lines:=557 
+07-Mar-2017 18:26:53 READPARM         prf:=1717.128973878037 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 28.45059108734131 12.748866081237793 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.06335320957807598 0.07779691668039512 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 81.52837753295898 9.357165813446045 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.4832397862340345 0.042709664904308685 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 33.01472473144531 11.438427925109863 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.19594432016784002 0.07549958969430032 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 32.20088195800781 8.514472007751465 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.14578012372275448 0.037458211037376586 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 75.71269989013672 16.77681827545166 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.18576539444483534 -0.014143287419522123 
+07-Mar-2017 18:26:53 READPARM         initial_baseline(TCN):=0.0000000 -46.31269454956055 16.500069618225098 
+07-Mar-2017 18:26:53 READPARM         initial_baseline_rate:=0.0000000 -0.11865988412280451 0.09826079860268577 
+07-Mar-2017 18:26:56 PS_LOAD_INITIAL_GAMMA Finished
+07-Mar-2017 18:26:56 PS_EST_GAMMA_QUICK Starting
+07-Mar-2017 18:26:56 PS_EST_GAMMA_QUICK Estimating gamma for candidate pixels
+07-Mar-2017 18:26:56 GETPARM          filter_grid_size=50 
+07-Mar-2017 18:26:56 GETPARM          filter_weighting='P-square'
+07-Mar-2017 18:26:56 GETPARM          clap_win=32 
+07-Mar-2017 18:26:56 GETPARM          clap_low_pass_wavelength=800 
+07-Mar-2017 18:26:56 GETPARM          clap_alpha=1 
+07-Mar-2017 18:26:57 GETPARM          clap_beta=0.3 
+07-Mar-2017 18:26:57 GETPARM          max_topo_err=5 
+07-Mar-2017 18:26:57 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:26:57 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:26:57 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:26:57 PS_EST_GAMMA_QUICK n_trial_wraps=0.041324
+07-Mar-2017 18:26:57 PS_EST_GAMMA_QUICK Initialising random distribution...
+07-Mar-2017 18:27:09 PS_EST_GAMMA_QUICK 388117 PS candidates to process
+07-Mar-2017 18:27:09 PS_EST_GAMMA_QUICK iteration #1
+07-Mar-2017 18:27:09 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:27:14 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:27:31 PS_EST_GAMMA_QUICK gamma_change_change=0.689425
+07-Mar-2017 18:27:31 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:27:33 PS_EST_GAMMA_QUICK iteration #2
+07-Mar-2017 18:27:33 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:27:38 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:27:57 PS_EST_GAMMA_QUICK gamma_change_change=-0.624715
+07-Mar-2017 18:27:57 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:27:59 PS_EST_GAMMA_QUICK iteration #3
+07-Mar-2017 18:27:59 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:28:04 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:28:21 PS_EST_GAMMA_QUICK gamma_change_change=-0.030018
+07-Mar-2017 18:28:21 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:28:23 PS_EST_GAMMA_QUICK iteration #4
+07-Mar-2017 18:28:23 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:28:27 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:28:44 PS_EST_GAMMA_QUICK gamma_change_change=-0.010438
+07-Mar-2017 18:28:44 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:28:46 PS_EST_GAMMA_QUICK iteration #5
+07-Mar-2017 18:28:46 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:28:51 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:29:08 PS_EST_GAMMA_QUICK gamma_change_change=-0.003706
+07-Mar-2017 18:29:08 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:29:10 PS_EST_GAMMA_QUICK Finished
+07-Mar-2017 18:29:10 PS_SELECT        Starting
+07-Mar-2017 18:29:10 PS_SELECT        Selecting stable-phase pixels...
+07-Mar-2017 18:29:10 GETPARM          slc_osf=1 
+07-Mar-2017 18:29:10 GETPARM          clap_alpha=1 
+07-Mar-2017 18:29:10 GETPARM          clap_beta=0.3 
+07-Mar-2017 18:29:10 GETPARM          clap_win=32 
+07-Mar-2017 18:29:10 GETPARM          select_method='DENSITY'
+07-Mar-2017 18:29:10 GETPARM          density_rand=20 
+07-Mar-2017 18:29:10 GETPARM          gamma_stdev_reject=0 
+07-Mar-2017 18:29:10 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:29:10 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:29:11 PS_SELECT        Initial gamma threshold: 0.983 at D_A=0.03 to 0.986 at D_A=0.40
+07-Mar-2017 18:29:11 PS_SELECT        14652 PS selected initially
+07-Mar-2017 18:29:26 PS_SELECT        10000 patches re-estimated
+07-Mar-2017 18:29:33 PS_SELECT        10000 coherences re-estimated
+07-Mar-2017 18:29:33 PS_SELECT        Reestimation gamma threshold: 0.983 at D_A=0.03 to 0.986 at D_A=0.40
+07-Mar-2017 18:29:33 PS_SELECT        13399 ps selected after re-estimation of coherence
+07-Mar-2017 18:29:33 PS_SELECT        Finished
+07-Mar-2017 18:29:33 PS_WEED          Starting
+07-Mar-2017 18:29:33 PS_WEED          Weeding selected pixels...
+07-Mar-2017 18:29:33 GETPARM          weed_time_win=730 
+07-Mar-2017 18:29:33 GETPARM          weed_standard_dev=1 
+07-Mar-2017 18:29:33 GETPARM          weed_max_noise=Inf 
+07-Mar-2017 18:29:33 GETPARM          weed_zero_elevation='n'
+07-Mar-2017 18:29:33 GETPARM          weed_neighbours='y'
+07-Mar-2017 18:29:33 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:29:34 PS_WEED          13399 low D_A PS, 0 high D_A PS
+07-Mar-2017 18:29:34 PS_WEED          5376 PS kept after dropping adjacent pixels
+07-Mar-2017 18:29:35 PS_WEED          Estimating noise for all arcs...
+07-Mar-2017 18:29:35 PS_WEED          Estimating max noise for all pixels...
+07-Mar-2017 18:29:35 PS_WEED          5376 PS kept after dropping noisy pixels
+07-Mar-2017 18:29:35 PS_WEED          Finished
+07-Mar-2017 18:29:35 PS_CORRECT_PHASE Starting
+07-Mar-2017 18:29:35 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:29:35 PS_CORRECT_PHASE Finished
+07-Mar-2017 18:29:36 PS_UNWRAP        Starting
+07-Mar-2017 18:29:36 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:29:36 GETPARM          unwrap_patch_phase='n'
+07-Mar-2017 18:29:36 GETPARM          scla_deramp='n'
+07-Mar-2017 18:29:36 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:29:36 GETPARM          unwrap_time_win=730 
+07-Mar-2017 18:29:36 GETPARM          unwrap_method='3D'
+07-Mar-2017 18:29:36 GETPARM          unwrap_grid_size=200 
+07-Mar-2017 18:29:36 GETPARM          unwrap_gold_n_win=32 
+07-Mar-2017 18:29:36 GETPARM          unwrap_prefilter_flag='y'
+07-Mar-2017 18:29:36 GETPARM          unwrap_gold_alpha=0.8 
+07-Mar-2017 18:29:36 GETPARM          unwrap_la_error_flag='y'
+07-Mar-2017 18:29:36 GETPARM          unwrap_spatial_cost_func_flag='n'
+07-Mar-2017 18:29:36 GETPARM          max_topo_err=5 
+07-Mar-2017 18:29:36 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:29:36 PS_UNWRAP        n_trial_wraps=0.041317
+07-Mar-2017 18:31:50 STAMPS           
+Processing PATCH /export/students/mihkel/bc/s2/tmp/PATCH_1
+07-Mar-2017 18:31:50 PS_UNWRAP        Starting
+07-Mar-2017 18:31:50 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:31:50 GETPARM          unwrap_patch_phase='n'
+07-Mar-2017 18:31:50 GETPARM          scla_deramp='n'
+07-Mar-2017 18:31:50 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:31:50 GETPARM          unwrap_time_win=730 
+07-Mar-2017 18:31:50 GETPARM          unwrap_method='3D'
+07-Mar-2017 18:31:50 GETPARM          unwrap_grid_size=200 
+07-Mar-2017 18:31:50 GETPARM          unwrap_gold_n_win=11 
+07-Mar-2017 18:31:50 GETPARM          unwrap_prefilter_flag='y'
+07-Mar-2017 18:31:50 GETPARM          unwrap_gold_alpha=0.8 
+07-Mar-2017 18:31:50 GETPARM          unwrap_la_error_flag='y'
+07-Mar-2017 18:31:50 GETPARM          unwrap_spatial_cost_func_flag='n'
+07-Mar-2017 18:31:50 GETPARM          max_topo_err=5 
+07-Mar-2017 18:31:50 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:31:50 PS_UNWRAP        n_trial_wraps=0.041317
+07-Mar-2017 18:32:12 STAMPS           
+Processing PATCH /export/students/mihkel/bc/s2/tmp/PATCH_1
+07-Mar-2017 18:32:12 PS_UNWRAP        Starting
+07-Mar-2017 18:32:12 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:32:12 GETPARM          unwrap_patch_phase='n'
+07-Mar-2017 18:32:12 GETPARM          scla_deramp='n'
+07-Mar-2017 18:32:12 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:32:12 GETPARM          unwrap_time_win=730 
+07-Mar-2017 18:32:12 GETPARM          unwrap_method='3D'
+07-Mar-2017 18:32:12 GETPARM          unwrap_grid_size=200 
+07-Mar-2017 18:32:12 GETPARM          unwrap_gold_n_win=10 
+07-Mar-2017 18:32:12 GETPARM          unwrap_prefilter_flag='y'
+07-Mar-2017 18:32:12 GETPARM          unwrap_gold_alpha=0.8 
+07-Mar-2017 18:32:12 GETPARM          unwrap_la_error_flag='y'
+07-Mar-2017 18:32:12 GETPARM          unwrap_spatial_cost_func_flag='n'
+07-Mar-2017 18:32:12 GETPARM          max_topo_err=5 
+07-Mar-2017 18:32:12 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:32:12 PS_UNWRAP        n_trial_wraps=0.041317
+07-Mar-2017 18:32:12 PS_UNWRAP        Finished
+07-Mar-2017 18:32:12 PS_CALC_SCLA     Starting
+07-Mar-2017 18:32:12 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:32:12 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:32:12 GETPARM          scla_method='L2'
+07-Mar-2017 18:32:12 GETPARM          scla_deramp='n'
+07-Mar-2017 18:32:12 GETPARM          scla_drop_index= 
+07-Mar-2017 18:32:13 PS_CALC_SCLA     5 ifgs used in estimation:
+07-Mar-2017 18:32:13 PS_CALC_SCLA        09-May-2016 to 21-May-2016    12 days    46 m
+07-Mar-2017 18:32:13 PS_CALC_SCLA        21-May-2016 to 02-Jun-2016    12 days   -42 m
+07-Mar-2017 18:32:13 PS_CALC_SCLA        02-Jun-2016 to 08-Jul-2016    36 days   -22 m
+07-Mar-2017 18:32:13 PS_CALC_SCLA        08-Jul-2016 to 01-Aug-2016    24 days    55 m
+07-Mar-2017 18:32:13 PS_CALC_SCLA        01-Aug-2016 to 13-Aug-2016    12 days  -102 m
+07-Mar-2017 18:32:13 PS_CALC_SCLA     Finished
+07-Mar-2017 18:32:13 PS_SMOOTH_SCLA   Starting
+07-Mar-2017 18:32:13 PS_SMOOTH_SCLA   Number of points per ifg: 5376
+07-Mar-2017 18:32:13 PS_SMOOTH_SCLA   Number of arcs per ifg=16094
+07-Mar-2017 18:32:13 PS_SMOOTH_SCLA   Finished
+07-Mar-2017 18:36:05 STAMPS           
+Processing PATCH /export/students/mihkel/bc/s2/tmp/PATCH_1
+07-Mar-2017 18:36:05 PS_LOAD_INITIAL_GAMMA Starting
+07-Mar-2017 18:36:05 READPARM         heading:=247.87063145362325 
+07-Mar-2017 18:36:05 READPARM         radar_frequency:=5.40500045433435E9 
+07-Mar-2017 18:36:05 READPARM         range_pixel_spacing:=2 
+07-Mar-2017 18:36:05 READPARM         near_range_slc:=864104.5325420259 
+07-Mar-2017 18:36:05 READPARM         sar_to_earth_center:=7067583.822277612 
+07-Mar-2017 18:36:05 READPARM         earth_radius_below_sensor:=6358177.233985796 
+07-Mar-2017 18:36:05 READPARM         center_range_slc:=864104.5325420259 
+07-Mar-2017 18:36:05 READPARM         azimuth_lines:=557 
+07-Mar-2017 18:36:05 READPARM         prf:=1717.128973878037 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 28.45059108734131 12.748866081237793 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.06335320957807598 0.07779691668039512 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 81.52837753295898 9.357165813446045 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.4832397862340345 0.042709664904308685 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 33.01472473144531 11.438427925109863 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.19594432016784002 0.07549958969430032 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 32.20088195800781 8.514472007751465 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.14578012372275448 0.037458211037376586 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 75.71269989013672 16.77681827545166 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.18576539444483534 -0.014143287419522123 
+07-Mar-2017 18:36:05 READPARM         initial_baseline(TCN):=0.0000000 -46.31269454956055 16.500069618225098 
+07-Mar-2017 18:36:05 READPARM         initial_baseline_rate:=0.0000000 -0.11865988412280451 0.09826079860268577 
+07-Mar-2017 18:36:09 PS_LOAD_INITIAL_GAMMA Finished
+07-Mar-2017 18:36:09 PS_EST_GAMMA_QUICK Starting
+07-Mar-2017 18:36:09 PS_EST_GAMMA_QUICK Estimating gamma for candidate pixels
+07-Mar-2017 18:36:09 GETPARM          filter_grid_size=50 
+07-Mar-2017 18:36:09 GETPARM          filter_weighting='P-square'
+07-Mar-2017 18:36:09 GETPARM          clap_win=32 
+07-Mar-2017 18:36:09 GETPARM          clap_low_pass_wavelength=800 
+07-Mar-2017 18:36:09 GETPARM          clap_alpha=1 
+07-Mar-2017 18:36:09 GETPARM          clap_beta=0.3 
+07-Mar-2017 18:36:09 GETPARM          max_topo_err=5 
+07-Mar-2017 18:36:09 GETPARM          lambda=0.0554658 
+07-Mar-2017 18:36:09 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:36:09 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:36:10 PS_EST_GAMMA_QUICK n_trial_wraps=0.041324
+07-Mar-2017 18:36:10 PS_EST_GAMMA_QUICK Initialising random distribution...
+07-Mar-2017 18:36:20 PS_EST_GAMMA_QUICK 388117 PS candidates to process
+07-Mar-2017 18:36:20 PS_EST_GAMMA_QUICK iteration #1
+07-Mar-2017 18:36:20 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:36:25 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:36:43 PS_EST_GAMMA_QUICK gamma_change_change=0.689425
+07-Mar-2017 18:36:43 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:36:45 PS_EST_GAMMA_QUICK iteration #2
+07-Mar-2017 18:36:45 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:36:51 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:37:10 PS_EST_GAMMA_QUICK gamma_change_change=-0.624715
+07-Mar-2017 18:37:10 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:37:11 PS_EST_GAMMA_QUICK iteration #3
+07-Mar-2017 18:37:11 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:37:18 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:37:37 PS_EST_GAMMA_QUICK gamma_change_change=-0.030018
+07-Mar-2017 18:37:37 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:37:39 PS_EST_GAMMA_QUICK iteration #4
+07-Mar-2017 18:37:39 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:37:44 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:38:03 PS_EST_GAMMA_QUICK gamma_change_change=-0.010438
+07-Mar-2017 18:38:03 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:38:04 PS_EST_GAMMA_QUICK iteration #5
+07-Mar-2017 18:38:04 PS_EST_GAMMA_QUICK Calculating patch phases...
+07-Mar-2017 18:38:09 PS_EST_GAMMA_QUICK Estimating topo error...
+07-Mar-2017 18:38:28 PS_EST_GAMMA_QUICK gamma_change_change=-0.003706
+07-Mar-2017 18:38:28 GETPARM          gamma_change_convergence=0.005 
+07-Mar-2017 18:38:29 PS_EST_GAMMA_QUICK Finished
+07-Mar-2017 18:38:29 PS_SELECT        Starting
+07-Mar-2017 18:38:29 PS_SELECT        Selecting stable-phase pixels...
+07-Mar-2017 18:38:29 GETPARM          slc_osf=1 
+07-Mar-2017 18:38:29 GETPARM          clap_alpha=1 
+07-Mar-2017 18:38:29 GETPARM          clap_beta=0.3 
+07-Mar-2017 18:38:29 GETPARM          clap_win=32 
+07-Mar-2017 18:38:29 GETPARM          select_method='DENSITY'
+07-Mar-2017 18:38:29 GETPARM          density_rand=20 
+07-Mar-2017 18:38:29 GETPARM          gamma_stdev_reject=0 
+07-Mar-2017 18:38:29 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:38:29 GETPARM          drop_ifg_index= 
+07-Mar-2017 18:38:30 PS_SELECT        Initial gamma threshold: 0.983 at D_A=0.03 to 0.986 at D_A=0.40
+07-Mar-2017 18:38:30 PS_SELECT        14652 PS selected initially
+07-Mar-2017 18:38:45 PS_SELECT        10000 patches re-estimated
+07-Mar-2017 18:38:53 PS_SELECT        10000 coherences re-estimated
+07-Mar-2017 18:38:54 PS_SELECT        Reestimation gamma threshold: 0.983 at D_A=0.03 to 0.986 at D_A=0.40
+07-Mar-2017 18:38:54 PS_SELECT        13399 ps selected after re-estimation of coherence
+07-Mar-2017 18:38:54 PS_SELECT        Finished
+07-Mar-2017 18:38:54 PS_WEED          Starting
+07-Mar-2017 18:38:54 PS_WEED          Weeding selected pixels...
+07-Mar-2017 18:38:54 GETPARM          weed_time_win=730 
+07-Mar-2017 18:38:54 GETPARM          weed_standard_dev=1 
+07-Mar-2017 18:38:54 GETPARM          weed_max_noise=Inf 
+07-Mar-2017 18:38:54 GETPARM          weed_zero_elevation='n'
+07-Mar-2017 18:38:54 GETPARM          weed_neighbours='y'
+07-Mar-2017 18:38:54 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:38:54 PS_WEED          13399 low D_A PS, 0 high D_A PS
+07-Mar-2017 18:38:55 PS_WEED          5376 PS kept after dropping adjacent pixels
+07-Mar-2017 18:38:55 PS_WEED          Estimating noise for all arcs...
+07-Mar-2017 18:38:56 PS_WEED          Estimating max noise for all pixels...
+07-Mar-2017 18:38:56 PS_WEED          5376 PS kept after dropping noisy pixels
+07-Mar-2017 18:38:56 PS_WEED          Finished
+07-Mar-2017 18:38:56 PS_CORRECT_PHASE Starting
+07-Mar-2017 18:38:56 GETPARM          small_baseline_flag='n'
+07-Mar-2017 18:38:56 PS_CORRECT_PHASE Finished

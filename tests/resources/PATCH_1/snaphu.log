@@ -1,0 +1,18 @@
+
+snaphu v1.4.2
+6 parameters input from file snaphu.conf (6 lines total)
+2918 incremental costs clipped to avoid overflow (1.000%)
+Reading wrapped phase from file snaphu.in
+No weight file specified.  Assuming uniform weights
+Reading cost information from file snaphu.costinfile
+Initializing flows with MST algorithm
+No residues found
+Running nonlinear network flow optimizer
+Maximum flow on network: 0
+Flow increment: 1  (Total improvements: 0)
+Maximum flow on network: 0
+Total solution cost: 1845
+Integrating phase
+Writing output to file snaphu.out
+Program snaphu done
+Elapsed wall clock time:  0:00:00
