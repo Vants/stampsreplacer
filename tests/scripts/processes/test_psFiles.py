@@ -44,8 +44,15 @@ class TestPsFiles(TestCase):
         np.testing.assert_allclose(ps_files.xy, ps1_mat['xy'][:, 1:])
 
         self.assertAlmostEqual(ps_files.mean_range, ps1_mat['mean_range'])
+
         np.testing.assert_allclose(ps_files.mean_incidence.view(np.ndarray),
                                    ps1_mat['mean_incidence'])
+
+        np.testing.assert_allclose(ps_files.ll, ps1_mat['ll0'])
+
+        # Kuna neil pole mat'ides kontrollväärtuseid siis neid kontrollib kas on täidetud
+        self.assertNotEquals(ps_files.wavelength, 0)
+        self.assertIsNotNone(ps_files.heading)
 
         self.assertEqual(len(ps_files.ph), len(ph1))
         self.assert_ph(ps_files.ph, ph1)
