@@ -38,9 +38,17 @@ class TestPsFiles(TestCase):
         self.assertEqual(len(ps_files.bperp), len(bp1))
         np.testing.assert_allclose(ps_files.bperp.view(np.ndarray), bp1)
 
-        self.assertEqual(len(ps_files.ph), len(ph1))
+        np.testing.assert_allclose(ps_files.bprep_meaned, ps1_mat['bperp'])
+        np.testing.assert_allclose(ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
+        # Meie protsessis esimest veergu ei ole, seetõttu võtame viimased kaks algsest
+        np.testing.assert_allclose(ps_files.xy, ps1_mat['xy'][:, 1:])
 
-        self.assert_ph(ph1, ps_files)
+        self.assertAlmostEqual(ps_files.mean_range, ps1_mat['mean_range'])
+        np.testing.assert_allclose(ps_files.mean_incidence.view(np.ndarray),
+                                   ps1_mat['mean_incidence'])
+
+        self.assertEqual(len(ps_files.ph), len(ph1))
+        self.assert_ph(ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
         """Matlab'i mat falides pole kompleksarvud definaaeritud nii nagu Numpy's.

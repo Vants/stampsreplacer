@@ -117,7 +117,7 @@ class PsFiles:
             bprep_line = np.multiply(bc, cos_sat_look_angle) - np.multiply(bn, sin_sat_look_angle)
             bperp[:, i] = bprep_line
 
-        bprep_meaned = np.mean(bperp).transpose()
+        bprep_meaned = np.mean(bperp, 0).transpose()
         # Kustutame püsivpeegeldajate asukohast veeru
         bperp = np.delete(bperp, self.__master_ix - 1, axis=1)
 
@@ -277,7 +277,7 @@ class PsFiles:
         y järgi kogu massiv. Siin saadakse ka sorteerimise indeks massiiv mille järgi pärast teised
         sorteerida"""
 
-        xy = np.asmatrix(np.fliplr(self.pscands_ij)[:, 0:2])
+        xy = np.fliplr(self.pscands_ij.copy())[:, 0:2]
         xy[:, 0] *= 20
         xy[:, 1] *= 4
 
