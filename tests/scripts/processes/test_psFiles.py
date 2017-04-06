@@ -54,6 +54,13 @@ class TestPsFiles(TestCase):
         self.assertNotEquals(ps_files.wavelength, 0)
         self.assertIsNotNone(ps_files.heading)
 
+        self.assertNotEquals(ps_files.master_date, ps1_mat['master_day'])
+        self.assertEquals(ps_files.master_ix, ps1_mat['master_ix'])
+
+        # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
+        sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
+        np.testing.assert_array_equal(ps_files.sort_ind, sort_ix_numpy)
+
         self.assertEqual(len(ps_files.ph), len(ph1))
         self.assert_ph(ps_files.ph, ph1)
 

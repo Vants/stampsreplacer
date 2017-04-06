@@ -18,16 +18,18 @@ class PsFiles:
     mean_range = 0.0
     wavelength = 0.0
     mean_incidence = 0.0
+    master_ix = -1
     bprep_meaned = np.ndarray
     bperp = np.ndarray
     ph = np.ndarray
     ll = np.ndarray
     xy = np.ndarray
+    sort_ind = np.ndarray
+    master_date = datetime
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
         self.__params = {}
-        self.__master_ix = -1
         self.__rg = None
 
         self.__path = Path(path)
@@ -58,9 +60,9 @@ class PsFiles:
 
         ifgs = self.__load_ifg_info_from_pscphase()
 
-        master_date = self.__get_master_date()
+        self.master_date = self.__get_master_date()
         # TODO parem muutuja nimi
-        self.__master_ix = self.__get_nr_ifgs_less_than_master(master_date, ifgs)
+        self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, ifgs)
 
         self.bprep_meaned, self.bperp = self.__get_bprep(ifgs)
 
@@ -70,9 +72,9 @@ class PsFiles:
 
         self.ll = self.__get_ll_array()
 
-        self.xy, sort_ind = self.__get_xy()
+        self.xy, self.sort_ind = self.__get_xy()
 
-        self.__sort_results(sort_ind)
+        self.__sort_results(self.sort_ind)
 
     def __get_wavelength(self):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
@@ -119,7 +121,7 @@ class PsFiles:
 
         bprep_meaned = np.mean(bperp, 0).transpose()
         # Kustutame püsivpeegeldajate asukohast veeru
-        bperp = np.delete(bperp, self.__master_ix - 1, axis=1)
+        bperp = np.delete(bperp, self.master_ix - 1, axis=1)
 
         return bprep_meaned, bperp
 
@@ -135,7 +137,7 @@ class PsFiles:
         count = 0
         for i in range(0, len(imag_array_raw), imag_mx_len):
             matrix_row = imag_array_raw[i:i + imag_mx_len]
-            if count == self.__master_ix - 1:
+            if count == self.master_ix - 1:
                 matrix_row = np.ones((imag_mx_len), dtype=COMPLEX_TYPE)
             imag_list.append(matrix_row)
 
