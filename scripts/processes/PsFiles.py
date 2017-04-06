@@ -95,8 +95,10 @@ class PsFiles:
                                                 2)
 
         sat_look_angle = np.arccos(np.divide(
-            sar_to_earth_center_sq + np.power(ij_lat, 2) - earth_radius_below_sensor_sq,
-            2 * float(float(self.__params['sar_to_earth_center'])) * self.__rg))
+            sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
+            2 * float(self.__params['sar_to_earth_center']) * self.__rg))
+        cos_sat_look_angle = np.cos(sat_look_angle)
+        sin_sat_look_angle = np.sin(sat_look_angle)
 
         mean_azimuth_line = float(self.__params['azimuth_lines']) / 2 - 0.5
 
@@ -112,32 +114,34 @@ class PsFiles:
 
             bc = bc_bn_formula(tcn[1], baseline_rate[1])
             bn = bc_bn_formula(tcn[2], baseline_rate[2])
-            bprep_line = np.multiply(bc, np.cos(sat_look_angle)) - np.multiply(bn,
-                                                                               np.sin(
-                                                                                   sat_look_angle))
+            bprep_line = np.multiply(bc, cos_sat_look_angle) - np.multiply(bn, sin_sat_look_angle)
             bperp[:, i] = bprep_line
 
-        bprep_meaned = bperp.transpose().mean()
-        bperp = bperp[0:self.__master_ix, self.__master_ix + 1:]
+        bprep_meaned = np.mean(bperp).transpose()
+        # Kustutame püsivpeegeldajate asukohast veeru
+        bperp = np.delete(bperp, self.__master_ix - 1, axis=1)
 
         return bprep_meaned, bperp
 
     def __get_ph(self, nr_ifgs):
         """pscands.1.ph lugemine. Tegemist on binaarkujul failiga kus on kompleksarvud"""
-
         BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "little-endian" 64bit kompleksarvud
+
         COMPLEX_TYPE = np.complex64
         imag_array_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.ph").open("rb"),
                                      BINARY_COMPLEX_TYPE)
         imag_mx_len = int(len(imag_array_raw) / nr_ifgs)
         imag_list = []
+        count = 0
         for i in range(0, len(imag_array_raw), imag_mx_len):
             matrix_row = imag_array_raw[i:i + imag_mx_len]
-            if i == self.__master_ix - 1:
+            if count == self.__master_ix - 1:
                 matrix_row = np.ones((imag_mx_len), dtype=COMPLEX_TYPE)
             imag_list.append(matrix_row)
 
-        return np.reshape(imag_list, (nr_ifgs, imag_mx_len))
+            count += 1
+
+        return np.asarray(imag_list, COMPLEX_TYPE).transpose()
 
     def __get_meaned_incidence(self):
         sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
@@ -171,7 +175,7 @@ class PsFiles:
                         tcn = np.array((
                             splited[1], splited[2], splited[3]), dtype=np.float64)
                     elif splited[0] == "initial_baseline_rate:":
-                        baseline_rate = tcn = np.array((
+                        baseline_rate = np.array((
                             splited[1], splited[2], splited[3]), dtype=np.float64)
                     else:
                         break
@@ -250,7 +254,8 @@ class PsFiles:
             raise FileNotFoundError("pscphase.in not found. AbsPath " + str(path.absolute()))
 
     def __get_nr_ifgs_less_than_master(self, master_date: datetime, ifgs: np.ndarray):
-        """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks"""
+        """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
+         Kuupäev saadakse failiteest"""
 
         result = 1  # StaMPS'is liideti üks juurde peale töötlust
         for ifg_path in ifgs:
@@ -280,7 +285,7 @@ class PsFiles:
 
         # Kuna maatriksitega sorteerimine ei toimi hästi siis peab läbi view tegema seda
         xy_view = xy.view(np.ndarray)
-        sort_ind = np.lexsort((xy_view[:, 1], xy_view[:, 0]))
+        sort_ind = np.lexsort((xy_view[:, 0], xy_view[:, 1]))
         sorted_xy = np.asmatrix(xy_view[sort_ind])
 
         # TODO Korrutame läbi et ümarada millimeetrini? Aga see on juba int
@@ -302,10 +307,11 @@ class PsFiles:
         if is_improved:
             xy = rotated_xy
 
+        xy = xy.H
         return xy
 
     def __sort_results(self, sort_ind: np.ndarray):
         self.ph = self.ph[sort_ind]
+        self.bperp = self.bperp[sort_ind]
         MatrixUtils.sort_matrix_with_sort_array(self.pscands_ij, sort_ind)
         MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
-        MatrixUtils.sort_matrix_with_sort_array(self.bperp, sort_ind)
