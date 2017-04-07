@@ -24,6 +24,7 @@ class PsFiles:
     ph = np.ndarray
     ll = np.ndarray
     xy = np.ndarray
+    da = np.ndarray
     sort_ind = np.ndarray
     master_date = datetime
 
@@ -73,6 +74,8 @@ class PsFiles:
         self.ll = self.__get_ll_array()
 
         self.xy, self.sort_ind = self.__get_xy()
+
+        self.da = self.__get_da()
 
         self.__sort_results(self.sort_ind)
 
@@ -315,5 +318,11 @@ class PsFiles:
     def __sort_results(self, sort_ind: np.ndarray):
         self.ph = self.ph[sort_ind]
         self.bperp = self.bperp[sort_ind]
+        self.da = self.da[sort_ind]
+
         MatrixUtils.sort_matrix_with_sort_array(self.pscands_ij, sort_ind)
         MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
+
+    def __get_da(self):
+        """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
+        return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))

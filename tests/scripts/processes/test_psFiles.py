@@ -34,9 +34,14 @@ class TestPsFiles(TestCase):
         # Need on salvestatud Matlab 7.3'es
         ph1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'ph1.mat'), 'ph')
         bp1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'bp1.mat'), 'bperp_mat')
+        da1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'da1.mat'), 'D_A')
 
         self.assertEqual(len(ps_files.bperp), len(bp1))
         np.testing.assert_allclose(ps_files.bperp.view(np.ndarray), bp1)
+
+        self.assertEqual(len(ps_files.da), len(da1))
+        # Loadmat'is on muutujad omakorda ühemõõtmeliste massiivide sees
+        np.testing.assert_allclose(np.reshape(ps_files.da, (len(ps_files.da), 1)), da1)
 
         np.testing.assert_allclose(ps_files.bprep_meaned, ps1_mat['bperp'])
         np.testing.assert_allclose(ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
