@@ -27,6 +27,7 @@ class PsFiles:
     da = np.ndarray
     sort_ind = np.ndarray
     master_date = datetime
+    ifgs = np.ndarray
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
@@ -59,17 +60,17 @@ class PsFiles:
 
         self.wavelength = self.__get_wavelength()
 
-        ifgs = self.__load_ifg_info_from_pscphase()
+        self.ifgs = self.__load_ifg_info_from_pscphase()
 
         self.master_date = self.__get_master_date()
         # TODO parem muutuja nimi
-        self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, ifgs)
+        self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
-        self.bprep_meaned, self.bperp = self.__get_bprep(ifgs)
+        self.bprep_meaned, self.bperp = self.__get_bprep(self.ifgs)
 
         self.mean_incidence = self.__get_meaned_incidence()
 
-        self.ph = self.__get_ph(len(ifgs))
+        self.ph = self.__get_ph(len(self.ifgs))
 
         self.ll = self.__get_ll_array()
 
@@ -124,7 +125,7 @@ class PsFiles:
 
         bprep_meaned = np.mean(bperp, 0).transpose()
         # Kustutame püsivpeegeldajate asukohast veeru
-        bperp = np.delete(bperp, self.master_ix - 1, axis=1)
+        bperp = MatrixUtils.delete_master_col(bperp, self.master_ix)
 
         return bprep_meaned, bperp
 

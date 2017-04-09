@@ -1,3 +1,5 @@
+from builtins import staticmethod
+
 import numpy as np
 
 
@@ -12,3 +14,7 @@ class MatrixUtils:
 
         tmp = matrix.view(np.ndarray)
         matrix = np.asmatrix(tmp[sort_ind])
+
+    @staticmethod
+    def delete_master_col(matrix: np.matrix, master_ind: int):
+         return np.delete(matrix, master_ind - 1, axis=1)

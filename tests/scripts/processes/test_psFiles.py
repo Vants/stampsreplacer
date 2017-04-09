@@ -66,6 +66,10 @@ class TestPsFiles(TestCase):
         sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
         np.testing.assert_array_equal(ps_files.sort_ind, sort_ix_numpy)
 
+        self.assertEquals(len(ps_files.ifgs), ps1_mat['n_ifg'])
+
+        self.assertEquals(len(ps_files.pscands_ij), ps1_mat['n_ps'])
+
         self.assertEqual(len(ps_files.ph), len(ph1))
         self.assert_ph(ps_files.ph, ph1)
 
