@@ -82,7 +82,7 @@ class PsFiles:
 
     def __get_wavelength(self):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
-        freg = float(self.__params['radar_frequency'])
+        freg = float(self.__params['radar_frequency']) * math.pow(10, 9) # Signaali sagedus (GHz)
         return velocity / freg
 
     def __get_bprep(self, ifgs: np.ndarray):
