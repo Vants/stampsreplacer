@@ -275,7 +275,7 @@ class PsFiles:
         return result
 
     def __get_ll_array(self):
-        return (np.amax(self.lonlat, axis=0) + np.amin(self.lonlat, axis=0)) / 2
+        return (MatrixUtils.max(self.lonlat) + MatrixUtils.min(self.lonlat)) / 2
 
     def __get_xy(self):
         """Võetakse ij massiivist x ja y väärtused (viimased kaks veergu). 
@@ -309,6 +309,7 @@ class PsFiles:
         xy = xy.H
 
         rotated_xy = rotm * xy
+        # Ei kasuta siin massiivi veergude järgi max'i, kuna siin on vaja suurimat elementi
         is_improved = np.amax(rotated_xy[0]) - np.amin(rotated_xy[0]) < np.amax(xy[0]) - np.amin(xy[0]) and np.amax(rotated_xy[1]) - np.amin(rotated_xy[1]) < np.amax(xy[1]) - np.amin(xy[1])
         if is_improved:
             xy = rotated_xy

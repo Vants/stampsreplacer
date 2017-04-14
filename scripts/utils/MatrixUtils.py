@@ -18,3 +18,15 @@ class MatrixUtils:
     @staticmethod
     def delete_master_col(matrix: np.matrix, master_ind: int):
          return np.delete(matrix, master_ind - 1, axis=1)
+
+    @staticmethod
+    def max(array: np.ndarray):
+        return np.amax(array, axis=0)
+
+    @staticmethod
+    def min(array: np.ndarray):
+        return np.amin(array, axis=0)
+
+    @staticmethod
+    def sum(array: np.ndarray):
+        return np.sum(array, axis=0)
