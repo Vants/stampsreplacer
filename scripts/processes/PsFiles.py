@@ -10,6 +10,7 @@ from scripts.utils.FolderConstants import FolderConstants
 import numpy as np
 import math
 
+from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
 
 
@@ -275,7 +276,7 @@ class PsFiles:
         return result
 
     def __get_ll_array(self):
-        return (MatrixUtils.max(self.lonlat) + MatrixUtils.min(self.lonlat)) / 2
+        return (MatlabUtils.max(self.lonlat) + MatlabUtils.min(self.lonlat)) / 2
 
     def __get_xy(self):
         """Võetakse ij massiivist x ja y väärtused (viimased kaks veergu). 
