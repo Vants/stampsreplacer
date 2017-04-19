@@ -37,3 +37,17 @@ class TestCreateLonLat(TestCase):
                                    self._PLACES)
             self.assertAlmostEqual(lonlat_expected[row_num, 1], lonlat_actual[row_num, 1],
                                    self._PLACES)
+
+    def test_save_and_load_results(self):
+        process_save = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
+        lonlat = process_save.start_process()
+        process_save.save_results(lonlat)
+
+        process_load = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
+        lonlat_loaded = process_load.load_results()
+
+        self.assertIsNotNone(lonlat_loaded)
+        self.assertNotEqual(len(lonlat_loaded), 0, "lonlat is empty")
+
+        self.assertIsNotNone(process_load.pscands_ij_array)
+        self.assertNotEqual(len(process_load.pscands_ij_array), 0, "pscands_ij_array is empty")

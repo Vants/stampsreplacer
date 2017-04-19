@@ -25,7 +25,7 @@ class TestPsFiles(TestCase):
         self.lonlat_process = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
 
     def test_load_files(self):
-        lonlat = self.lonlat_process.start_process()
+        lonlat = self.lonlat_process.load_results()
 
         ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
         ps_files.load_files()
@@ -90,3 +90,14 @@ class TestPsFiles(TestCase):
     def __load_mat73(self, path_with_file_name: str, dataset: str):
         with h5py.File(path_with_file_name) as hdf5_file:
             return hdf5_file[dataset][:].conjugate().transpose()
+
+    def test_save_and_load_results(self):
+        lonlat = self.lonlat_process.load_results()
+
+        ps_files_save = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
+        ps_files_save.load_files()
+
+        ps_files_save.save_results()
+
+        ps_files_load = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
+        ps_files_load.load_results()

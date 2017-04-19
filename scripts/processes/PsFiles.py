@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +13,7 @@ import math
 
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
+from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class PsFiles:
@@ -32,6 +34,7 @@ class PsFiles:
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
+        self.__FILE_NAME = "ps_files"
         self.__params = {}
         self.__rg = None
 
@@ -81,9 +84,45 @@ class PsFiles:
 
         self.__sort_results(self.sort_ind)
 
+    def save_results(self):
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            heading=self.heading,
+            mean_range=self.mean_range,
+            wavelength=self.wavelength,
+            mean_incidence=self.mean_incidence,
+            master_ix=self.master_ix,
+            bprep_meaned=self.bprep_meaned,
+            bperp=self.bperp,
+            ph=self.ph,
+            ll=self.ll,
+            xy=self.xy,
+            da=self.da,
+            sort_ind=self.sort_ind,
+            master_date=self.master_date,
+            ifgs=self.ifgs)
+
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.heading = data['heading']
+        self.mean_range = data['mean_range']
+        self.wavelength = data['wavelength']
+        self.mean_incidence = data['mean_incidence']
+        self.master_ix = data['master_ix']
+        self.bprep_meaned = data['bprep_meaned']
+        self.bperp = data['bperp']
+        self.ph = data['ph']
+        self.ll = data['ll']
+        self.xy = data['xy']
+        self.da = data['da']
+        self.sort_ind = data['sort_ind']
+        self.master_date = data['master_date']
+        self.ifgs = data['ifgs']
+
     def __get_wavelength(self):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
-        freg = float(self.__params['radar_frequency']) * math.pow(10, 9) # Signaali sagedus (GHz)
+        freg = float(self.__params['radar_frequency']) * math.pow(10, 9)  # Signaali sagedus (GHz)
         return velocity / freg
 
     def __get_bprep(self, ifgs: np.ndarray):
@@ -114,7 +153,7 @@ class PsFiles:
         bperp = matlib.zeros((len(self.pscands_ij), nr_ifgs), dtype=ARRAY_TYPE)
 
         bc_bn_formula = lambda tcn, baseline_rate: tcn + baseline_rate * (
-        ij_lon - mean_azimuth_line) / float(self.__params['prf'])
+            ij_lon - mean_azimuth_line) / float(self.__params['prf'])
 
         for i in range(nr_ifgs):
             tcn, baseline_rate = self.__get_baseline_params(ifgs[i])
@@ -311,7 +350,9 @@ class PsFiles:
 
         rotated_xy = rotm * xy
         # Ei kasuta siin massiivi veergude järgi max'i, kuna siin on vaja suurimat elementi
-        is_improved = np.amax(rotated_xy[0]) - np.amin(rotated_xy[0]) < np.amax(xy[0]) - np.amin(xy[0]) and np.amax(rotated_xy[1]) - np.amin(rotated_xy[1]) < np.amax(xy[1]) - np.amin(xy[1])
+        is_improved = np.amax(rotated_xy[0]) - np.amin(rotated_xy[0]) < np.amax(xy[0]) - np.amin(
+            xy[0]) and np.amax(rotated_xy[1]) - np.amin(rotated_xy[1]) < np.amax(xy[1]) - np.amin(
+            xy[1])
         if is_improved:
             xy = rotated_xy
 

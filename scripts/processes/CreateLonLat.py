@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import numpy as np
@@ -5,6 +6,8 @@ from snappy import ProductIO
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.utils.FolderConstants import FolderConstants
+
+from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class CreateLonLat(MetaSubProcess):
@@ -15,10 +18,11 @@ class CreateLonLat(MetaSubProcess):
     pscands_ij_array = None
 
     def __init__(self, path: str, geo_ref_product: str):
+        self.__FILE_NAME = "lonlat_process"
         self.path = Path(path)
         self.geo_ref_product = geo_ref_product
 
-    def start_process(self, save_process=False):
+    def start_process(self):
         product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
         lon_band, lat_band = self.__get_lon_bans(product_with_geo_ref)
 
@@ -56,6 +60,24 @@ class CreateLonLat(MetaSubProcess):
         self.pscands_ij_array = np.reshape(self.pscands_ij_array, (len(self.pscands_ij_array), 3))
 
         return np.reshape(lonlat, (len(lonlat), 2))
+
+    def save_results(self, lonlat: np.array):
+        if self.pscands_ij_array is None:
+            raise ValueError("pscands is None")
+        if lonlat is None:
+            raise ValueError("pscands is None")
+
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            pscands_ij_array=self.pscands_ij_array, lonlat=lonlat)
+
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.pscands_ij_array = data["pscands_ij_array"]
+        lonlat = data["lonlat"]
+
+        return lonlat
 
     # TODO kõige aeglasem koht
     # noinspection PyMethodMayBeStatic
