@@ -101,3 +101,17 @@ class TestPsFiles(TestCase):
 
         ps_files_load = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
         ps_files_load.load_results()
+
+        self.assertIsNotNone(ps_files_load.heading)
+        self.assertEquals(ps_files_load.mean_range, ps_files_save.mean_range)
+        self.assertEquals(ps_files_load.wavelength, ps_files_save.wavelength)
+        self.assertEquals(ps_files_load.mean_incidence, ps_files_save.mean_incidence)
+        self.assertEquals(ps_files_load.master_ix, ps_files_save.master_ix)
+        np.testing.assert_array_equal(ps_files_load.bprep_meaned, ps_files_save.bprep_meaned)
+        np.testing.assert_array_equal(ps_files_load.ph, ps_files_save.ph)
+        np.testing.assert_array_equal(ps_files_load.ll, ps_files_save.ll)
+        np.testing.assert_array_equal(ps_files_load.xy, ps_files_save.xy)
+        np.testing.assert_array_equal(ps_files_load.da, ps_files_save.da)
+        np.testing.assert_array_equal(ps_files_load.sort_ind, ps_files_save.sort_ind)
+        self.assertEquals(ps_files_load.master_date, ps_files_save.master_date)
+        np.testing.assert_array_equal(ps_files_load.ifgs, ps_files_save.ifgs)
