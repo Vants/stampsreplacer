@@ -43,7 +43,7 @@ class TestPsFiles(TestCase):
         # Loadmat'is on muutujad omakorda ühemõõtmeliste massiivide sees
         np.testing.assert_allclose(np.reshape(ps_files.da, (len(ps_files.da), 1)), da1)
 
-        np.testing.assert_allclose(ps_files.bprep_meaned, ps1_mat['bperp'])
+        np.testing.assert_allclose(ps_files.bperp_meaned, ps1_mat['bperp'])
         np.testing.assert_allclose(ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
         # Meie protsessis esimest veergu ei ole, seetõttu võtame viimased kaks algsest
         np.testing.assert_allclose(ps_files.xy, ps1_mat['xy'][:, 1:])
@@ -107,7 +107,8 @@ class TestPsFiles(TestCase):
         self.assertEquals(ps_files_load.wavelength, ps_files_save.wavelength)
         self.assertEquals(ps_files_load.mean_incidence, ps_files_save.mean_incidence)
         self.assertEquals(ps_files_load.master_ix, ps_files_save.master_ix)
-        np.testing.assert_array_equal(ps_files_load.bprep_meaned, ps_files_save.bprep_meaned)
+        np.testing.assert_array_equal(ps_files_load.bperp_meaned, ps_files_save.bperp_meaned)
+        np.testing.assert_array_equal(ps_files_load.bperp, ps_files_save.bperp)
         np.testing.assert_array_equal(ps_files_load.ph, ps_files_save.ph)
         np.testing.assert_array_equal(ps_files_load.ll, ps_files_save.ll)
         np.testing.assert_array_equal(ps_files_load.xy, ps_files_save.xy)

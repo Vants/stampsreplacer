@@ -7,15 +7,24 @@ import numpy as np
 class MatlabUtils:
     @staticmethod
     def max(array: np.ndarray):
-        return np.amax(array, axis=0)
+        if len(array) > 1:
+            return np.amax(array, axis=0)
+        else:
+            return np.amax(array)
 
     @staticmethod
     def min(array: np.ndarray):
-        return np.amin(array, axis=0)
+        if len(array) > 1:
+            return np.amin(array, axis=0)
+        else:
+            return np.amin(array)
 
     @staticmethod
     def sum(array: np.ndarray):
-        return np.sum(array, axis=0)
+        if len(array.shape) > 1:
+            return np.sum(array, axis=0)
+        else:
+            return np.sum(array)
 
     @staticmethod
     def gausswin(M: int, alpha=2.5):

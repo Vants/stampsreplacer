@@ -22,8 +22,8 @@ class PsFiles:
     wavelength = 0.0
     mean_incidence = 0.0
     master_ix = -1
-    bprep_meaned = np.ndarray
-    bperp = np.ndarray
+    bperp_meaned = np.ndarray
+    bperp = np.ndarray # Stamps'is oli see bperp_mat
     ph = np.ndarray
     ll = np.ndarray
     xy = np.ndarray
@@ -70,7 +70,7 @@ class PsFiles:
         # TODO parem muutuja nimi
         self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
-        self.bprep_meaned, self.bperp = self.__get_bprep(self.ifgs)
+        self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs)
 
         self.mean_incidence = self.__get_meaned_incidence()
 
@@ -91,7 +91,7 @@ class PsFiles:
             wavelength=self.wavelength,
             mean_incidence=self.mean_incidence,
             master_ix=self.master_ix,
-            bprep_meaned=self.bprep_meaned,
+            bprep_meaned=self.bperp_meaned,
             bperp=self.bperp,
             ph=self.ph,
             ll=self.ll,
@@ -110,7 +110,7 @@ class PsFiles:
         self.wavelength = data['wavelength']
         self.mean_incidence = data['mean_incidence']
         self.master_ix = data['master_ix']
-        self.bprep_meaned = data['bprep_meaned']
+        self.bperp_meaned = data['bprep_meaned']
         self.bperp = data['bperp']
         self.ph = data['ph']
         self.ll = data['ll']
