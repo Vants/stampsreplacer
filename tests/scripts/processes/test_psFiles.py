@@ -35,6 +35,7 @@ class TestPsFiles(TestCase):
         ph1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'ph1.mat'), 'ph')
         bp1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'bp1.mat'), 'bperp_mat')
         da1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'da1.mat'), 'D_A')
+        la1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'la1.mat'), 'la')
 
         self.assertEqual(len(ps_files.bperp), len(bp1))
         np.testing.assert_allclose(ps_files.bperp.view(np.ndarray), bp1)
@@ -63,8 +64,9 @@ class TestPsFiles(TestCase):
         self.assertEquals(ps_files.master_ix, ps1_mat['master_ix'])
 
         # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
-        sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
-        np.testing.assert_array_equal(ps_files.sort_ind, sort_ix_numpy)
+        #
+        # sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
+        np.testing.assert_allclose(ps_files.sort_ind.view(np.ndarray), la1)
 
         self.assertEquals(len(ps_files.ifgs), ps1_mat['n_ifg'])
 

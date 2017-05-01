@@ -28,7 +28,7 @@ class PsFiles:
     ll = np.ndarray
     xy = np.ndarray
     da = np.ndarray
-    sort_ind = np.ndarray
+    sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
     master_date = datetime
     ifgs = np.ndarray
 
@@ -70,7 +70,11 @@ class PsFiles:
         # TODO parem muutuja nimi
         self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
-        self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs)
+        self.__rg = self.get_rg()
+
+        sat_look_angle = self.__get_look_angle()
+
+        self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs, sat_look_angle)
 
         self.mean_incidence = self.__get_meaned_incidence()
 
@@ -78,11 +82,11 @@ class PsFiles:
 
         self.ll = self.__get_ll_array()
 
-        self.xy, self.sort_ind = self.__get_xy()
+        self.xy, sort_ind = self.__get_xy()
 
         self.da = self.__get_da()
 
-        self.__sort_results(self.sort_ind)
+        self.__sort_results(sort_ind, sat_look_angle)
 
     def save_results(self):
         ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
@@ -125,7 +129,7 @@ class PsFiles:
         freg = float(self.__params['radar_frequency']) * math.pow(10, 9)  # Signaali sagedus (GHz)
         return velocity / freg
 
-    def __get_bprep(self, ifgs: np.ndarray):
+    def __get_bprep(self, ifgs: np.ndarray, sat_look_angle: np.ndarray):
         """Leitakse bprep_meaned ja bprep_arr. StaMPS'is vastavalt bperp ja bperp_mat. 
         Salvestan mõlemad igaksjuhuks.
         
@@ -133,16 +137,8 @@ class PsFiles:
         kolmanda veeruga. Python'is on selline protsess liiga aeglane (ligi 30 sekundit)"""
         ARRAY_TYPE = np.float64
 
-        ij_lat = self.pscands_ij[:, 2]
-        self.__rg = float(self.__params['near_range_slc']) + ij_lat * float(
-            self.__params['range_pixel_spacing'])
-        sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
-        earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
-                                                2)
 
-        sat_look_angle = np.arccos(np.divide(
-            sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
-            2 * float(self.__params['sar_to_earth_center']) * self.__rg))
+
         cos_sat_look_angle = np.cos(sat_look_angle)
         sin_sat_look_angle = np.sin(sat_look_angle)
 
@@ -359,7 +355,7 @@ class PsFiles:
         xy = xy.H
         return xy
 
-    def __sort_results(self, sort_ind: np.ndarray):
+    def __sort_results(self, sort_ind: np.ndarray, sat_look_angle: np.ndarray):
         self.ph = self.ph[sort_ind]
         self.bperp = self.bperp[sort_ind]
         self.da = self.da[sort_ind]
@@ -367,6 +363,21 @@ class PsFiles:
         MatrixUtils.sort_matrix_with_sort_array(self.pscands_ij, sort_ind)
         MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
 
+        self.sort_ind = sat_look_angle[sort_ind]
+
     def __get_da(self):
         """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
         return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))
+
+    def __get_look_angle(self):
+        sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
+        earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
+                                                2)
+        return np.arccos(np.divide(
+            sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
+            2 * float(self.__params['sar_to_earth_center']) * self.__rg))
+
+    def get_rg(self):
+        ij_lat = self.pscands_ij[:, 2]
+        return float(self.__params['near_range_slc']) + ij_lat * float(
+            self.__params['range_pixel_spacing'])
