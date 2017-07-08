@@ -6,6 +6,7 @@ from snappy import ProductIO
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.utils.FolderConstants import FolderConstants
+from scripts.utils.LoggerFactory import LoggerFactory
 
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
@@ -22,7 +23,11 @@ class CreateLonLat(MetaSubProcess):
         self.path = Path(path)
         self.geo_ref_product = geo_ref_product
 
+        self.logger = LoggerFactory.create('CreateLonLat')
+
     def start_process(self):
+        self.logger.debug("Start")
+
         product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
         lon_band, lat_band = self.__get_lon_bans(product_with_geo_ref)
 
@@ -58,6 +63,8 @@ class CreateLonLat(MetaSubProcess):
                 self.__add_to_pscands_array(int(line[0]), int(line[1]), int(line[2]))
 
         self.pscands_ij_array = np.reshape(self.pscands_ij_array, (len(self.pscands_ij_array), 3))
+
+        self.logger.debug("Done")
 
         return np.reshape(lonlat, (len(lonlat), 2))
 
