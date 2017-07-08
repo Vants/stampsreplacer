@@ -7,9 +7,9 @@ class AbstractTestCase(TestCase):
     """See klass on justkui abstraktne klass testidele. Siin on üldmeetodi ja setup testidele"""
     _PLACES = 5
 
-def setUp(self):
-    super().setUp()
+    def setUp(self):
+        super().setUp()
 
-    self._config = ConfigUtils()
+        self._config = ConfigUtils()
 
-    self._PATH = self._config.get_default_section('tests_files_path')
+        self._PATH = self._config.get_default_section('tests_files_path')
