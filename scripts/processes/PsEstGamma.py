@@ -165,11 +165,11 @@ class PsEstGamma(MetaSubProcess):
             # todo
             del rnd_ifgs
 
-            hist = MatlabUtils.histogram(random_coherence, self.__coherence_bins)
+            hist, _ = MatlabUtils.hist(random_coherence, self.__coherence_bins)
 
-            rand_dist = hist[0]
+            rand_dist = hist
 
-            return rand_dist, np.count_nonzero(hist[0])
+            return rand_dist, np.count_nonzero(hist)
 
         if (self.rand_dist_cached):
             print("Using cache")
@@ -338,7 +338,7 @@ class PsEstGamma(MetaSubProcess):
             coh_ps_result = coh_ps
 
             if self.__filter_weighting == 'P-square':
-                hist, ignore = MatlabUtils.histogram(coh_ps, self.__coherence_bins)
+                hist, ignore = MatlabUtils.hist(coh_ps, self.__coherence_bins)
                 # todo Juhuslikud sagedused tehakse reaalseteks. Mida iganes see ka ei tähenda
                 self.rand_dist = self.rand_dist * np.sum(
                     hist[1:self.__low_coherence_tresh]) / np.sum(
