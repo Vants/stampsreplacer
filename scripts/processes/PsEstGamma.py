@@ -12,6 +12,7 @@ import numpy as np
 
 from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.FolderConstants import FolderConstants
+from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
@@ -26,7 +27,11 @@ class PsEstGamma(MetaSubProcess):
     rand_dist = np.ndarray
     nr_max_nz_ind = -1
 
+    __FILE_NAME = "ps_est_gamma"
+
     def __init__(self, ps_files: PsFiles, rand_dist_cached=False) -> None:
+        self.logger = LoggerFactory.create("PsEstGamma")
+
         self.ps_files = ps_files
         self.__set_internal_params()
         self.rand_dist_cached = rand_dist_cached
@@ -58,6 +63,8 @@ class PsEstGamma(MetaSubProcess):
         self.__low_coherence_tresh = 31  # Võrdne 31/100'jaga
 
     def start_process(self):
+        self.logger.debug("Started")
+
         self.low_pass = self.__get_low_pass()
 
         ph, bprep_meaned, bprep, nr_ifgs, nr_ps, xy, da, sort_ind_meaned = self.__load_ps_params()
@@ -72,13 +79,33 @@ class PsEstGamma(MetaSubProcess):
         self.weights_org = self.__get_weights(da)
 
         weights = np.array(self.weights_org, copy=True)
-        ph_patch, k_ps, c_ps, coh_ps, n_opt, ph_res, ph_grid, low_pass = self.__sw_loop(grid_ij, ph,
-                                                                                        weights.copy(),
-                                                                                        self.low_pass,
-                                                                                        bprep,
-                                                                                        nr_ifgs,
-                                                                                        nr_ps,
-                                                                                        nr_trial_waps)
+
+        # Eelnev oli sisuliselt eelöö selleks mis nüüd hakkab.
+        self.ph_patch, self.k_ps, self.c_ps, self.coh_ps, self.n_opt, \
+        self.ph_res, self.ph_grid, self.low_pass = \
+            self.__sw_loop(
+                grid_ij, ph,
+                weights.copy(),
+                self.low_pass,
+                bprep,
+                nr_ifgs,
+                nr_ps,
+                nr_trial_waps)
+
+        self.logger.debug("End")
+
+    def save_results(self):
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            ph_patch=self.ph_patch,
+            k_ps=self.k_ps,
+            c_ps=self.c_ps,
+            coh_ps=self.coh_ps,
+            n_opt=self.n_opt,
+            ph_res=self.ph_res,
+            ph_grid=self.ph_grid,
+            low_pass=self.low_pass
+        )
+
 
     def __get_low_pass(self):
         start = -(self.__clap_win) / self.__filter_grid_size / self.__clap_win / 2
@@ -269,6 +296,9 @@ class PsEstGamma(MetaSubProcess):
             exp_tiled_weight_multi = np.multiply(exped, np.tile(weights, (1, nr_ifgs)))
             return np.multiply(ph, exp_tiled_weight_multi)
 
+        def is_gamma_in_change_delta():
+            return abs(gamma_change_delta) > self.__gamma_change_convergence
+
         nr_i = int(np.max(grid_ij[:, 0]))
         nr_j = int(np.max(grid_ij[:, 1]))
         # Liidame siin ühe juurde, sest indeksid hakkavad nullist
@@ -291,7 +321,7 @@ class PsEstGamma(MetaSubProcess):
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
 
-        while abs(gamma_change_delta) > self.__gamma_change_convergence:
+        while is_gamma_in_change_delta():
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
             for i in range(nr_ps):
@@ -337,7 +367,7 @@ class PsEstGamma(MetaSubProcess):
             gamma_change = gamma_change_rms
             coh_ps_result = coh_ps
 
-            if self.__filter_weighting == 'P-square':
+            if is_gamma_in_change_delta() or self.__filter_weighting == 'P-square':
                 hist, ignore = MatlabUtils.hist(coh_ps, self.__coherence_bins)
                 # todo Juhuslikud sagedused tehakse reaalseteks. Mida iganes see ka ei tähenda
                 self.rand_dist = self.rand_dist * np.sum(
@@ -364,7 +394,7 @@ class PsEstGamma(MetaSubProcess):
                 weights = np.reshape(np.power(1 - ps_rand, 2), SW_ARRAY_SHAPE)
 
         #todo k_ps üle vaadata
-        return ph_patch, k_ps, c_ps, coh_ps, n_opt, ph_res, ph_grid, low_pass
+        return ph_patch, k_ps, c_ps, coh_ps_result, n_opt, ph_res, ph_grid, low_pass
 
     def __clap_filt(self, ph: np.ndarray, low_pass: np.ndarray):
         """CLAP_FILT Combined Low-pass Adaptive Phase filtering. 

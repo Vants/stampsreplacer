@@ -26,3 +26,4 @@ class TestPsEstGamma(AbstractTestCase):
     def test_start_process(self):
         est_gamma_process = PsEstGamma(self.ps_files, True)
         est_gamma_process.start_process()
+        est_gamma_process.save_results()
