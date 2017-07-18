@@ -10,20 +10,21 @@ from tests.AbstractTestCase import AbstractTestCase
 
 
 class TestPsFiles(AbstractTestCase):
-    def setUp(self):
-        super().setUp()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        self._GEO_DATA_FILE = os.path.join(self._PATH,
+        cls._GEO_DATA_FILE = os.path.join(cls._PATH,
                                            'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
-        self._PATCH_1_FOLDER = os.path.join(self._PATH, FolderConstants.PATCH_FOLDER)
+        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, FolderConstants.PATCH_FOLDER)
 
-        self.lonlat_process = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
+        cls.lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE)
+        cls.lonlat = cls.lonlat_process.load_results()
+
+        cls._ps_files = None
 
     def test_load_files(self):
-        lonlat = self.lonlat_process.load_results()
-
-        ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
-        ps_files.load_files()
+        self.__start_process()
 
         ps1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'ps1.mat'))
         # Need on salvestatud Matlab 7.3'es
@@ -32,43 +33,43 @@ class TestPsFiles(AbstractTestCase):
         da1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'da1.mat'), 'D_A')
         la1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'la1.mat'), 'la')
 
-        self.assertEqual(len(ps_files.bperp), len(bp1))
-        np.testing.assert_allclose(ps_files.bperp.view(np.ndarray), bp1)
+        self.assertEqual(len(self._ps_files.bperp), len(bp1))
+        np.testing.assert_allclose(self._ps_files.bperp.view(np.ndarray), bp1)
 
-        self.assertEqual(len(ps_files.da), len(da1))
+        self.assertEqual(len(self._ps_files.da), len(da1))
         # Loadmat'is on muutujad omakorda ühemõõtmeliste massiivide sees
-        np.testing.assert_allclose(np.reshape(ps_files.da, (len(ps_files.da), 1)), da1)
+        np.testing.assert_allclose(np.reshape(self._ps_files.da, (len(self._ps_files.da), 1)), da1)
 
-        np.testing.assert_allclose(ps_files.bperp_meaned, ps1_mat['bperp'])
-        np.testing.assert_allclose(ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
+        np.testing.assert_allclose(self._ps_files.bperp_meaned, ps1_mat['bperp'])
+        np.testing.assert_allclose(self._ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
         # Meie protsessis esimest veergu ei ole, seetõttu võtame viimased kaks algsest
-        np.testing.assert_allclose(ps_files.xy, ps1_mat['xy'][:, 1:])
+        np.testing.assert_allclose(self._ps_files.xy, ps1_mat['xy'][:, 1:])
 
-        self.assertAlmostEqual(ps_files.mean_range, ps1_mat['mean_range'])
+        self.assertAlmostEqual(self._ps_files.mean_range, ps1_mat['mean_range'])
 
-        np.testing.assert_allclose(ps_files.mean_incidence.view(np.ndarray),
+        np.testing.assert_allclose(self._ps_files.mean_incidence.view(np.ndarray),
                                    ps1_mat['mean_incidence'])
 
-        np.testing.assert_allclose(ps_files.ll, ps1_mat['ll0'])
+        np.testing.assert_allclose(self._ps_files.ll, ps1_mat['ll0'])
 
         # Kuna neil pole mat'ides kontrollväärtuseid siis neid kontrollib kas on täidetud
-        self.assertNotEquals(ps_files.wavelength, 0)
-        self.assertIsNotNone(ps_files.heading)
+        self.assertNotEquals(self._ps_files.wavelength, 0)
+        self.assertIsNotNone(self._ps_files.heading)
 
-        self.assertNotEquals(ps_files.master_date, ps1_mat['master_day'])
-        self.assertEquals(ps_files.master_ix, ps1_mat['master_ix'])
+        self.assertNotEquals(self._ps_files.master_date, ps1_mat['master_day'])
+        self.assertEquals(self._ps_files.master_ix, ps1_mat['master_ix'])
 
         # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
         #
         # sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
-        np.testing.assert_allclose(ps_files.sort_ind.view(np.ndarray), la1)
+        np.testing.assert_allclose(self._ps_files.sort_ind.view(np.ndarray), la1)
 
-        self.assertEquals(len(ps_files.ifgs), ps1_mat['n_ifg'])
+        self.assertEquals(len(self._ps_files.ifgs), ps1_mat['n_ifg'])
 
-        self.assertEquals(len(ps_files.pscands_ij), ps1_mat['n_ps'])
+        self.assertEquals(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
 
-        self.assertEqual(len(ps_files.ph), len(ph1))
-        self.assert_ph(ps_files.ph, ph1)
+        self.assertEqual(len(self._ps_files.ph), len(ph1))
+        self.assert_ph(self._ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
         """Matlab'i mat falides pole kompleksarvud defineeritud nii nagu Numpy's.
@@ -89,27 +90,31 @@ class TestPsFiles(AbstractTestCase):
             return hdf5_file[dataset][:].conjugate().transpose()
 
     def test_save_and_load_results(self):
-        lonlat = self.lonlat_process.load_results()
+        self.__start_process()
+        self._ps_files.save_results()
 
-        ps_files_save = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
-        ps_files_save.load_files()
-
-        ps_files_save.save_results()
-
-        ps_files_load = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, lonlat)
+        ps_files_load = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
         ps_files_load.load_results()
 
         self.assertIsNotNone(ps_files_load.heading)
-        self.assertEquals(ps_files_load.mean_range, ps_files_save.mean_range)
-        self.assertEquals(ps_files_load.wavelength, ps_files_save.wavelength)
-        self.assertEquals(ps_files_load.mean_incidence, ps_files_save.mean_incidence)
-        self.assertEquals(ps_files_load.master_ix, ps_files_save.master_ix)
-        np.testing.assert_array_equal(ps_files_load.bperp_meaned, ps_files_save.bperp_meaned)
-        np.testing.assert_array_equal(ps_files_load.bperp, ps_files_save.bperp)
-        np.testing.assert_array_equal(ps_files_load.ph, ps_files_save.ph)
-        np.testing.assert_array_equal(ps_files_load.ll, ps_files_save.ll)
-        np.testing.assert_array_equal(ps_files_load.xy, ps_files_save.xy)
-        np.testing.assert_array_equal(ps_files_load.da, ps_files_save.da)
-        np.testing.assert_array_equal(ps_files_load.sort_ind, ps_files_save.sort_ind)
-        self.assertEquals(ps_files_load.master_date, ps_files_save.master_date)
-        np.testing.assert_array_equal(ps_files_load.ifgs, ps_files_save.ifgs)
+        self.assertEquals(ps_files_load.mean_range, self._ps_files.mean_range)
+        self.assertEquals(ps_files_load.wavelength, self._ps_files.wavelength)
+        self.assertEquals(ps_files_load.mean_incidence, self._ps_files.mean_incidence)
+        self.assertEquals(ps_files_load.master_ix, self._ps_files.master_ix)
+        np.testing.assert_array_equal(ps_files_load.bperp_meaned, self._ps_files.bperp_meaned)
+        np.testing.assert_array_equal(ps_files_load.bperp, self._ps_files.bperp)
+        np.testing.assert_array_equal(ps_files_load.ph, self._ps_files.ph)
+        np.testing.assert_array_equal(ps_files_load.ll, self._ps_files.ll)
+        np.testing.assert_array_equal(ps_files_load.xy, self._ps_files.xy)
+        np.testing.assert_array_equal(ps_files_load.da, self._ps_files.da)
+        np.testing.assert_array_equal(ps_files_load.sort_ind, self._ps_files.sort_ind)
+        self.assertEquals(ps_files_load.master_date, self._ps_files.master_date)
+        np.testing.assert_array_equal(ps_files_load.ifgs, self._ps_files.ifgs)
+
+    def __start_process(self):
+        # Kahjuks see selfi laadimine ei tööta, kuna igal testi laadimisel on oma main meetod ja
+        # need tehtud klassimuutujad kaovad
+        if self._ps_files is None:
+            print("Ei olnud")
+            self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
+            self._ps_files.load_files()

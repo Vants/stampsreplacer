@@ -9,13 +9,13 @@ from tests.ConfigUtils import ConfigUtils
 
 class TestCreateLonLat(AbstractTestCase):
 
-    def setUp(self):
-        super().setUp()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        self._GEO_DATA_FILE = os.path.join(self._PATH,
-                                      'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
-        self._PATCH_1_FOLDER = os.path.join(self._PATH, FolderConstants.PATCH_FOLDER)
-
+        cls._GEO_DATA_FILE = os.path.join(cls._PATH,
+                                           'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
+        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, FolderConstants.PATCH_FOLDER)
 
     def test_start_process(self):
         process = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
