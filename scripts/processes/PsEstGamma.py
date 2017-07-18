@@ -1,4 +1,5 @@
 import math
+import os
 
 import pydsm.relab
 import sys
@@ -106,6 +107,18 @@ class PsEstGamma(MetaSubProcess):
             low_pass=self.low_pass
         )
 
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.ph_patch = data['ph_patch']
+        self.k_ps = data['k_ps']
+        self.c_ps = data['c_ps']
+        self.coh_ps = data['coh_ps']
+        self.n_opt = data['n_opt']
+        self.ph_res = data['ph_res']
+        self.ph_grid = data['ph_grid']
+        self.low_pass = data['low_pass']
 
     def __get_low_pass(self):
         start = -(self.__clap_win) / self.__filter_grid_size / self.__clap_win / 2
