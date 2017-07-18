@@ -112,9 +112,5 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_array_equal(ps_files_load.ifgs, self._ps_files.ifgs)
 
     def __start_process(self):
-        # Kahjuks see selfi laadimine ei tööta, kuna igal testi laadimisel on oma main meetod ja
-        # need tehtud klassimuutujad kaovad
-        if self._ps_files is None:
-            print("Ei olnud")
-            self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
-            self._ps_files.load_files()
+        self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
+        self._ps_files.load_files()

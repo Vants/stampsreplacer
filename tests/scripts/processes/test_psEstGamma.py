@@ -68,8 +68,5 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_array_equal(self._est_gamma_process.low_pass, est_gamma_loaded.low_pass)
 
     def __start_process(self):
-        # Kahjuks see selfi laadimine ei tööta, kuna igal testi laadimisel on oma main meetod ja
-        # need tehtud klassimuutujad kaovad
-        if self._est_gamma_process is None:
-            self._est_gamma_process = PsEstGamma(self.ps_files, True)
-            self._est_gamma_process.start_process()
+        self._est_gamma_process = PsEstGamma(self.ps_files, True)
+        self._est_gamma_process.start_process()
