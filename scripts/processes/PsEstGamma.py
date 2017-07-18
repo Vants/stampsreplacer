@@ -30,7 +30,7 @@ class PsEstGamma(MetaSubProcess):
     __FILE_NAME = "ps_est_gamma"
 
     def __init__(self, ps_files: PsFiles, rand_dist_cached=False) -> None:
-        self.logger = LoggerFactory.create("PsEstGamma")
+        self.__logger = LoggerFactory.create("PsEstGamma")
 
         self.ps_files = ps_files
         self.__set_internal_params()
@@ -63,7 +63,7 @@ class PsEstGamma(MetaSubProcess):
         self.__low_coherence_tresh = 31  # Võrdne 31/100'jaga
 
     def start_process(self):
-        self.logger.debug("Started")
+        self.__logger.debug("Started")
 
         self.low_pass = self.__get_low_pass()
 
@@ -92,7 +92,7 @@ class PsEstGamma(MetaSubProcess):
                 nr_ps,
                 nr_trial_waps)
 
-        self.logger.debug("End")
+        self.__logger.debug("End")
 
     def save_results(self):
         ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
