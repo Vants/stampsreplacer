@@ -12,7 +12,7 @@ class MatrixUtils:
         Allikas http://stackoverflow.com/questions/13338110/python-matrix-sorting-via-one-column"""
 
         tmp = matrix.view(np.ndarray)
-        matrix = np.asmatrix(tmp[sort_ind])
+        return np.asmatrix(tmp[sort_ind])
 
     @staticmethod
     def delete_master_col(matrix: np.matrix, master_ind: int):

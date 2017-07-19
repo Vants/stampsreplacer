@@ -360,8 +360,8 @@ class PsFiles:
         self.bperp = self.bperp[sort_ind]
         self.da = self.da[sort_ind]
 
-        MatrixUtils.sort_matrix_with_sort_array(self.pscands_ij, sort_ind)
-        MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
+        self.pscands_ij = MatrixUtils.sort_matrix_with_sort_array(self.pscands_ij, sort_ind)
+        self.lonlat = MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
 
         self.sort_ind = sat_look_angle[sort_ind]
 
