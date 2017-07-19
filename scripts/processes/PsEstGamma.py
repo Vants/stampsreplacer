@@ -72,6 +72,7 @@ class PsEstGamma(MetaSubProcess):
 
         nr_trial_waps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
 
+        # StaMPS'is oli self.rand_dist nimetatud 'Nr'
         self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
                                                                      nr_trial_waps)
 
@@ -189,7 +190,7 @@ class PsEstGamma(MetaSubProcess):
             for i in range(NR_RAND_IFGS - 1, 0, -1):
                 phase = np.exp(1j * rnd_ifgs[i])
                 # Siin juhul kasutame ainult esimest parameetrit
-                phase_residual, ignored_1, ignored_2, ignored_3 = self.__ps_topofit(phase,
+                phase_residual, _, _, _ = self.__ps_topofit(phase,
                                                                                     bperp_meaned,
                                                                                     nr_trial_wraps)
                 random_coherence[i] = phase_residual[0]
@@ -373,7 +374,7 @@ class PsEstGamma(MetaSubProcess):
             coh_ps_result = coh_ps
 
             if is_gamma_in_change_delta() or self.__filter_weighting == 'P-square':
-                hist, ignore = MatlabUtils.hist(coh_ps, self.__coherence_bins)
+                hist, _ = MatlabUtils.hist(coh_ps, self.__coherence_bins)
                 # todo Juhuslikud sagedused tehakse reaalseteks. Mida iganes see ka ei tähenda
                 self.rand_dist = self.rand_dist * np.sum(
                     hist[1:self.__low_coherence_tresh]) / np.sum(
