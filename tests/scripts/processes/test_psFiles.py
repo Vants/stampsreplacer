@@ -52,6 +52,8 @@ class TestPsFiles(AbstractTestCase):
 
         np.testing.assert_allclose(self._ps_files.ll, ps1_mat['ll0'])
 
+        np.testing.assert_allclose(self._ps_files.lonlat, ps1_mat['lonlat'])
+
         # Kuna neil pole mat'ides kontrollväärtuseid siis neid kontrollib kas on täidetud
         self.assertNotEquals(self._ps_files.wavelength, 0)
         self.assertIsNotNone(self._ps_files.heading)
