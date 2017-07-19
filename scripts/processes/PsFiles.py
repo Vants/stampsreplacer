@@ -381,3 +381,16 @@ class PsFiles:
         ij_lat = self.pscands_ij[:, 2]
         return float(self.__params['near_range_slc']) + ij_lat * float(
             self.__params['range_pixel_spacing'])
+
+    def get_ps_variables(self):
+        """Meetod millega eksportida muutujad mida läheb PsEstGamma ja PsSelect is vaja"""
+
+        ph = self.ph
+
+        nr_ifgs = len(self.ifgs) - 1
+        nr_ps = len(self.pscands_ij)
+        xy = self.xy
+
+        da = self.da
+
+        return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da

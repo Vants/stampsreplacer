@@ -68,11 +68,11 @@ class PsEstGamma(MetaSubProcess):
 
         self.low_pass = self.__get_low_pass()
 
-        ph, bprep_meaned, bprep, nr_ifgs, nr_ps, xy, da, sort_ind_meaned = self.__load_ps_params()
+        ph, bperp_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned = self.__load_ps_params()
 
-        nr_trial_waps = self.__get_nr_trial_wraps(bprep_meaned, sort_ind_meaned)
+        nr_trial_waps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
 
-        self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bprep_meaned,
+        self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
                                                                      nr_trial_waps)
 
         grid_ij = self.__get_grid_ij(xy)
@@ -88,7 +88,7 @@ class PsEstGamma(MetaSubProcess):
                 grid_ij, ph,
                 weights.copy(),
                 self.low_pass,
-                bprep,
+                bperp,
                 nr_ifgs,
                 nr_ps,
                 nr_trial_waps)
@@ -134,10 +134,9 @@ class PsEstGamma(MetaSubProcess):
     def __load_ps_params(self):
         """Loeb sisse muutujad ps_files'ist ja muudab neid vastavalt"""
 
-        get_data = lambda array: MatrixUtils.delete_master_col(array.copy(),
-                                                               self.ps_files.master_ix)
+        ph, bperp, nr_ifgs, nr_ps, xy, da = self.ps_files.get_ps_variables()
 
-        ph = get_data(self.ps_files.ph)
+        ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_ix)
         ph_abs = np.abs(ph)
         ph = np.divide(ph_abs, ph)
 
@@ -145,17 +144,10 @@ class PsEstGamma(MetaSubProcess):
         # siis tavaline delete_master_col ei tööta
         bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_ix - 1)
 
-        bprep = self.ps_files.bperp
-
-        nr_ifgs = len(self.ps_files.ifgs) - 1
-        nr_ps = len(self.ps_files.pscands_ij)
-        xy = self.ps_files.xy
-
-        da = self.ps_files.da
 
         sort_ind_meaned = np.mean(self.ps_files.sort_ind + 1) + math.radians(3)
 
-        return ph, bprep_meaned, bprep, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
+        return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
 
     def __get_nr_trial_wraps(self, bperp_meaned, sort_ind_meaned):
         # todo mis on k?
