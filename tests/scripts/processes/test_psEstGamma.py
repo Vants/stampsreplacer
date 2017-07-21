@@ -1,8 +1,10 @@
 import os
+import scipy.io
 
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
+from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.FolderConstants import FolderConstants
 from tests.AbstractTestCase import AbstractTestCase
 
@@ -32,7 +34,15 @@ class TestPsEstGamma(AbstractTestCase):
     def test_start_process(self):
         self.__start_process()
 
+        self.assertIsNotNone(self._est_gamma_process.coherence_bins)
+
         est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
+
+        pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
+
+        np.testing.assert_array_almost_equal(
+            self._est_gamma_process.coherence_bins,
+            pm1_mat['coh_bins'][0])
 
         # TODO Tulevikus kontrollime juhuslikke arve. Hetkel aga kontrollime ühe eelmise vastu.
         np.testing.assert_array_equal(self._est_gamma_process.ph_patch,

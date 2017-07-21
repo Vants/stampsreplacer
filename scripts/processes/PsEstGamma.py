@@ -37,7 +37,8 @@ class PsEstGamma(MetaSubProcess):
         self.__set_internal_params()
         self.rand_dist_cached = rand_dist_cached
 
-        self.__coherence_bins = ArrayUtils.arange_include_last(0.0005, 0.995, 0.01)
+        # StaMPS'is oli see 'coh_bins'
+        self.coherence_bins = ArrayUtils.arange_include_last(0.005, 0.995, 0.01)
 
     def __set_internal_params(self):
         """StaMPS'is loeti need setparam'iga süsteemi. Väärtused on saadud ps_params_default failist"""
@@ -168,7 +169,7 @@ class PsEstGamma(MetaSubProcess):
                 rand_dist = loaded['rand_dist']
                 nr_max_nz_ind = loaded['nr_max_nz_ind']
             except FileNotFoundError:
-                print("No cache")
+                self.__logger.info("No cache")
 
                 rand_dist, nr_max_nz_ind = random_dist()
                 cache(rand_dist, nr_max_nz_ind)
@@ -198,14 +199,14 @@ class PsEstGamma(MetaSubProcess):
             # todo
             del rnd_ifgs
 
-            hist, _ = MatlabUtils.hist(random_coherence, self.__coherence_bins)
+            hist, _ = MatlabUtils.hist(random_coherence, self.coherence_bins)
 
             rand_dist = hist
 
             return rand_dist, np.count_nonzero(hist)
 
         if (self.rand_dist_cached):
-            print("Using cache")
+            self.__logger.info("Using cache")
             return use_cached()
         else:
             return random_dist()
@@ -374,7 +375,7 @@ class PsEstGamma(MetaSubProcess):
             coh_ps_result = coh_ps
 
             if is_gamma_in_change_delta() or self.__filter_weighting == 'P-square':
-                hist, _ = MatlabUtils.hist(coh_ps, self.__coherence_bins)
+                hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins)
                 # todo Juhuslikud sagedused tehakse reaalseteks. Mida iganes see ka ei tähenda
                 self.rand_dist = self.rand_dist * np.sum(
                     hist[1:self.__low_coherence_tresh]) / np.sum(
