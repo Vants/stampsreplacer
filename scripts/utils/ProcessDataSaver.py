@@ -18,16 +18,17 @@ class ProcessDataSaver:
         self.file_path_with_name = Path(file_path, file_name)
 
         if log_level is not None or log_level != '':
-            self.logger = self.make_logger(file_name)
-            self.logger.debug("ProcessDataSaver created. File path " + file_path
-                              + ", file_name " + file_name)
+            self.__logger = self.make_logger(file_name)
+            self.__logger.info("ProcessDataSaver created. File path " + file_path
+                               + ", file_name " + file_name)
 
     def save_data(self, **data):
         np.savez(str(os.path.abspath(self.file_path_with_name)), **data)
 
-        if self.logger is not None:
-            self.logger.info(data)
+        if self.__logger is not None:
+            self.__logger.debug(data)
 
+    # noinspection PyMethodMayBeStatic
     def make_logger(self, file_name):
         logger_name = "LoggerFactory." + file_name
         return LoggerFactory.create(logger_name)
