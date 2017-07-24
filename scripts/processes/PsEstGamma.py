@@ -77,7 +77,7 @@ class PsEstGamma(MetaSubProcess):
         self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
                                                                      nr_trial_waps)
 
-        grid_ij = self.__get_grid_ij(xy)
+        self.grid_ij = self.__get_grid_ij(xy)
 
         self.weights_org = self.__get_weights(da)
 
@@ -87,7 +87,7 @@ class PsEstGamma(MetaSubProcess):
         self.ph_patch, self.k_ps, self.c_ps, self.coh_ps, self.n_opt, \
         self.ph_res, self.ph_grid, self.low_pass = \
             self.__sw_loop(
-                grid_ij, ph,
+                self.grid_ij, ph,
                 weights.copy(),
                 self.low_pass,
                 bperp,
@@ -107,7 +107,8 @@ class PsEstGamma(MetaSubProcess):
             ph_res=self.ph_res,
             ph_grid=self.ph_grid,
             low_pass=self.low_pass,
-            coherence_bins=self.coherence_bins
+            coherence_bins=self.coherence_bins,
+            grid_ij=self.grid_ij
         )
 
     def load_results(self):
@@ -123,6 +124,7 @@ class PsEstGamma(MetaSubProcess):
         self.ph_grid = data['ph_grid']
         self.low_pass = data['low_pass']
         self.coherence_bins = data['coherence_bins']
+        self.grid_ij = data['grid_ij']
 
     def __get_low_pass(self):
         start = -(self.__clap_win) / self.__filter_grid_size / self.__clap_win / 2
@@ -271,7 +273,9 @@ class PsEstGamma(MetaSubProcess):
     def __get_grid_ij(self, xy: np.ndarray):
 
         def fill_cols_with_xy_values(xy_col):
-            col_formula = lambda x: np.ceil((x - np.amin(x) + 1e-6) / self.__filter_grid_size)
+            # Float32 on vajalik selleks, et komakohti ei tekiks liiga palju. Kui komakohti on
+            # liiga palju siis võib juhtuda, et arvud on näiteks 2224.000001, mis ümardatakse 2225'eni
+            col_formula = lambda x: np.ceil((x - np.amin(x) + 1e-6).astype(np.float32) / self.__filter_grid_size)
 
             grid_ij_col = col_formula(xy_col)
             max_ind = np.where(grid_ij_col == np.amax(grid_ij_col))
@@ -279,10 +283,10 @@ class PsEstGamma(MetaSubProcess):
 
             return grid_ij_col
 
-        grid_ij = np.zeros((len(xy), 2))
+        grid_ij = np.zeros((len(xy), 2), np.int32)
 
-        grid_ij[:, 0] = fill_cols_with_xy_values(xy[:, 0])
-        grid_ij[:, 1] = fill_cols_with_xy_values(xy[:, 1])
+        grid_ij[:, 0] = fill_cols_with_xy_values(xy[:, 1])
+        grid_ij[:, 1] = fill_cols_with_xy_values(xy[:, 0])
 
         return grid_ij
 

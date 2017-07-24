@@ -34,9 +34,8 @@ class TestPsEstGamma(AbstractTestCase):
     def test_start_process(self):
         self.__start_process()
 
+        self.assertIsNotNone(self._est_gamma_process.grid_ij)
         self.assertIsNotNone(self._est_gamma_process.coherence_bins)
-
-        est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
 
         pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
 
@@ -44,7 +43,11 @@ class TestPsEstGamma(AbstractTestCase):
             self._est_gamma_process.coherence_bins,
             pm1_mat['coh_bins'][0])
 
+        np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
+
         # TODO Tulevikus kontrollime juhuslikke arve. Hetkel aga kontrollime ühe eelmise vastu.
+        est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
+
         np.testing.assert_array_equal(self._est_gamma_process.ph_patch,
                                       est_gamma_process_expected['ph_patch'])
         np.testing.assert_array_equal(self._est_gamma_process.k_ps,
