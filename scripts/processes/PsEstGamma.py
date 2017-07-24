@@ -88,7 +88,7 @@ class PsEstGamma(MetaSubProcess):
         self.ph_patch, self.k_ps, self.c_ps, self.coh_ps, self.n_opt, \
         self.ph_res, self.ph_grid, self.low_pass = \
             self.__sw_loop(
-                self.grid_ij, ph,
+                ph,
                 weights.copy(),
                 self.low_pass,
                 bperp,
@@ -237,7 +237,7 @@ class PsEstGamma(MetaSubProcess):
     def __get_weights(self, da):
         return ArrayUtils.to_col_matrix(np.divide(1, da))
 
-    def __sw_loop(self, grid_ij: np.ndarray, ph: np.ndarray, weights: np.ndarray,
+    def __sw_loop(self, ph: np.ndarray, weights: np.ndarray,
                   low_pass: np.ndarray, bprep: np.ndarray, nr_ifgs: int, nr_ps: int,
                   nr_trial_wraps: float):
 
@@ -256,8 +256,8 @@ class PsEstGamma(MetaSubProcess):
         def is_gamma_in_change_delta():
             return abs(gamma_change_delta) > self.__gamma_change_convergence
 
-        nr_i = int(np.max(grid_ij[:, 0]))
-        nr_j = int(np.max(grid_ij[:, 1]))
+        nr_i = int(np.max(self.grid_ij[:, 0]))
+        nr_j = int(np.max(self.grid_ij[:, 1]))
         # Liidame siin ühe juurde, sest indeksid hakkavad nullist
         # Tüüp peab olema np.complex64, sest pydsm.relab.shiftdim tagastab selles tüübis
         ph_grid = np.zeros((nr_j + 1, nr_i + 1, nr_ifgs), np.complex128)
@@ -282,7 +282,7 @@ class PsEstGamma(MetaSubProcess):
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
             for i in range(nr_ps):
-                ph_grid[int(grid_ij[i, 1]), int(grid_ij[i, 0]), :] += pydsm.relab.shiftdim(
+                ph_grid[int(self.grid_ij[i, 1]), int(self.grid_ij[i, 0]), :] += pydsm.relab.shiftdim(
                     ph_weight[i, :], -1, nargout=1)[0]
 
             for i in range(nr_ifgs):
@@ -290,7 +290,7 @@ class PsEstGamma(MetaSubProcess):
 
             for i in range(nr_ps):
                 ph_patch[i, :nr_ifgs] = np.squeeze(
-                    ph_filt[int(grid_ij[i, 1]), int(grid_ij[i, 0]), :])
+                    ph_filt[int(self.grid_ij[i, 1]), int(self.grid_ij[i, 0]), :])
 
             not_zero_patches_ind = np.nonzero(ph_patch)
             ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
