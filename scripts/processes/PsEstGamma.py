@@ -7,6 +7,7 @@ from statsmodels.compat import scipy
 import scipy.signal
 
 from scripts.MetaSubProcess import MetaSubProcess
+from scripts.funs.PsTopofit import PsTopofit
 from scripts.processes.PsFiles import PsFiles
 
 import numpy as np
@@ -195,9 +196,7 @@ class PsEstGamma(MetaSubProcess):
             for i in range(NR_RAND_IFGS - 1, 0, -1):
                 phase = np.exp(1j * rnd_ifgs[i])
                 # Siin juhul kasutame ainult esimest parameetrit
-                phase_residual, _, _, _ = self.__ps_topofit(phase,
-                                                                                    bperp_meaned,
-                                                                                    nr_trial_wraps)
+                phase_residual, _, _, _ = PsTopofit.ps_topofit_fun(phase, bperp_meaned, nr_trial_wraps)
                 random_coherence[i] = phase_residual[0]
 
             # todo
@@ -214,61 +213,6 @@ class PsEstGamma(MetaSubProcess):
             return use_cached()
         else:
             return random_dist()
-
-    def __ps_topofit(self, phase: np.ndarray, bperp_meaned: np.ndarray, nr_trial_wraps: float):
-        def fiter_zeros(phase, bperp):
-            not_zeros_ind = np.nonzero(np.nan_to_num(phase))
-
-            phase = phase[not_zeros_ind]
-            bperp = bperp[not_zeros_ind]
-
-            return phase, bperp
-
-        # phase, bperp_meaned = fiter_zeros(phase, bperp_meaned)
-
-        # Et edasipidi oleksid tulemid õiged teeme bperp'i veerumaatriksiks
-        bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
-
-        # Siin ei saa get_nr_trial_wraps leitut kasutada, kuna seal oli see üldisem
-        bperp_range = np.amax(bperp_meaned) - np.amin(bperp_meaned)
-
-        CONST = 8 * nr_trial_wraps  # todo aga mis const? Miks see 8 on?
-        trial_multi_start = -np.ceil(CONST)
-        trial_multi_end = np.ceil(CONST)
-        trial_multi = ArrayUtils.arange_include_last(trial_multi_start, trial_multi_end, 1)
-
-        trial_phase = bperp_meaned / bperp_range * math.pi / 4
-
-        # Tavaline korrutamine võib anda vigu, seepärast on siin np.outer
-        trial_phase = np.exp(np.outer(-1j * trial_phase, trial_multi))
-
-        # Selleks, et korrutamine õnnestuks teeme ta veeruvektoriks
-        phase = ArrayUtils.to_col_matrix(phase)
-        phase_tile = np.tile(phase, (1, len(trial_multi)))
-        phaser = np.multiply(trial_phase, phase_tile)
-
-        phaser_sum = MatlabUtils.sum(phaser)
-
-        phase_abs_sum = MatlabUtils.sum(np.abs(phase))
-        trial_coherence = np.abs(phaser_sum) / phase_abs_sum
-        trial_coherence_max_ind = np.where(trial_coherence == MatlabUtils.max(trial_coherence))
-
-        # todo: kas siin on viga? trial_coherence_max_ind on tuple ju
-        k_0 = (math.pi / 4 / bperp_range) * trial_multi[trial_coherence_max_ind][0]
-
-        re_phase = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
-        phase_offset = MatlabUtils.sum(re_phase)
-        re_phase = np.angle(re_phase * phase_offset.conjugate())
-        weigth = np.abs(phase)
-        mopt = np.multiply(weigth, bperp_meaned) / np.multiply(weigth, re_phase)
-        k_0 = k_0 + mopt
-
-        phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
-        phase_residual_sum = MatlabUtils.sum(phase_residual)
-        static_offset = np.angle(phase_residual_sum)
-        coherence_0 = np.abs(phase_residual_sum) / MatlabUtils.sum(np.abs(phase_residual))
-
-        return phase_residual, coherence_0, static_offset, k_0
 
     def __get_grid_ij(self, xy: np.ndarray):
 
@@ -352,27 +296,14 @@ class PsEstGamma(MetaSubProcess):
             ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
                                                        np.abs(ph_patch[not_zero_patches_ind]))
 
-            # Est topo error
-            # todo siin me puhastame need array'd, refacto
-            c_ps = zero_ps_array_cont()
-            coh_ps = zero_ps_array_cont()
-            n_opt = zero_ps_array_cont()
-            ph_res = np.zeros((nr_ps, nr_ifgs))
-            for i in range(nr_ps):
-                psdph = np.multiply(ph[i, :], np.conjugate(ph_patch[i, :]))
+            topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
+            topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
 
-                # todo refactor
-                if np.sum(np.isnan(psdph)) == 0 and np.sum(psdph == 0) == 0:
-                    phase_residual, coh_0, static_offset, k_0 = self.__ps_topofit(
-                        psdph, bprep[i, :].transpose(), nr_trial_wraps)
-                    k_ps[i] = k_0[0]
-                    c_ps[i] = static_offset[0]
-                    coh_ps[i] = coh_0[0]
-                    n_opt[i] = len(k_0)
-                    ph_res[i, :] = np.angle(phase_residual).transpose()
-                else:
-                    k_ps[i] = np.nan
-                    coh_ps[i] = 0
+            k_ps = topofit.k_ps
+            c_ps = topofit.c_ps
+            coh_ps = topofit.coh_ps
+            n_opt = topofit.n_opt
+            ph_res = topofit.ph_res
 
             gamma_change_rms = np.sqrt(np.sum(np.power(coh_ps - coh_ps_result, 2) / nr_ps))
             gamma_change_delta = gamma_change_rms - gamma_change
