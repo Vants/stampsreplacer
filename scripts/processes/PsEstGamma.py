@@ -72,11 +72,11 @@ class PsEstGamma(MetaSubProcess):
 
         ph, bperp_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned = self.__load_ps_params()
 
-        nr_trial_waps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
+        self.nr_trial_wraps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
 
         # StaMPS'is oli self.rand_dist nimetatud 'Nr'
         self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
-                                                                     nr_trial_waps)
+                                                                     self.nr_trial_wraps)
 
         self.grid_ij = self.__get_grid_ij(xy)
 
@@ -94,7 +94,7 @@ class PsEstGamma(MetaSubProcess):
                 bperp,
                 nr_ifgs,
                 nr_ps,
-                nr_trial_waps)
+                self.nr_trial_wraps)
 
         self.__logger.debug("End")
 
@@ -109,7 +109,8 @@ class PsEstGamma(MetaSubProcess):
             ph_grid=self.ph_grid,
             low_pass=self.low_pass,
             coherence_bins=self.coherence_bins,
-            grid_ij=self.grid_ij
+            grid_ij=self.grid_ij,
+            nr_trial_wraps=self.nr_trial_wraps
         )
 
     def load_results(self):
@@ -126,6 +127,7 @@ class PsEstGamma(MetaSubProcess):
         self.low_pass = data['low_pass']
         self.coherence_bins = data['coherence_bins']
         self.grid_ij = data['grid_ij']
+        self.nr_trial_wraps = data['nr_trial_wraps']
 
     def __get_low_pass(self):
         start = -(self.__clap_win) / self.__filter_grid_size / self.__clap_win / 2
@@ -152,7 +154,7 @@ class PsEstGamma(MetaSubProcess):
         bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_ix - 1)
 
 
-        sort_ind_meaned = np.mean(self.ps_files.sort_ind + 1) + math.radians(3)
+        sort_ind_meaned = np.mean(self.ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
 

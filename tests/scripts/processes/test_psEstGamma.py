@@ -44,6 +44,8 @@ class TestPsEstGamma(AbstractTestCase):
             pm1_mat['coh_bins'][0])
 
         np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
+        np.testing.assert_array_almost_equal(
+            self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4) # todo kas saab täpsemaks? float128 äkki?
 
         # TODO Tulevikus kontrollime juhuslikke arve. Hetkel aga kontrollime ühe eelmise vastu.
         est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
@@ -80,6 +82,7 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_array_equal(self._est_gamma_process.ph_grid, est_gamma_loaded.ph_grid)
         np.testing.assert_array_equal(self._est_gamma_process.low_pass, est_gamma_loaded.low_pass)
         np.testing.assert_array_equal(self._est_gamma_process.coherence_bins, est_gamma_loaded.coherence_bins)
+        np.testing.assert_array_equal(self._est_gamma_process.nr_trial_wraps, est_gamma_loaded.nr_trial_wraps)
 
     def __start_process(self):
         self._est_gamma_process = PsEstGamma(self.ps_files, True)
