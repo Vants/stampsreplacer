@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import re
+from typing import Callable
 
 from numpy import matlib
 
@@ -296,19 +297,9 @@ class PsFiles:
             raise FileNotFoundError("pscphase.in not found. AbsPath " + str(path.absolute()))
 
     def __get_nr_ifgs_less_than_master(self, master_date: datetime, ifgs: np.ndarray):
-        """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
-         Kuupäev saadakse failiteest"""
-
-        result = 1  # StaMPS'is liideti üks juurde peale töötlust
-        for ifg_path in ifgs:
-            ifg_date_str_yyyymmdd = ifg_path[-13:-5]
-            ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
-                                    int(ifg_date_str_yyyymmdd[4:6]),
-                                    int(ifg_date_str_yyyymmdd[6:8]))
-            if ifg_datetime > master_date:
-                result += 1
-
-        return result
+        """Mitu intefegorammi on enne masteri kuupäeva"""
+        comp_fun = lambda x, y: x > y
+        return self.get_nr_ifgs_copared_to_master(comp_fun, ifgs, master_date)
 
     def __get_ll_array(self):
         return (MatlabUtils.max(self.lonlat) + MatlabUtils.min(self.lonlat)) / 2
@@ -389,3 +380,23 @@ class PsFiles:
         nr_ps = len(self.pscands_ij)
 
         return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da
+
+    def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[datetime, datetime], bool],
+                                      ifgs=None, master_date=None):
+        """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
+         Kuupäev saadakse failiteest"""
+        if ifgs is None:
+            ifgs = self.ifgs
+
+        if master_date is None:
+            master_date = self.master_date
+
+        result = 1  # StaMPS'is liideti üks juurde peale töötlust
+        for ifg_path in ifgs:
+            ifg_date_str_yyyymmdd = ifg_path[-13:-5]
+            ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
+                                    int(ifg_date_str_yyyymmdd[4:6]),
+                                    int(ifg_date_str_yyyymmdd[6:8]))
+            if comp_fun(ifg_datetime, master_date):
+                result += 1
+        return result
