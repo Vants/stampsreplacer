@@ -9,9 +9,11 @@ from scripts.utils.MatlabUtils import MatlabUtils
 class PsTopofit:
     """Topofit arvutamise objekt. Põhiprotsess toimub topofit ps_topofit_loop funkstioonis"""
 
+    k_ps = np.ndarray
     c_ps = np.ndarray
     coh_ps = np.ndarray
     n_opt = np.ndarray
+    ph_res = np.ndarray
 
     def __init__(self, sw_array_shape, nr_ps, nr_ifg):
         self.__nr_ps = nr_ps
@@ -23,12 +25,21 @@ class PsTopofit:
         self.ph_res = np.zeros((nr_ps, nr_ifg))
 
     def ps_topofit_loop(self, ph: np.ndarray, ph_patch: np.ndarray, bprep: np.ndarray,
-                        nr_trial_wraps: float):
+                        nr_trial_wraps: float, ifg_ind=None):
+        """Tegemist on topofit'i leidmise for loopiga, kus täidetakse ära kõik konstruktoris tehtud
+        sisemised muutujad.
+        ifg_ind on massiiv mis leitakse PsSelect'is ja seal tehakse tegevusi natuke omamoodi, aga üldiselt
+        samamoodi"""
+
         for i in range(self.__nr_ps):
             psdph = np.multiply(ph[i, :], np.conjugate(ph_patch[i, :]))
 
             # todo refactor
             if np.sum(np.isnan(psdph)) == 0 and np.sum(psdph == 0) == 0:
+                if ifg_ind is not None:
+                    psdph = np.multiply(psdph, np.abs(psdph))
+                    psdph = psdph[ifg_ind]
+
                 phase_residual, coh_0, static_offset, k_0 = self.ps_topofit_fun(psdph,
                                                                        bprep[i, :].transpose(),
                                                                        nr_trial_wraps)
@@ -36,7 +47,11 @@ class PsTopofit:
                 self.c_ps[i] = static_offset[0]
                 self.coh_ps[i] = coh_0[0]
                 self.n_opt[i] = len(k_0)
-                self.ph_res[i, :] = np.angle(phase_residual).transpose()
+
+                if psdph is None:
+                    self.ph_res[i, :] = np.angle(phase_residual).transpose()
+                else:
+                    self.ph_res[i, ifg_ind] = np.angle(phase_residual).transpose()
             else:
                 self.k_ps[i] = np.nan
                 self.coh_ps[i] = 0
