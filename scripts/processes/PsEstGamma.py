@@ -17,6 +17,7 @@ from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
+from scripts.utils.ProcessCache import ProcessCache
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
@@ -144,6 +145,7 @@ class PsEstGamma(MetaSubProcess):
         """Loeb sisse muutujad ps_files'ist ja muudab neid vastavalt"""
 
         ph, bperp, nr_ifgs, nr_ps, xy, da = self.ps_files.get_ps_variables()
+        nr_ifgs -= 1 # Teistes protsessides kus seda muutjat kasutatakse seda teha ei tohi. StaMPS'is small_basline=n
 
         ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_ix)
         ph_abs = np.abs(ph)
@@ -169,12 +171,14 @@ class PsEstGamma(MetaSubProcess):
         return bperp_range * max_k / (2 * math.pi)
 
     def __make_random_dist(self, nr_ps, nr_ifgs, bperp_meaned, nr_trial_wraps):
+        CACHE_FILE_NAME = "tmp_rand_dist"
 
         def use_cached():
             try:
-                loaded = np.load(FolderConstants.SAVE_PATH + "/tmp/tmp_rand_dist.npz")
+                loaded = ProcessCache.get_from_cache(CACHE_FILE_NAME, 'rand_dist', 'nr_max_nz_ind')
                 rand_dist = loaded['rand_dist']
                 nr_max_nz_ind = loaded['nr_max_nz_ind']
+
             except FileNotFoundError:
                 self.__logger.info("No cache")
 
@@ -184,9 +188,9 @@ class PsEstGamma(MetaSubProcess):
             return rand_dist, nr_max_nz_ind
 
         def cache(rand_dist: np.ndarray, nr_max_nz_ind: int):
-            ProcessDataSaver(FolderConstants.SAVE_PATH + "/tmp", "tmp_rand_dist").save_data(
-                rand_dist=rand_dist,
-                nr_max_nz_ind=nr_max_nz_ind)
+            ProcessCache.save_to_cache(CACHE_FILE_NAME,
+                                       rand_dist=rand_dist,
+                                       nr_max_nz_ind=nr_max_nz_ind)
 
         def random_dist():
             NR_RAND_IFGS = nr_ps  # StaMPS'is oli see 300000

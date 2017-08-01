@@ -376,7 +376,7 @@ class PsFiles:
     def get_ps_variables(self):
         """Meetod millega eksportida muutujad mida läheb PsEstGamma ja PsSelect is vaja"""
 
-        nr_ifgs = len(self.ifgs) - 1
+        nr_ifgs = len(self.ifgs)
         nr_ps = len(self.pscands_ij)
 
         return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da
