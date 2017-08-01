@@ -42,9 +42,8 @@ class MatlabUtils:
     def hist(a: np.ndarray, bins: np.ndarray):
         """Selleks, et Matlab'i ja Numpy hist funktsioonid oleksd võrdsed paneme bin'idele lõppu
         lõpmatuse. density=True aitab sellega, et vastustesse tekikisd murdarvud"""
-
-        new_bins = np.append(bins, np.inf)
-        return np.histogram(a, new_bins, density=True)
+        new_bins = np.r_[-np.Inf, 0.5 * (bins[:-1] + bins[1:]), np.Inf]
+        return np.histogram(a, new_bins)
 
     @staticmethod
     def interp(y, m):
@@ -58,3 +57,25 @@ class MatlabUtils:
 
         new_xs = np.arange(len(y) - 1, step=1. / m)
         return fn(new_xs)
+
+    @staticmethod
+    def std(array: np.ndarray):
+        """https://stackoverflow.com/questions/27600207/why-does-numpy-std-give-a-different-result-to-matlab-std"""
+        return np.std(array, ddof=1)
+
+    @staticmethod
+    def polyfit_polyval(x: np.ndarray, y: np.ndarray, deg: int, max_desinty_or_percent_rand: float):
+        """Funkstioon mis teeb seda mida Matlab'is teeb polyfit ja polyval'i, kus polyfit tagastab
+        kolm muutujat S ja mu.
+
+        https://stackoverflow.com/questions/45338872/matlab-polyval-function-with-three-outputs-equivalent-in-python-numpy/45339206#45339206
+        """
+        mu = np.mean(x)
+        std = MatlabUtils.std(y)
+
+        c_scaled = np.polyfit((x - mu) / std, y, deg)
+        p_scaled = np.poly1d(c_scaled)
+
+        polyval = p_scaled((max_desinty_or_percent_rand - mu) / std)
+
+        return polyval
