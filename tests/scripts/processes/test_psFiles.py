@@ -16,7 +16,6 @@ class TestPsFiles(AbstractTestCase):
 
         cls._GEO_DATA_FILE = os.path.join(cls._PATH,
                                            'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
-        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, FolderConstants.PATCH_FOLDER)
 
         cls.lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE)
         cls.lonlat = cls.lonlat_process.load_results()

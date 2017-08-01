@@ -1,5 +1,7 @@
+import os
 from unittest import TestCase
 
+from scripts.utils.FolderConstants import FolderConstants
 from tests.ConfigUtils import ConfigUtils
 
 
@@ -14,3 +16,5 @@ class AbstractTestCase(TestCase):
         cls._config = ConfigUtils()
 
         cls._PATH = cls._config.get_default_section('tests_files_path')
+
+        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, FolderConstants.PATCH_FOLDER)

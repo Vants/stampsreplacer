@@ -21,8 +21,6 @@ class TestPsEstGamma(AbstractTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, FolderConstants.PATCH_FOLDER)
-
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
         lonlat = lonlat_process.load_results()
         cls.ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij_array, lonlat)
