@@ -36,15 +36,16 @@ class PsSelect(MetaSubProcess):
 
     def __set_internal_params(self):
         """StaMPS'is loeti need setparami'iga süteemi sisse ja pärast getparam'iga välja.
-        Kõik väärtused on võetud, et small_baseline_flag on 'N'"""
+        Kõik väärtused on võetud, et small_baseline_flag on 'N'
 
+        StaMPS'is oli max_desinty_rand ja max_percent_rand muutujad eraldi ja sarnaselt neile siin.
+        Siin aga saadakse see fukstioonist __get_max_rand.
+        """
         self.__slc_osf = 1
         self.__clap_alpha = 1
         self.__clap_beta = 0.3
         self.__clap_win = 32
         self.__select_method = self._SelectMethod.DESINTY  # DESINITY või PERCENT
-        # StaMPS'is oli need oli desnity ja percent väärtus eraldi
-        self.__max_desinty_or_percent_rand = 20
         # todo mis see on?
         self.__gamma_stdev_reject = 0
         # TODO StaMPS'is oli []
@@ -81,9 +82,14 @@ class PsSelect(MetaSubProcess):
         PERCENT = 2
 
     def start_process(self):
-        data, self.__max_desinty_or_percent_rand = self.__load_ps_params()
+        """Siin on tähtis, et min_coh, coh_thresh ja coh_thresh_ind oleksid leitud võimalikult täpselt.
+        Seda seepärast, et ka 0.001'ne täpsus võib rikkuda coh_threh tulemust"""
 
-        min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(data)
+        data = self.__load_ps_params()
+
+        max_rand = self.__get_max_rand(data.da_max, data.xy)
+
+        min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(max_rand, data)
 
         coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data)
 
@@ -92,6 +98,17 @@ class PsSelect(MetaSubProcess):
         ph_patch = self.__get_ph_patch(coh_thresh_ind, data)
 
         coh_ps, topofit = self.__topofit(ph_patch, coh_thresh_ind, data)
+
+        # Leitud tulemused klassimuutujatesse
+        self.coh_thresh = coh_thresh
+        self.ph_patch = ph_patch
+        self.coh_thresh_ind = coh_thresh_ind
+        self.coh_ps = coh_ps # StaMPS'is salvestati see muutuja eelmisest protsessist üle
+        self.coh_ps2 = topofit.coh_ps #todo parem nimi
+        self.ph_res = topofit.ph_res
+        self.k_ps = topofit.k_ps
+        self.c_ps = topofit.c_ps
+        self.ifg_ind = data.ifg_ind
 
     def __load_ps_params(self) -> (_DataDTO, int):
         """Leiab parameetritest ps_files väärtused mida on hiljem vaja ning vajadusel muudab neid.
@@ -145,21 +162,30 @@ class PsSelect(MetaSubProcess):
 
         da_max, da = get_da_max(da)
 
-        # todo see osa paremaks teha
-        if self.__is_select_method_percent():
-            # StaMPS'is tagastati min'ist ja max'ist massiivid milles oli üks element
-            patch_area = np.prod(MatlabUtils.max(xy) - MatlabUtils.min(xy)) / 1e6  # km'ites
-            max_percent_rand = self.__max_desinty_or_percent_rand * patch_area / len(da_max)
-        else:
-            max_percent_rand = self.__max_desinty_or_percent_rand
-
         # StaMPS'is oli see nimetatud nr_dist
         rand_dist = self.ps_est_gamma.rand_dist
 
         data_dto = self._DataDTO(ph, bperp, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
-        return data_dto, max_percent_rand
+        return data_dto
 
-    def __get_min_coh_and_da_mean(self, data: _DataDTO) -> (
+    def __get_max_rand(self, da_max, xy):
+        """Funkstioon leidmaks muutuja mis oli StaMPS'is nimega 'max_percent_rand'.
+
+        StaMPS'is loeti see parameetritest sisse, aga kuna seda ka muudetakse vajadusel siis
+        selle leidmine siin eraldi toodud"""
+
+        DEF_VAL = 20
+
+        if self.__select_method is self._SelectMethod.DESINTY:
+            # StaMPS'is tagastati min'ist ja max'ist massiivid milles oli üks element
+            patch_area = np.prod(MatlabUtils.max(xy) - MatlabUtils.min(xy)) / 1e6  # km'ites
+            max_rand = DEF_VAL * patch_area / len(da_max)
+        else:
+            max_rand = DEF_VAL
+
+        return max_rand
+
+    def __get_min_coh_and_da_mean(self, max_rand, data: _DataDTO) -> (
             np.ndarray, np.ndarray, bool):
 
         # Paneme kohalikesse muutujatesse eelmistest protsessidest saadud tulemused,
@@ -195,13 +221,13 @@ class PsSelect(MetaSubProcess):
             # Percent_rand'i leidmine
             # np.flip võimaldab vastu võtta ühemõõtmelisi massive, seepärast ei kasuta np.fliplr
             nr_cumsum = np.cumsum(np.flip(nr, axis=0), axis=0)
-            if self.__is_select_method_percent():
+            if self.__select_method is self._SelectMethod.PERCENT:
                 hist_cumsum = np.cumsum(np.flip(hist, axis=0), axis=0) * 100
                 percent_rand = np.flip(np.divide(nr_cumsum, hist_cumsum), axis=0)
             else:
                 percent_rand = np.flip(nr_cumsum, axis=0)
 
-            ok_ind = np.where(percent_rand < self.__max_desinty_or_percent_rand)
+            ok_ind = np.where(percent_rand < max_rand)
 
             if len(ok_ind) == 0:
                 # Kui koherentsuse väärtused ületavad lubatu väärtuse
@@ -222,19 +248,20 @@ class PsSelect(MetaSubProcess):
                     if max_fit_ind > len(percent_rand) - 1:
                         max_fit_ind = len(percent_rand) - 1
 
-                    y_cordinates = ArrayUtils.arange_include_last(min_fit_ind * 0.01,
-                                                                  max_fit_ind * 0.01, 0.01)
                     x_cordinates = percent_rand[
                                    min_fit_ind:max_fit_ind + 1]  # todo see +1 eemaldada?
 
+                    y_cordinates = ArrayUtils.arange_include_last((min_fit_ind + 1) * 0.01,
+                                                                  (max_fit_ind + 1) * 0.01, 0.01)
                     min_coh[i] = MatlabUtils.polyfit_polyval(x_cordinates, y_cordinates, 3,
-                                                             self.__max_desinty_or_percent_rand)
+                                                             max_rand)
 
         # Leiame kas min_coh on täis nan'e ja on täiesti kasutamatu.
         # See osa oli natuke teisem StaMPS'is, Siin olen ma toonud kogu min_coh'i ja da_mean'iga tegevused ühte meetodi
         not_nan_ind = np.where(min_coh != np.nan)[0]
         is_min_coh_nan_array = sum(not_nan_ind) == 0  # todo miks StaMPS siin tehti sum'i?
-        if not is_min_coh_nan_array:
+        # Kui erinevusi ei olnud siis pole ka mõtet võtta array'idest osasid
+        if not is_min_coh_nan_array or (not_nan_ind == array_size):
             min_coh = min_coh[not_nan_ind]
             da_mean = da_mean[not_nan_ind]
 
@@ -247,7 +274,8 @@ class PsSelect(MetaSubProcess):
             self.__logger.warn(
                 'Not enough random phase pixels to set gamma threshold - using default threshold of '
                 + str(self._DEF_COH_THRESH))
-            coh_thresh = np.array([self._DEF_COH_THRESH])  # Tavaväärtus pannakse üksikult massiivi
+            # Tavaväärtus pannakse üksikult massiivi, et pärast kontollida selle jägi
+            coh_thresh = np.array([self._DEF_COH_THRESH])
         else:
             # Kuna eelmises funktsioonis muutsime juba vastavalt min_coh ja da_mean parameetreid
             if min_coh.shape[0] > 1:
@@ -377,9 +405,14 @@ class PsSelect(MetaSubProcess):
                 self.__logger.debug("Trying to use cache")
                 loaded = ProcessCache.get_from_cache(CACHE_FILE_NAME, 'ph_patch', 'coh_thresh_ind')
                 if np.array_equal(coh_thresh_ind, loaded['coh_thresh_ind']):
+                    self.__logger.debug("Using cache")
                     ph_patch = loaded['ph_patch']
                 else:
+                    self.__logger.debug("No usable cache")
                     ph_patch = ph_path_loop()
+                    ProcessCache.save_to_cache(CACHE_FILE_NAME,
+                                               ph_patch=ph_patch,
+                                               coh_thresh_ind=coh_thresh_ind)
             except FileNotFoundError:
                 self.__logger.debug("No cache")
                 ph_patch = ph_path_loop()

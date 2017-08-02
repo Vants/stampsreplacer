@@ -1,11 +1,13 @@
 import os
 
 import scipy.io
+import numpy as np
 
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
+from scripts.utils.ArrayUtils import ArrayUtils
 from tests.AbstractTestCase import AbstractTestCase
 
 
@@ -44,3 +46,14 @@ class TestPsSelect(AbstractTestCase):
 
         self._ps_select = PsSelect(self._ps_files, self._est_gamma_process)
         self._ps_select.start_process()
+
+        select1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'select1.mat'))
+
+        # Kuna Matlab'i indeksid hakkavad ühest siis liidame siin juurde
+        np.testing.assert_allclose(np.add(self._ps_select.ifg_ind, 1), select1_mat['ifg_index'][0])
+        np.testing.assert_allclose(np.add(self._ps_select.coh_thresh_ind, 1), select1_mat['ix'])
+        np.testing.assert_allclose(self._ps_select.ph_patch, select1_mat['ph_patch2'])
+        np.testing.assert_allclose(self._ps_select.coh_ps, select1_mat['coh_ps2'])
+        np.testing.assert_allclose(self._ps_select.k_ps, select1_mat['K_ps2'])
+        np.testing.assert_allclose(self._ps_select.ph_res, select1_mat['ph_res2'])
+        np.testing.assert_allclose(self._ps_select.coh_thresh, select1_mat['coh_thresh'])
