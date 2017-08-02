@@ -34,8 +34,7 @@ class PsTopofit:
         for i in range(self.__nr_ps):
             psdph = np.multiply(ph[i, :], np.conjugate(ph_patch[i, :]))
 
-            # todo refactor
-            if np.sum(np.isnan(psdph)) == 0 and np.sum(psdph == 0) == 0:
+            if np.count_nonzero(np.isnan(psdph)) == 0 and np.count_nonzero(psdph == 0) == 0:
                 if ifg_ind is not None:
                     psdph = np.multiply(psdph, np.abs(psdph))
                     psdph = psdph[ifg_ind]
@@ -58,16 +57,6 @@ class PsTopofit:
 
     @staticmethod
     def ps_topofit_fun(phase: np.ndarray, bperp_meaned: np.ndarray, nr_trial_wraps: float):
-        def fiter_zeros(phase, bperp):
-            not_zeros_ind = np.nonzero(np.nan_to_num(phase))
-
-            phase = phase[not_zeros_ind]
-            bperp = bperp[not_zeros_ind]
-
-            return phase, bperp
-
-        # phase, bperp_meaned = fiter_zeros(phase, bperp_meaned)
-
         # Et edasipidi oleksid tulemid õiged teeme bperp'i veerumaatriksiks
         bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
 
@@ -95,7 +84,6 @@ class PsTopofit:
         trial_coherence = np.abs(phaser_sum) / phase_abs_sum
         trial_coherence_max_ind = np.where(trial_coherence == MatlabUtils.max(trial_coherence))
 
-        # todo: kas siin on viga? trial_coherence_max_ind on tuple ju
         k_0 = (math.pi / 4 / bperp_range) * trial_multi[trial_coherence_max_ind][0]
 
         re_phase = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
