@@ -155,7 +155,7 @@ class PsEstGamma(MetaSubProcess):
         # siis tavaline delete_master_col ei tööta
         bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_ix - 1)
 
-
+        # Matlab'is oli 0.052 selle math.radians(3) asemel
         sort_ind_meaned = np.mean(self.ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned

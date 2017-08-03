@@ -42,8 +42,9 @@ class TestPsEstGamma(AbstractTestCase):
             pm1_mat['coh_bins'][0])
 
         np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
+        # math.radians tekitab selle, et täpsus on natuke vähem kui tavaliselt
         np.testing.assert_array_almost_equal(
-            self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4) # todo kas saab täpsemaks? float128 äkki?
+            self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
 
         # TODO Tulevikus kontrollime juhuslikke arve. Hetkel aga kontrollime ühe eelmise vastu.
         est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
