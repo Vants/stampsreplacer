@@ -84,20 +84,39 @@ class PsSelect(MetaSubProcess):
     def start_process(self):
         """Siin on tähtis, et min_coh, coh_thresh ja coh_thresh_ind oleksid leitud võimalikult täpselt.
         Seda seepärast, et ka 0.001'ne täpsus võib rikkuda coh_threh tulemust"""
+        self.__logger.info("Start")
 
         data = self.__load_ps_params()
 
         max_rand = self.__get_max_rand(data.da_max, data.xy)
+        self.__logger.debug("max_rand: {0}".format(max_rand))
 
-        min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(max_rand, data)
+        min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(
+            self.ps_est_gamma.coh_ps, max_rand, data)
+        self.__logger.debug("min_coh.len: {0} ; da_mean.len: {1}"
+                            .format(len(min_coh), len(da_mean)))
 
         coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data)
+        self.__logger.debug("coh_thresh.len: {0}".format(len(coh_thresh)))
 
         coh_thresh_ind = self.__get_coh_thresh_ind(coh_thresh, data)
+        self.__logger.debug("coh_thresh_ind.len: {0}".format(len(coh_thresh_ind)))
 
         ph_patch = self.__get_ph_patch(coh_thresh_ind, data)
+        self.__logger.debug("ph_patch.shape: {0}".format(ph_patch.shape))
 
         coh_ps, topofit = self.__topofit(ph_patch, coh_thresh_ind, data)
+        self.__logger.debug("coh_ps.len: {0}".format(len(coh_ps)))
+
+        # Ja nüüd leitakse uue coh_ps'iga uuesti min_coh, da_mean ja coh_thresh (viimase jaoks on
+        # tegelikult tarvis kahte esimest) uuesti
+        min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(
+            coh_ps, max_rand, data)
+        self.__logger.debug("Second run min_coh.len: {0} ; da_mean.len: {1}"
+                            .format(len(min_coh), len(da_mean)))
+
+        coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data)
+        self.__logger.debug("Second run coh_thresh.len: {0}".format(len(coh_thresh)))
 
         # Leitud tulemused klassimuutujatesse
         self.coh_thresh = coh_thresh
@@ -109,6 +128,8 @@ class PsSelect(MetaSubProcess):
         self.k_ps = topofit.k_ps
         self.c_ps = topofit.c_ps
         self.ifg_ind = data.ifg_ind
+
+        self.__logger.debug("End")
 
     def __load_ps_params(self) -> (_DataDTO, int):
         """Leiab parameetritest ps_files väärtused mida on hiljem vaja ning vajadusel muudab neid.
@@ -179,18 +200,17 @@ class PsSelect(MetaSubProcess):
         if self.__select_method is self._SelectMethod.DESINTY:
             # StaMPS'is tagastati min'ist ja max'ist massiivid milles oli üks element
             patch_area = np.prod(MatlabUtils.max(xy) - MatlabUtils.min(xy)) / 1e6  # km'ites
-            max_rand = DEF_VAL * patch_area / len(da_max)
+            max_rand = DEF_VAL * patch_area / (len(da_max) -1)
         else:
             max_rand = DEF_VAL
 
         return max_rand
 
-    def __get_min_coh_and_da_mean(self, max_rand, data: _DataDTO) -> (
+    def __get_min_coh_and_da_mean(self, coh_ps: np.ndarray, max_rand: float, data: _DataDTO) -> (
             np.ndarray, np.ndarray, bool):
 
         # Paneme kohalikesse muutujatesse eelmistest protsessidest saadud tulemused,
         # kuna täisnimetusi on paha kirjutada
-        coh_ps = self.ps_est_gamma.coh_ps
         coherence_bins = self.ps_est_gamma.coherence_bins
         rand_dist = self.ps_est_gamma.rand_dist
 
