@@ -25,7 +25,6 @@ class PsSelect(MetaSubProcess):
     _use_cached = True
 
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma):
-        #
         self.__PH_PATCH_CACHE = True
         self.ps_files = ps_files
         self.ps_est_gamma = ps_est_gamma
@@ -96,7 +95,7 @@ class PsSelect(MetaSubProcess):
         self.__logger.debug("min_coh.len: {0} ; da_mean.len: {1}"
                             .format(len(min_coh), len(da_mean)))
 
-        coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data)
+        coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data.da)
         self.__logger.debug("coh_thresh.len: {0}".format(len(coh_thresh)))
 
         coh_thresh_ind = self.__get_coh_thresh_ind(coh_thresh, data)
@@ -110,12 +109,15 @@ class PsSelect(MetaSubProcess):
 
         # Ja nüüd leitakse uue coh_ps'iga uuesti min_coh, da_mean ja coh_thresh (viimase jaoks on
         # tegelikult tarvis kahte esimest) uuesti
+
         min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(
             coh_ps, max_rand, data)
         self.__logger.debug("Second run min_coh.len: {0} ; da_mean.len: {1}"
                             .format(len(min_coh), len(da_mean)))
 
-        coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array, data)
+        # Tähele tuleb panna, et da massiiv on filtreeritud coh_thresh_ind alusel
+        coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array,
+                                           data.da[coh_thresh_ind])
         self.__logger.debug("Second run coh_thresh.len: {0}".format(len(coh_thresh)))
 
         # Leitud tulemused klassimuutujatesse
@@ -288,7 +290,7 @@ class PsSelect(MetaSubProcess):
         return min_coh, da_mean, is_min_coh_nan_array
 
     def __get_coh_thresh(self, min_coh: np.ndarray, da_mean: np.ndarray,
-                         is_min_coh_nan_array: bool, data: _DataDTO):
+                         is_min_coh_nan_array: bool, da: np.ndarray):
         """Siin ei tagatsata coh_tresh_coffs'i kuna seda seda kasutati StaMPS'is vaid joonistamiseks"""
         if is_min_coh_nan_array:
             self.__logger.warn(
@@ -303,7 +305,7 @@ class PsSelect(MetaSubProcess):
 
                 if coh_thresh_coffs[0] > 0:
                     # todo mida tähendab "positive slope"?
-                    coh_thresh = np.polyval(coh_thresh_coffs, data.da)
+                    coh_thresh = np.polyval(coh_thresh_coffs, da)
                 else:
                     # todo mida tähendab "unable to ascertain correct slope"
                     coh_thresh = np.polyval(coh_thresh_coffs, 0.35)
@@ -364,8 +366,8 @@ class PsSelect(MetaSubProcess):
             return np.zeros(SW_ARRAY_SHAPE)
 
         def get_max_min(ps_ij_col: np.ndarray, nr_ij: int):
-            min_val = max(ps_ij_col - self.__clap_win / 2, 0)
-            max_val = min_val + self.__clap_win  # - 1 eemaldatud
+            min_val = max(ps_ij_col - self.__clap_win / 2, 1)
+            max_val = min_val + self.__clap_win - 1
 
             if max_val > nr_ij:
                 min_val = min_val - max_val + nr_ij
@@ -378,6 +380,10 @@ class PsSelect(MetaSubProcess):
             ind_array = ArrayUtils.arange_include_last(start=ps_bit_col - slc_osf,
                                                        end=ps_bit_col + slc_osf)
             ind_array = ind_array[0 < ind_array <= ph_bit_len]
+
+            # Tühjast list'ist ei oska Python midagi võtta
+            if len(ind_array) == 0:
+                ind_array = np.zeros(1).astype(np.int16)
 
             return ind_array
 
@@ -399,19 +405,20 @@ class PsSelect(MetaSubProcess):
                 i_min, i_max = get_max_min(ps_ij[0], nr_i)
                 j_min, j_max = get_max_min(ps_ij[1], nr_j)
 
-                ph_bit = self.ps_est_gamma.ph_grid[i_min:i_max, j_min:j_max, :]
+                ph_bit = self.ps_est_gamma.ph_grid[i_min - 1:i_max, j_min - 1:j_max, :]
 
-                ps_bit_i = int(ps_ij[0] - i_min - 1)
-                ps_bit_j = int(ps_ij[1] - j_min - 1)
+                ps_bit_i = int(ps_ij[0] - i_min)
+                ps_bit_j = int(ps_ij[1] - j_min)
                 ph_bit[ps_bit_i, ps_bit_j, :] = 0
 
                 # todo mingi JJS oversample update
-                ph_bit_len = len(ph_bit)
+                ph_bit_len = len(ph_bit) + 1
                 ph_bit_ind_i = get_ph_bit_ind_array(ps_bit_i, ph_bit_len)
                 ph_bit_ind_j = get_ph_bit_ind_array(ps_bit_j, ph_bit_len)
-                ph_bit[ph_bit_ind_i, ph_bit_ind_j] = 0
+                ph_bit[ph_bit_ind_i, ph_bit_ind_j, 0] = 0
 
-                # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev, kuna clap_filt meetod on teine
+                # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev,
+                # kuna clap_filt meetod on teine
                 for j in range(ph_patch.shape[1]):
                     ph_filt[:, :, j] = self.__clap_filt_for_patch(ph_bit[:, :, j],
                                                                   self.ps_est_gamma.low_pass)

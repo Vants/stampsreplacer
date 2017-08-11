@@ -51,9 +51,11 @@ class TestPsSelect(AbstractTestCase):
 
         # Kuna Matlab'i indeksid hakkavad ühest siis liidame siin juurde
         np.testing.assert_allclose(np.add(self._ps_select.ifg_ind, 1), select1_mat['ifg_index'][0])
-        np.testing.assert_allclose(np.add(self._ps_select.coh_thresh_ind, 1), select1_mat['ix'])
+        # Reshape, et saaks võrrelda omavahel. Matlab'i massiv on kahtlane veerumassiiv
+        np.testing.assert_allclose(np.add(self._ps_select.coh_thresh_ind, 1),
+                                   select1_mat['ix'].reshape(len(select1_mat['ix'])))
+        np.testing.assert_allclose(self._ps_select.coh_thresh, select1_mat['coh_thresh'])
         np.testing.assert_allclose(self._ps_select.ph_patch, select1_mat['ph_patch2'])
         np.testing.assert_allclose(self._ps_select.coh_ps, select1_mat['coh_ps2'])
-        np.testing.assert_allclose(self._ps_select.k_ps, select1_mat['K_ps2'])
+        np.testing.assert_allclose(self._ps_select.k_ps, select1_mat['K_ps'])
         np.testing.assert_allclose(self._ps_select.ph_res, select1_mat['ph_res2'])
-        np.testing.assert_allclose(self._ps_select.coh_thresh, select1_mat['coh_thresh'])
