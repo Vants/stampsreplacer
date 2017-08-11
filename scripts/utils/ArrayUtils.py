@@ -9,7 +9,7 @@ class ArrayUtils:
         element oleks olemas."""
 
         aranged = np.arange(start, end, step)
-        if len(aranged) > 0 and aranged[len(aranged) - 1] != end:
+        if len(aranged) == 0 or aranged[len(aranged) - 1] != end:
             aranged = np.append(aranged, end)
 
         return aranged
