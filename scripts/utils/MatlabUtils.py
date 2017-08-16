@@ -1,8 +1,8 @@
 from scipy.interpolate import interp1d
+import scipy.signal
 from builtins import staticmethod
 
 import numpy as np
-
 
 class MatlabUtils:
     @staticmethod
@@ -79,3 +79,8 @@ class MatlabUtils:
         polyval = p_scaled((max_desinty_or_percent_rand - mu) / std)
 
         return polyval
+
+    @staticmethod
+    def filter2(h, x, mode='same'):
+        """https://stackoverflow.com/questions/43270274/equivalent-of-matlab-filter2filter-image-valid-in-python"""
+        return scipy.signal.convolve2d(x, np.rot90(h, 2), mode)

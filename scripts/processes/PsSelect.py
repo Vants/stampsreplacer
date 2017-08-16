@@ -51,10 +51,8 @@ class PsSelect(MetaSubProcess):
         self.__drop_ifg_index = np.array([])
         self.__low_coh_tresh = 31  # 31/100
 
-        # Numpys ühe veeruga asja transponeerimine ei tööta ja siis teeme selle käsitsi
-        # veerumaatriksiks
-        self.__gaussian_window = np.asmatrix(MatlabUtils.gausswin(7)) * np.asmatrix(
-            MatlabUtils.gausswin(7)).conj().transpose()
+        self.__gaussian_window = np.multiply(np.asmatrix(MatlabUtils.gausswin(7)),
+                                             np.asmatrix(MatlabUtils.gausswin(7)).conj().transpose())
 
     class _DataDTO(object):
         """Klass millega vahetada funkstioonide vahel muutujaid.
@@ -66,7 +64,6 @@ class PsSelect(MetaSubProcess):
                      da: np.ndarray, ifg_ind: np.ndarray, da_max: np.ndarray,
                      rand_dist: np.ndarray):
             self.ph = ph
-            self.bperp = bperp
             self.nr_ifgs = nr_ifgs
             self.xy = xy
             self.da = da
@@ -423,7 +420,7 @@ class PsSelect(MetaSubProcess):
                     ph_filt[:, :, j] = self.__clap_filt_for_patch(ph_bit[:, :, j],
                                                                   self.ps_est_gamma.low_pass)
 
-                ph_patch[i, :] = np.squeeze(ph_filt[ps_bit_i, ps_bit_j])
+                ph_patch[i, :] = np.squeeze(ph_filt[ps_bit_i, ps_bit_j, :])
 
             return ph_patch
 
@@ -467,9 +464,9 @@ class PsSelect(MetaSubProcess):
         # todo see ph_fft jne on väga sarnane PhEstGammas oleva clap_filt'iga
         ph_fft = np.fft.fft2(ph)
         smooth_resp = np.abs(ph_fft)
-        smooth_resp = np.fft.ifftshift \
-            (scipy.signal.convolve2d(self.__gaussian_window, np.fft.ifftshift(smooth_resp)))
-        smooth_resp_mean = np.median(smooth_resp)
+        smooth_resp = np.fft.ifftshift(
+            MatlabUtils.filter2(self.__gaussian_window, np.fft.fftshift(smooth_resp)))
+        smooth_resp_mean = np.median(smooth_resp.flatten())
 
         if smooth_resp_mean != 0:
             smooth_resp /= smooth_resp_mean
