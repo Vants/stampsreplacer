@@ -388,7 +388,9 @@ class PsEstGamma(MetaSubProcess):
         wind_func = make_wind_func(create_grid(nr_win))
 
         # Selleks, et transponeerimine töötaks nagu Matlab'is teeme need maatriksiteks
-        B = np.asmatrix(MatlabUtils.gausswin(7)) * np.asmatrix(MatlabUtils.gausswin(7)).transpose()
+        # todo: samasugune asi on juba PsSelect'is
+        B = np.multiply(np.asmatrix(MatlabUtils.gausswin(7)),
+                        np.asmatrix(MatlabUtils.gausswin(7)).transpose())
 
         nr_win_pad_sum = (nr_win + nr_pad)
         ph_bit = np.zeros((nr_win_pad_sum, nr_win_pad_sum), FILTERED_TYPE)
@@ -422,7 +424,7 @@ class PsEstGamma(MetaSubProcess):
                 ph_fft = np.fft.fft2(ph_bit)
                 smooth_resp = np.abs(ph_fft)
                 smooth_resp = np.fft.ifftshift(
-                    scipy.signal.convolve2d(B, np.fft.ifftshift(smooth_resp)))
+                    MatlabUtils.filter2(B, np.fft.ifftshift(smooth_resp)))
                 mean_smooth_resp = np.median(smooth_resp)
 
                 if mean_smooth_resp != 0:
