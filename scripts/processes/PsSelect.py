@@ -22,8 +22,6 @@ class PsSelect(MetaSubProcess):
     _DEF_COH_THRESH = 0.3
     __B = np.array([])
 
-    _use_cached = True
-
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma):
         self.__PH_PATCH_CACHE = True
         self.ps_files = ps_files
@@ -363,12 +361,12 @@ class PsSelect(MetaSubProcess):
             return np.zeros(SW_ARRAY_SHAPE)
 
         def get_max_min(ps_ij_col: np.ndarray, nr_ij: int):
-            min_val = max(ps_ij_col - self.__clap_win / 2, 1)
+            min_val = max(ps_ij_col - self.__clap_win / 2, 0)
             max_val = min_val + self.__clap_win - 1
 
-            if max_val > nr_ij:
-                min_val = min_val - max_val + nr_ij
-                max_val = nr_ij
+            if max_val >= nr_ij:
+                min_val = min_val - max_val + nr_ij - 1
+                max_val = nr_ij - 1
 
             return int(min_val), int(max_val)
 
@@ -376,7 +374,7 @@ class PsSelect(MetaSubProcess):
             slc_osf = self.__slc_osf - 1
             ind_array = ArrayUtils.arange_include_last(start=ps_bit_col - slc_osf,
                                                        end=ps_bit_col + slc_osf)
-            ind_array = ind_array[0 < ind_array <= ph_bit_len]
+            ind_array = ind_array[(ind_array > 0) & (0 <= ph_bit_len)]
 
             # Tühjast list'ist ei oska Python midagi võtta
             if len(ind_array) == 0:
@@ -399,13 +397,14 @@ class PsSelect(MetaSubProcess):
             for i in range(ph_patch.shape[0]):
                 ps_ij = self.ps_est_gamma.grid_ij[coh_thresh_ind[i], :]
 
-                i_min, i_max = get_max_min(ps_ij[0], nr_i)
-                j_min, j_max = get_max_min(ps_ij[1], nr_j)
+                i_min, i_max = get_max_min(ps_ij[0] - 1, nr_i)
+                j_min, j_max = get_max_min(ps_ij[1] - 1, nr_j)
 
-                ph_bit = self.ps_est_gamma.ph_grid[i_min - 1:i_max, j_min - 1:j_max, :]
+                # Kui siin ei tee copy't siis muudatused tehakse ka ph_grid'is
+                ph_bit = np.copy(self.ps_est_gamma.ph_grid[i_min:i_max + 1, j_min:j_max + 1, :])
 
-                ps_bit_i = int(ps_ij[0] - i_min)
-                ps_bit_j = int(ps_ij[1] - j_min)
+                ps_bit_i = int(ps_ij[0] - i_min - 1)
+                ps_bit_j = int(ps_ij[1] - j_min - 1)
                 ph_bit[ps_bit_i, ps_bit_j, :] = 0
 
                 # todo mingi JJS oversample update
@@ -462,7 +461,7 @@ class PsSelect(MetaSubProcess):
         ph = np.nan_to_num(ph)
 
         # todo see ph_fft jne on väga sarnane PhEstGammas oleva clap_filt'iga
-        ph_fft = np.fft.fft2(ph)
+        ph_fft = np.fft.fft2(ph) #fixme mingil põhjusel erineb kolmanda tiiruga
         smooth_resp = np.abs(ph_fft)
         smooth_resp = np.fft.ifftshift(
             MatlabUtils.filter2(self.__gaussian_window, np.fft.fftshift(smooth_resp)))
@@ -476,7 +475,7 @@ class PsSelect(MetaSubProcess):
         smooth_resp -= 1
         smooth_resp[smooth_resp < 0] = 0
 
-        G = smooth_resp * beta * low_pass
+        G = smooth_resp * beta + low_pass
         ph_filt = np.fft.ifft2(np.multiply(ph_fft, G))
 
         return ph_filt
