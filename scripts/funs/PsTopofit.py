@@ -32,21 +32,20 @@ class PsTopofit:
         samamoodi"""
 
         for i in range(self.__nr_ps):
-            psdph = np.multiply(ph[i, :], np.conjugate(ph_patch[i, :]))
+            psdph = ph[i, :] * ph_patch[i, :].conj()
 
             if np.count_nonzero(np.isnan(psdph)) == 0 and np.count_nonzero(psdph == 0) == 0:
                 if ifg_ind is not None:
-                    psdph = np.multiply(psdph, np.abs(psdph))
+                    psdph = psdph / np.abs(psdph)
                     psdph = psdph[ifg_ind]
 
                 phase_residual, coh_0, static_offset, k_0 = self.ps_topofit_fun(psdph,
-                                                                       bprep[i, :].transpose(),
+                                                                       bprep[i, ifg_ind].conj().transpose(),
                                                                        nr_trial_wraps)
                 self.k_ps[i] = k_0[0]
                 self.c_ps[i] = static_offset[0]
                 self.coh_ps[i] = coh_0[0]
                 self.n_opt[i] = len(k_0)
-
                 if psdph is None:
                     self.ph_res[i, :] = np.angle(phase_residual).transpose()
                 else:
@@ -69,8 +68,6 @@ class PsTopofit:
         trial_multi = ArrayUtils.arange_include_last(trial_multi_start, trial_multi_end, 1)
 
         trial_phase = bperp_meaned / bperp_range * math.pi / 4
-
-        # Tavaline korrutamine võib anda vigu, seepärast on siin np.outer
         trial_phase = np.exp(np.outer(-1j * trial_phase, trial_multi))
 
         # Selleks, et korrutamine õnnestuks teeme ta veeruvektoriks
@@ -90,7 +87,7 @@ class PsTopofit:
         phase_offset = MatlabUtils.sum(re_phase)
         re_phase = np.angle(re_phase * phase_offset.conjugate())
         weigth = np.abs(phase)
-        mopt = np.multiply(weigth, bperp_meaned) / np.multiply(weigth, re_phase)
+        mopt = np.linalg.lstsq(weigth * bperp_meaned, weigth * re_phase)[0][0]
         k_0 = k_0 + mopt
 
         phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))

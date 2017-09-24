@@ -491,7 +491,7 @@ class PsSelect(MetaSubProcess):
         bperp = self.ps_files.bperp[coh_thresh_ind]
 
         topofit = PsTopofit(SW_ARRAY_SHAPE, NR_PS, data.nr_ifgs)
-        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.ps_est_gamma.nr_trial_wraps,
+        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.ps_est_gamma.nr_trial_wraps[0][0],
                                 data.ifg_ind)
 
         # StaMPS'is muudeti eelmisena saadud tulemust. Siin nii ei tee
