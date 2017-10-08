@@ -49,7 +49,7 @@ class PsTopofit:
                 if psdph is None:
                     self.ph_res[i, :] = np.angle(phase_residual).transpose()
                 else:
-                    self.ph_res[i, ifg_ind] = np.angle(phase_residual).transpose()
+                    self.ph_res[i, ifg_ind] = np.matrix(np.angle(phase_residual)).transpose()
             else:
                 self.k_ps[i] = np.nan
                 self.coh_ps[i] = 0
@@ -87,10 +87,19 @@ class PsTopofit:
         phase_offset = MatlabUtils.sum(re_phase)
         re_phase = np.angle(re_phase * phase_offset.conjugate())
         weigth = np.abs(phase)
-        mopt = np.linalg.lstsq(weigth * bperp_meaned, weigth * re_phase)[0][0]
+        bperp_meaned_weighted = weigth * bperp_meaned
+        re_phase_weighted = weigth * re_phase
+        # linalg funkstioonid toimivad ainult kahemõõtmeliste massiividega
+        if len(bperp_meaned_weighted.shape) > 2:
+            bperp_meaned_weighted = bperp_meaned_weighted[0]
+        if len(re_phase_weighted.shape) > 2:
+            re_phase_weighted = re_phase_weighted[0]
+
+        mopt = np.linalg.lstsq(bperp_meaned_weighted, re_phase_weighted)[0][0]
         k_0 = k_0 + mopt
 
-        phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
+        # [0] sest tulemus on maatriks maatriksis
+        phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))[0]
         phase_residual_sum = MatlabUtils.sum(phase_residual)
         static_offset = np.angle(phase_residual_sum)
         coherence_0 = np.abs(phase_residual_sum) / MatlabUtils.sum(np.abs(phase_residual))
