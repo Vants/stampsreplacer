@@ -2,6 +2,7 @@ import enum
 
 import numpy as np
 import scipy
+import os
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.funs.PsTopofit import PsTopofit
@@ -21,6 +22,8 @@ class PsSelect(MetaSubProcess):
 
     _DEF_COH_THRESH = 0.3
     __B = np.array([])
+
+    __FILE_NAME = "ps_select"
 
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma):
         self.__PH_PATCH_CACHE = True
@@ -127,6 +130,33 @@ class PsSelect(MetaSubProcess):
         self.ifg_ind = data.ifg_ind
 
         self.__logger.debug("End")
+
+    def save_results(self):
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            coh_thresh=self.coh_thresh,
+            ph_patch=self.ph_patch,
+            coh_thresh_ind=self.coh_thresh_ind,
+            coh_ps=self.coh_ps,
+            coh_ps2=self.coh_ps2,
+            ph_res=self.ph_res,
+            k_ps=self.k_ps,
+            c_ps=self.c_ps,
+            ifg_ind=self.ifg_ind
+        )
+
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.coh_thresh = data['coh_thresh']
+        self.ph_patch = data['ph_patch']
+        self.coh_thresh_ind = data['coh_thresh_ind']
+        self.coh_ps = data['coh_ps']
+        self.coh_ps2 = data['coh_ps2']
+        self.ph_res = data['ph_res']
+        self.k_ps = data['k_ps']
+        self.c_ps = data['c_ps']
+        self.ifg_ind = data['ifg_ind']
 
     def __load_ps_params(self) -> (_DataDTO, int):
         """Leiab parameetritest ps_files väärtused mida on hiljem vaja ning vajadusel muudab neid.

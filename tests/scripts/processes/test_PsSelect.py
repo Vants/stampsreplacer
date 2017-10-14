@@ -26,26 +26,9 @@ class TestPsSelect(AbstractTestCase):
         cls._est_gamma_process = None
 
     def test_start_process_with_matlab_data(self):
-        def fill_est_gamma_with_matlab_data():
-            pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
-            self._est_gamma_process = PsEstGamma(self._ps_files, False)
-            self._est_gamma_process.coherence_bins = pm1_mat['coh_bins'][0]
-            self._est_gamma_process.grid_ij = pm1_mat['grid_ij']
-            self._est_gamma_process.nr_trial_wraps = pm1_mat['n_trial_wraps']
-            self._est_gamma_process.ph_patch = pm1_mat['ph_patch']
-            self._est_gamma_process.k_ps = pm1_mat['K_ps']
-            self._est_gamma_process.c_ps = pm1_mat['C_ps']
-            self._est_gamma_process.coh_ps = pm1_mat['coh_ps']
-            self._est_gamma_process.n_opt = pm1_mat['N_opt']
-            self._est_gamma_process.ph_res = pm1_mat['ph_res']
-            self._est_gamma_process.ph_grid = pm1_mat['ph_grid']
-            self._est_gamma_process.low_pass = pm1_mat['low_pass']
-            self._est_gamma_process.rand_dist = pm1_mat['Nr'][0]
+        self.__fill_est_gamma_with_matlab_data()
 
-        fill_est_gamma_with_matlab_data()
-
-        self._ps_select = PsSelect(self._ps_files, self._est_gamma_process)
-        self._ps_select.start_process()
+        self.__start_process()
 
         select1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'select1.mat'))
 
@@ -61,3 +44,39 @@ class TestPsSelect(AbstractTestCase):
         np.testing.assert_array_almost_equal(self._ps_select.coh_ps2, select1_mat['coh_ps2'])
         np.testing.assert_array_almost_equal(ArrayUtils.to_col_matrix(self._ps_select.coh_thresh),
                                    select1_mat['coh_thresh'])
+
+    def test_save_and_load_results(self):
+        self.__fill_est_gamma_with_matlab_data()
+        self.__start_process()
+        self._ps_select.save_results()
+
+        ps_select_loaded = PsSelect(self._ps_files, self._est_gamma_process)
+        ps_select_loaded.load_results()
+
+        np.testing.assert_array_equal(self._ps_select.ifg_ind, ps_select_loaded.ifg_ind)
+        np.testing.assert_array_equal(self._ps_select.coh_thresh_ind, ps_select_loaded.coh_thresh_ind)
+        np.testing.assert_array_equal(self._ps_select.ph_patch, ps_select_loaded.ph_patch)
+        np.testing.assert_array_equal(self._ps_select.k_ps, ps_select_loaded.k_ps)
+        np.testing.assert_array_equal(self._ps_select.ph_res, ps_select_loaded.ph_res)
+        np.testing.assert_array_equal(self._ps_select.coh_ps2, ps_select_loaded.coh_ps2)
+        np.testing.assert_array_equal(self._ps_select.coh_thresh, ps_select_loaded.coh_thresh)
+
+    def __start_process(self):
+        self._ps_select = PsSelect(self._ps_files, self._est_gamma_process)
+        self._ps_select.start_process()
+
+    def __fill_est_gamma_with_matlab_data(self):
+        pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
+        self._est_gamma_process = PsEstGamma(self._ps_files, False)
+        self._est_gamma_process.coherence_bins = pm1_mat['coh_bins'][0]
+        self._est_gamma_process.grid_ij = pm1_mat['grid_ij']
+        self._est_gamma_process.nr_trial_wraps = pm1_mat['n_trial_wraps']
+        self._est_gamma_process.ph_patch = pm1_mat['ph_patch']
+        self._est_gamma_process.k_ps = pm1_mat['K_ps']
+        self._est_gamma_process.c_ps = pm1_mat['C_ps']
+        self._est_gamma_process.coh_ps = pm1_mat['coh_ps']
+        self._est_gamma_process.n_opt = pm1_mat['N_opt']
+        self._est_gamma_process.ph_res = pm1_mat['ph_res']
+        self._est_gamma_process.ph_grid = pm1_mat['ph_grid']
+        self._est_gamma_process.low_pass = pm1_mat['low_pass']
+        self._est_gamma_process.rand_dist = pm1_mat['Nr'][0]
