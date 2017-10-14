@@ -43,13 +43,13 @@ class PsTopofit:
                                                                        bprep[i, ifg_ind].conj().transpose(),
                                                                        nr_trial_wraps)
                 self.k_ps[i] = k_0[0]
-                self.c_ps[i] = static_offset[0]
-                self.coh_ps[i] = coh_0[0]
+                self.c_ps[i] = static_offset
+                self.coh_ps[i] = coh_0
                 self.n_opt[i] = len(k_0)
                 if psdph is None:
                     self.ph_res[i, :] = np.angle(phase_residual).transpose()
                 else:
-                    self.ph_res[i, ifg_ind] = np.matrix(np.angle(phase_residual)).transpose()
+                    self.ph_res[i, ifg_ind] = np.angle(phase_residual).transpose()
             else:
                 self.k_ps[i] = np.nan
                 self.coh_ps[i] = 0
