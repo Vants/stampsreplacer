@@ -12,7 +12,7 @@ from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class CreateLonLat(MetaSubProcess):
-    __PATCH = FolderConstants.PATCH_FOLDER
+    __PATCH = FolderConstants.PATCH_FOLDER_NAME
     __ARRAY_TYPE = np.float32
 
     # Seda on tarvis pärast PsFiles protsessis andmete laadisel
@@ -29,7 +29,7 @@ class CreateLonLat(MetaSubProcess):
         self.logger.debug("Start")
 
         product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
-        lon_band, lat_band = self.__get_lon_bans(product_with_geo_ref)
+        lon_band, lat_band = self.__get_lon_bands(product_with_geo_ref)
 
         if lon_band is None or lat_band is None:
             raise FileNotFoundError("lon_band, lat_band missing")
@@ -99,7 +99,7 @@ class CreateLonLat(MetaSubProcess):
         self.pscands_ij_array.append(np.array([arr1, arr2, arr3]))
 
     # noinspection PyMethodMayBeStatic
-    def __get_lon_bans(self, product_with_geo_ref):
+    def __get_lon_bands(self, product_with_geo_ref):
         lon_band = product_with_geo_ref.getBand('lon_band')
         lat_band = product_with_geo_ref.getBand('lat_band')
 

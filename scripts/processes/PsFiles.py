@@ -40,7 +40,7 @@ class PsFiles:
         self.__rg = None
 
         self.__path = Path(path)
-        self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER)
+        self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
         self.pscands_ij = np.asmatrix(pscands_ij_array)
         self.lonlat = np.asmatrix(lonlat)
