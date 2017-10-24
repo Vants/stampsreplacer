@@ -9,10 +9,10 @@ from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from tests.ConfigUtils import ConfigUtils
 
 
 class CreateLonLat(MetaSubProcess):
-    __PATCH = FolderConstants.PATCH_FOLDER_NAME
     __ARRAY_TYPE = np.float32
 
     # Seda on tarvis pärast PsFiles protsessis andmete laadisel
@@ -22,6 +22,10 @@ class CreateLonLat(MetaSubProcess):
         self.__FILE_NAME = "lonlat_process"
         self.path = Path(path)
         self.geo_ref_product = geo_ref_product
+
+        config_utils = ConfigUtils()
+        self.__PATCH_FOLDER = os.path.join(config_utils.get_default_section("patch_folder"),
+                                           FolderConstants.PATCH_FOLDER_NAME)
 
         self.logger = LoggerFactory.create('CreateLonLat')
 
@@ -108,7 +112,7 @@ class CreateLonLat(MetaSubProcess):
     def __load_pscands(self):
         if self.path.is_dir():
             # TODO Kontroll kui juba on seal kaustas
-            path_to_pscands = Path(self.path.joinpath(self.__PATCH), "pscands.1.ij")
+            path_to_pscands = Path(self.path.joinpath(self.__PATCH_FOLDER), "pscands.1.ij")
             if path_to_pscands.exists():
                 return path_to_pscands.open()
             else:
