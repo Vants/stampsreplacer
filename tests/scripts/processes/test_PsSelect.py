@@ -36,7 +36,7 @@ class TestPsSelect(AbstractTestCase):
             keep_ix = np.reshape(keep_ix, len(select1_mat['keep_ix']))
             keep_ix = np.where(keep_ix == 1)
 
-            return keep_ix
+            return keep_ix[0]
 
         self.__fill_est_gamma_with_matlab_data()
 
@@ -58,8 +58,8 @@ class TestPsSelect(AbstractTestCase):
         np.testing.assert_array_almost_equal(ArrayUtils.to_col_matrix(self._ps_select.coh_thresh),
                                              coh_thresh)
         keep_ix = get_keep_ix()
-        np.testing.assert_array_almost_equal(ArrayUtils.to_col_matrix(self._ps_select.coh_thresh_ind_final),
-                                             coh_thresh[keep_ix], decimal=self._PLACES)
+        np.testing.assert_array_almost_equal(self._ps_select.keep_ind, keep_ix,
+                                             decimal=self._PLACES)
 
     def test_save_and_load_results(self):
         self.__fill_est_gamma_with_matlab_data()
@@ -71,7 +71,7 @@ class TestPsSelect(AbstractTestCase):
 
         np.testing.assert_array_equal(self._ps_select.ifg_ind, ps_select_loaded.ifg_ind)
         np.testing.assert_array_equal(self._ps_select.coh_thresh_ind, ps_select_loaded.coh_thresh_ind)
-        np.testing.assert_array_equal(self._ps_select.coh_thresh_ind_final, ps_select_loaded.coh_thresh_ind_final)
+        np.testing.assert_array_equal(self._ps_select.keep_ind, ps_select_loaded.keep_ind)
         np.testing.assert_array_equal(self._ps_select.ph_patch, ps_select_loaded.ph_patch)
         np.testing.assert_array_equal(self._ps_select.k_ps, ps_select_loaded.k_ps)
         np.testing.assert_array_equal(self._ps_select.ph_res, ps_select_loaded.ph_res)
