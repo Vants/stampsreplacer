@@ -57,11 +57,11 @@ class PsSelect(MetaSubProcess):
 
     class _DataDTO(object):
         """Klass millega vahetada funkstioonide vahel muutujaid.
-        Loodud eelõige seepärast, et näiteks self.ps_files.bperp on natuke liiga pikk kirjutada ja
+        Loodud eelõige seepärast, et näiteks self.ps_files.nr_ifgs on natuke liiga pikk kirjutada ja
         vahel on meil vaja enne nende kasutamist veel muuta (funkstioon load_ps_params).
         Siin objektis ei toimu töötlust, see on vaid andmete kapseldamiseks"""
 
-        def __init__(self, ph: np.ndarray, bperp: np.ndarray, nr_ifgs: int, xy: np.ndarray,
+        def __init__(self, ph: np.ndarray, nr_ifgs: int, xy: np.ndarray,
                      da: np.ndarray, ifg_ind: np.ndarray, da_max: np.ndarray,
                      rand_dist: np.ndarray):
             self.ph = ph
@@ -118,10 +118,17 @@ class PsSelect(MetaSubProcess):
                                            data.da[coh_thresh_ind])
         self.__logger.debug("Second run coh_thresh.len: {0}".format(len(coh_thresh)))
 
+        coh_thresh_ind_final = self.__get_coh_thresh_ind_final(topofit.coh_ps, coh_thresh, coh_thresh_ind,
+                                                               topofit.k_ps)
+        self.__logger.debug("Second run coh_thresh_ind_final.len: {0}"
+                            .format(len(coh_thresh_ind_final)))
+
         # Leitud tulemused klassimuutujatesse
         self.coh_thresh = coh_thresh
         self.ph_patch = ph_patch
         self.coh_thresh_ind = coh_thresh_ind
+        self.coh_thresh_ind_final = coh_thresh_ind_final
+        self.coh_thresh_ind_final = coh_thresh_ind_final
         self.coh_ps = coh_ps # StaMPS'is salvestati see muutuja eelmisest protsessist üle
         self.coh_ps2 = topofit.coh_ps #todo parem nimi
         self.ph_res = topofit.ph_res
@@ -136,6 +143,7 @@ class PsSelect(MetaSubProcess):
             coh_thresh=self.coh_thresh,
             ph_patch=self.ph_patch,
             coh_thresh_ind=self.coh_thresh_ind,
+            coh_thresh_ind_final=self.coh_thresh_ind_final,
             coh_ps=self.coh_ps,
             coh_ps2=self.coh_ps2,
             ph_res=self.ph_res,
@@ -151,6 +159,7 @@ class PsSelect(MetaSubProcess):
         self.coh_thresh = data['coh_thresh']
         self.ph_patch = data['ph_patch']
         self.coh_thresh_ind = data['coh_thresh_ind']
+        self.coh_thresh_ind_final = data['coh_thresh_ind_final']
         self.coh_ps = data['coh_ps']
         self.coh_ps2 = data['coh_ps2']
         self.ph_res = data['ph_res']
@@ -213,7 +222,7 @@ class PsSelect(MetaSubProcess):
         # StaMPS'is oli see nimetatud nr_dist
         rand_dist = self.ps_est_gamma.rand_dist
 
-        data_dto = self._DataDTO(ph, bperp, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
+        data_dto = self._DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
         return data_dto
 
     def __get_max_rand(self, da_max, xy):
@@ -530,8 +539,24 @@ class PsSelect(MetaSubProcess):
 
         return coh_ps, topofit
 
-    # todo mingi parem lahendus siia ehk?
+    def __get_coh_thresh_ind_final(self, coh_ps : np.ndarray, coh_thresh : np.ndarray,
+                                   coh_thresh_ind : np.ndarray, k_ps2: np.ndarray) -> np.ndarray:
+        """Stamps'is oli eraldi muutja 'keep_ix' mis oli array indeksitest mis arve peaks ix'ist
+        alles hoidma."""
 
+        bperp_meaned = self.ps_files.bperp_meaned
+        k_ps = self.ps_est_gamma.k_ps[coh_thresh_ind]
+        bperp_delta = np.max(bperp_meaned) - np.min(bperp_meaned)
+
+        # Reshape on vajalik selleks, et ei tekiks massiivi massiivis
+        coh_ps_len = len(coh_ps)
+        coh_ps_reshaped = coh_ps.reshape(coh_ps_len)
+        delta = (np.abs(k_ps - k_ps2) < 2 * np.pi / bperp_delta).reshape(coh_ps_len) #todo parem nimi
+        keep_ind = np.where((coh_ps_reshaped > coh_thresh) & delta)[0]
+
+        return coh_thresh[keep_ind]
+
+    # todo mingi parem lahendus siia ehk?
     # Konstruktor tühja pusivpeegeladajate info massiivi loomiseks
     # TODO: Samasugune asi oli juba PsEstGammas, Refacto?
     def __zero_ps_array(self, shape):

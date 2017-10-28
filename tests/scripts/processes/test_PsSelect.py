@@ -26,6 +26,18 @@ class TestPsSelect(AbstractTestCase):
         cls._est_gamma_process = None
 
     def test_start_process_with_matlab_data(self):
+        def get_keep_ix():
+            """Selleks, et saaks Matlab'i tulemitest kätte keep_ix massiivi mida saaks kasutada
+            ka Numpy array'de juures.
+            Põhiline asi on, et Numpy's on olemas boolean indexing, aga Matlab'ist tulevad
+            väärtused 1'de ja 0'dena. Selleks teeme hoopis massiivi indeksiteks mida selekeertida,
+            kasutades np.where'i"""
+            keep_ix = select1_mat['keep_ix']
+            keep_ix = np.reshape(keep_ix, len(select1_mat['keep_ix']))
+            keep_ix = np.where(keep_ix == 1)
+
+            return keep_ix
+
         self.__fill_est_gamma_with_matlab_data()
 
         self.__start_process()
@@ -42,8 +54,12 @@ class TestPsSelect(AbstractTestCase):
         np.testing.assert_array_almost_equal(self._ps_select.k_ps, select1_mat['K_ps2'])
         np.testing.assert_array_almost_equal(self._ps_select.ph_res, select1_mat['ph_res2'])
         np.testing.assert_array_almost_equal(self._ps_select.coh_ps2, select1_mat['coh_ps2'])
+        coh_thresh = select1_mat['coh_thresh']
         np.testing.assert_array_almost_equal(ArrayUtils.to_col_matrix(self._ps_select.coh_thresh),
-                                   select1_mat['coh_thresh'])
+                                             coh_thresh)
+        keep_ix = get_keep_ix()
+        np.testing.assert_array_almost_equal(ArrayUtils.to_col_matrix(self._ps_select.coh_thresh_ind_final),
+                                             coh_thresh[keep_ix], decimal=self._PLACES)
 
     def test_save_and_load_results(self):
         self.__fill_est_gamma_with_matlab_data()
@@ -55,6 +71,7 @@ class TestPsSelect(AbstractTestCase):
 
         np.testing.assert_array_equal(self._ps_select.ifg_ind, ps_select_loaded.ifg_ind)
         np.testing.assert_array_equal(self._ps_select.coh_thresh_ind, ps_select_loaded.coh_thresh_ind)
+        np.testing.assert_array_equal(self._ps_select.coh_thresh_ind_final, ps_select_loaded.coh_thresh_ind_final)
         np.testing.assert_array_equal(self._ps_select.ph_patch, ps_select_loaded.ph_patch)
         np.testing.assert_array_equal(self._ps_select.k_ps, ps_select_loaded.k_ps)
         np.testing.assert_array_equal(self._ps_select.ph_res, ps_select_loaded.ph_res)
