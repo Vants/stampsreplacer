@@ -49,7 +49,7 @@ class PsTopofit:
                 if psdph is None:
                     self.ph_res[i, :] = np.angle(phase_residual).transpose()
                 else:
-                    self.ph_res[i, ifg_ind] = np.angle(phase_residual).transpose()
+                    self.ph_res[i, ifg_ind] = np.angle(phase_residual).transpose()[0]
             else:
                 self.k_ps[i] = np.nan
                 self.coh_ps[i] = 0
@@ -57,7 +57,8 @@ class PsTopofit:
     @staticmethod
     def ps_topofit_fun(phase: np.ndarray, bperp_meaned: np.ndarray, nr_trial_wraps: float):
         # Et edasipidi oleksid tulemid õiged teeme bperp'i veerumaatriksiks
-        bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
+        if (len(bperp_meaned.shape) == 1):
+            bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
 
         # Siin ei saa get_nr_trial_wraps leitut kasutada, kuna seal oli see üldisem
         bperp_range = np.amax(bperp_meaned) - np.amin(bperp_meaned)
@@ -98,8 +99,7 @@ class PsTopofit:
         mopt = np.linalg.lstsq(bperp_meaned_weighted, re_phase_weighted)[0][0]
         k_0 = k_0 + mopt
 
-        # [0] sest tulemus on maatriks maatriksis
-        phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))[0]
+        phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
         phase_residual_sum = MatlabUtils.sum(phase_residual)
         static_offset = np.angle(phase_residual_sum)
         coherence_0 = np.abs(phase_residual_sum) / MatlabUtils.sum(np.abs(phase_residual))
