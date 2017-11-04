@@ -76,7 +76,7 @@ class PsFiles:
         # TODO parem muutuja nimi
         self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
-        self.__rg = self.get_rg()
+        self.__rg = self.__get_rg()
 
         sat_look_angle = self.__get_look_angle()
 
@@ -375,7 +375,9 @@ class PsFiles:
             sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
             2 * float(self.__params['sar_to_earth_center']) * self.__rg))
 
-    def get_rg(self):
+
+
+    def __get_rg(self):
         ij_lat = self.pscands_ij[:, 2]
         return float(self.__params['near_range_slc']) + ij_lat * float(
             self.__params['range_pixel_spacing'])
@@ -407,3 +409,4 @@ class PsFiles:
             if comp_fun(ifg_datetime, master_date):
                 result += 1
         return result
+
