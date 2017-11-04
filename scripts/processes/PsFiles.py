@@ -36,6 +36,7 @@ class PsFiles:
     sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
     master_date = datetime
     ifgs = np.ndarray
+    hgt = np.ndarray
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
@@ -92,6 +93,8 @@ class PsFiles:
 
         self.da = self.__get_da()
 
+        self.hgt = self.__get_hgt()
+
         self.__sort_results(sort_ind, sat_look_angle)
 
         self.__logger.info("End")
@@ -111,7 +114,8 @@ class PsFiles:
             da=self.da,
             sort_ind=self.sort_ind,
             master_date=self.master_date,
-            ifgs=self.ifgs)
+            ifgs=self.ifgs,
+            hgt=self.hgt)
 
     def load_results(self):
         file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
@@ -131,6 +135,7 @@ class PsFiles:
         self.sort_ind = data['sort_ind']
         self.master_date = data['master_date']
         self.ifgs = data['ifgs']
+        self.hgt = data['hgt']
 
     def __get_wavelength(self):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
@@ -175,7 +180,7 @@ class PsFiles:
 
     def __get_ph(self, nr_ifgs):
         """pscands.1.ph lugemine. Tegemist on binaarkujul failiga kus on kompleksarvud"""
-        BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "little-endian" 64bit kompleksarvud
+        BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "big-endian" 64bit kompleksarvud
 
         COMPLEX_TYPE = np.complex64
         imag_array_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.ph").open("rb"),
@@ -362,6 +367,7 @@ class PsFiles:
         self.lonlat = MatrixUtils.sort_matrix_with_sort_array(self.lonlat, sort_ind)
 
         self.sort_ind = sat_look_angle[sort_ind]
+        self.hgt = self.hgt[sort_ind]
 
     def __get_da(self):
         """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
@@ -375,7 +381,12 @@ class PsFiles:
             sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
             2 * float(self.__params['sar_to_earth_center']) * self.__rg))
 
+    def __get_hgt(self):
+        FLOAT_TYPE = ">f4" # "big-endian" float32
+        hgt_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.hgt").open("rb"), FLOAT_TYPE)
+        hgt = hgt_raw.conj().transpose()
 
+        return hgt
 
     def __get_rg(self):
         ij_lat = self.pscands_ij[:, 2]

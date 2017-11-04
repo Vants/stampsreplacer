@@ -31,6 +31,7 @@ class TestPsFiles(AbstractTestCase):
         bp1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'bp1.mat'), 'bperp_mat')
         da1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'da1.mat'), 'D_A')
         la1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'la1.mat'), 'la')
+        hgt1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'hgt1.mat'), 'hgt')
 
         self.assertEqual(len(self._ps_files.bperp), len(bp1))
         np.testing.assert_allclose(self._ps_files.bperp.view(np.ndarray), bp1)
@@ -61,15 +62,17 @@ class TestPsFiles(AbstractTestCase):
         self.assertEquals(self._ps_files.master_ix, ps1_mat['master_ix'])
 
         # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
-        #
-        # sort_ix_numpy = np.insert(ps1_mat['sort_ix'], 0, [0])[: len(ps1_mat['sort_ix'])]
         np.testing.assert_allclose(self._ps_files.sort_ind.view(np.ndarray), la1)
 
         self.assertEquals(len(self._ps_files.ifgs), ps1_mat['n_ifg'])
 
         self.assertEquals(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
 
-        self.assertEqual(len(self._ps_files.ph), len(ph1))
+        # hgt1 on array array's seepärast on reshape vajalik
+        # Teised väärtused on meil leitud maatriksitena üldse ja võrreldakse kasutades view'sid
+        np.testing.assert_allclose(self._ps_files.hgt, np.reshape(hgt1, len(hgt1)))
+
+        np.testing.assert_allclose(len(self._ps_files.ph), len(ph1))
         self.assert_ph(self._ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
@@ -111,6 +114,7 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_array_equal(ps_files_load.sort_ind, self._ps_files.sort_ind)
         self.assertEquals(ps_files_load.master_date, self._ps_files.master_date)
         np.testing.assert_array_equal(ps_files_load.ifgs, self._ps_files.ifgs)
+        np.testing.assert_array_equal(ps_files_load.hgt, self._ps_files.hgt)
 
     def __start_process(self):
         self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
