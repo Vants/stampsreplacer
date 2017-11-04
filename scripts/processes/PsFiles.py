@@ -12,12 +12,16 @@ from scripts.utils.FolderConstants import FolderConstants
 import numpy as np
 import math
 
+from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class PsFiles:
+    """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
+    Tehtud StaMPS'i ps_load_inital_gamma järgi."""
+
     heading = None
     mean_range = 0.0
     wavelength = 0.0
@@ -53,9 +57,10 @@ class PsFiles:
         if self.pscands_ij is None:
             raise AttributeError("pscands_ij_array is None")
 
+        self.__logger = self.__logger = LoggerFactory.create("PsFiles")
+
     def load_files(self):
-        """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
-        Tehtud StaMPS'i ps_load_inital_gamma järgi"""
+        self.__logger.info("Start")
 
         self.__load_params_from_rsc_file()
 
@@ -88,6 +93,8 @@ class PsFiles:
         self.da = self.__get_da()
 
         self.__sort_results(sort_ind, sat_look_angle)
+
+        self.__logger.info("End")
 
     def save_results(self):
         ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(

@@ -55,7 +55,7 @@ class PsSelect(MetaSubProcess):
         self.__gaussian_window = np.multiply(np.asmatrix(MatlabUtils.gausswin(7)),
                                              np.asmatrix(MatlabUtils.gausswin(7)).conj().transpose())
 
-    class _DataDTO(object):
+    class __DataDTO(object):
         """Klass millega vahetada funkstioonide vahel muutujaid.
         Loodud eelõige seepärast, et näiteks self.ps_files.nr_ifgs on natuke liiga pikk kirjutada ja
         vahel on meil vaja enne nende kasutamist veel muuta (funkstioon load_ps_params).
@@ -167,7 +167,7 @@ class PsSelect(MetaSubProcess):
         self.c_ps = data['c_ps']
         self.ifg_ind = data['ifg_ind']
 
-    def __load_ps_params(self) -> (_DataDTO, int):
+    def __load_ps_params(self) -> __DataDTO:
         """Leiab parameetritest ps_files väärtused mida on hiljem vaja ning vajadusel muudab neid.
         Natuke kattub __load_ps_params meetodiga PsEstGamma funkstioonis"""
 
@@ -222,7 +222,7 @@ class PsSelect(MetaSubProcess):
         # StaMPS'is oli see nimetatud nr_dist
         rand_dist = self.ps_est_gamma.rand_dist
 
-        data_dto = self._DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
+        data_dto = self.__DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
         return data_dto
 
     def __get_max_rand(self, da_max, xy):
@@ -242,7 +242,7 @@ class PsSelect(MetaSubProcess):
 
         return max_rand
 
-    def __get_min_coh_and_da_mean(self, coh_ps: np.ndarray, max_rand: float, data: _DataDTO) -> (
+    def __get_min_coh_and_da_mean(self, coh_ps: np.ndarray, max_rand: float, data: __DataDTO) -> (
             np.ndarray, np.ndarray, bool):
 
         # Paneme kohalikesse muutujatesse eelmistest protsessidest saadud tulemused,
@@ -351,7 +351,7 @@ class PsSelect(MetaSubProcess):
     def __is_select_method_percent(self):
         return self.__select_method is self._SelectMethod.PERCENT
 
-    def __get_coh_thresh_ind(self, coh_thresh: np.ndarray, data: _DataDTO):
+    def __get_coh_thresh_ind(self, coh_thresh: np.ndarray, data: __DataDTO):
 
         def make_coh_thresh_ind_array(make_function):
             function_result = make_function()
@@ -386,7 +386,7 @@ class PsSelect(MetaSubProcess):
 
         return coh_thresh_ind
 
-    def __get_ph_patch(self, coh_thresh_ind: np.ndarray, data: _DataDTO):
+    def __get_ph_patch(self, coh_thresh_ind: np.ndarray, data: __DataDTO):
 
         NR_PS = len(coh_thresh_ind)
 
