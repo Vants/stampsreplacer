@@ -15,6 +15,8 @@ from scripts.utils.MatlabUtils import MatlabUtils
 class PsWeed(MetaSubProcess):
     """Pikslite filtreerimine teiste naabrusest. Valitakse hulgast vaid selgemad"""
 
+    IND_ARRAY_TYPE = np.int32
+
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_select: PsSelect):
         self.ps_files = ps_files
         self.ps_select = ps_select
@@ -138,29 +140,36 @@ class PsWeed(MetaSubProcess):
 
     def __init_neighbours(self, ij_shift: np.ndarray, coh_ps_len: int) -> np.ndarray:
 
+        def arange_neighbours_select_arr(i, ind):
+            return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
+
         neighbour_ind = np.zeros((MatlabUtils.max(ij_shift[:, 0]) + 1,
-                                  MatlabUtils.max(ij_shift[:, 1]) + 1))
+                                  MatlabUtils.max(ij_shift[:, 1]) + 1), self.IND_ARRAY_TYPE)
         for i in range(coh_ps_len):
-            start = ArrayUtils.arange_include_last(ij_shift[i, 0] - 1, ij_shift[i, 0] + 1)
-            end = ArrayUtils.arange_include_last(ij_shift[i, 1] - 1, ij_shift[i, 1] + 1)
+            start = arange_neighbours_select_arr(i, 0)
+            end = arange_neighbours_select_arr(i, 1)
 
-            neighbour = neighbour_ind.take([start, end])
-            neighbour[neighbour == 0] = i
-            neighbour[1, 1] = i  # Keskmise väärtustamine
+            # Selleks, et saada len(start) * len(end) massiivi tuleb numpy's sedasi selekteerida
+            # Võib kasutada ka neighbour_ind[start, :][:, end], aga see ei luba pärast sama moodi
+            # väärtustada
+            neighbours_val = neighbour_ind[np.ix_(start, end)]
+            neighbours_val[neighbours_val == 0] = i + 1
+            neighbours_val[1, 1] = 0  # Keskmise väärtustamine
 
-            neighbour_ind.put([start, end], neighbour)
+            neighbour_ind[np.ix_(start, end)] = neighbours_val
 
         return neighbour_ind
 
     def __find_neighbours(self, ij_shift: np.ndarray, coh_thresh_ind_len: int,
                           neighbour_ind: np.ndarray) -> np.ndarray:
-        neighbour_ps = np.array(coh_thresh_ind_len)
+        # Loome tühja listi, kus on sees tühjad numpy massivid
+        neighbour_ps = [np.array([], self.IND_ARRAY_TYPE)] * (coh_thresh_ind_len + 1)
         for i in range(coh_thresh_ind_len):
             neighbour_val = neighbour_ind[ij_shift[i, 0], ij_shift[i, 1]]
-            if neighbour_val != 0:
-                neighbour_ps[neighbour_val] = np.array([neighbour_ps[neighbour_val]], i)
+            if neighbour_val > 0:
+                neighbour_ps[neighbour_val] = np.append(neighbour_ps[neighbour_val], [i])
 
-        return neighbour_ps
+        return np.array(neighbour_ps)
 
     def __select_best(self, neighbour_ps: np.ndarray, coh_thresh_ind_len: int,
                       coh_ps: np.ndarray) -> np.ndarray:
