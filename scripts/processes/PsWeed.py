@@ -15,7 +15,8 @@ from scripts.utils.MatlabUtils import MatlabUtils
 class PsWeed(MetaSubProcess):
     """Pikslite filtreerimine teiste naabrusest. Valitakse hulgast vaid selgemad"""
 
-    IND_ARRAY_TYPE = np.int32
+    __IND_ARRAY_TYPE = np.int32
+    __DEF_NEIGHBOUR_VAL = -1
 
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_select: PsSelect):
         self.ps_files = ps_files
@@ -139,12 +140,24 @@ class PsWeed(MetaSubProcess):
         return ij_shift
 
     def __init_neighbours(self, ij_shift: np.ndarray, coh_ps_len: int) -> np.ndarray:
+        """Stamps'is täideti massiiv nullidega siis mina täidan siin -1 'ega.
+        Kuna täidetakse massiiv indeksitest ja Numpy's/ Python'is hakkavad indeksid nullist siis
+        täidame -1'ega ja siis uute väärtustega"""
 
         def arange_neighbours_select_arr(i, ind):
             return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
 
-        neighbour_ind = np.zeros((MatlabUtils.max(ij_shift[:, 0]) + 1,
-                                  MatlabUtils.max(ij_shift[:, 1]) + 1), self.IND_ARRAY_TYPE)
+        def make_miss_middle_mask():
+            miss_middle = np.ones((3, 3), dtype=bool)
+            miss_middle[1, 1] = False
+
+            return miss_middle
+
+        neighbour_ind = np.ones((MatlabUtils.max(ij_shift[:, 0]) + 1,
+                                 MatlabUtils.max(ij_shift[:, 1]) + 1),
+                                self.__IND_ARRAY_TYPE) * self.__DEF_NEIGHBOUR_VAL
+        miss_middle = make_miss_middle_mask()
+
         for i in range(coh_ps_len):
             start = arange_neighbours_select_arr(i, 0)
             end = arange_neighbours_select_arr(i, 1)
@@ -153,8 +166,7 @@ class PsWeed(MetaSubProcess):
             # Võib kasutada ka neighbour_ind[start, :][:, end], aga see ei luba pärast sama moodi
             # väärtustada
             neighbours_val = neighbour_ind[np.ix_(start, end)]
-            neighbours_val[neighbours_val == 0] = i + 1
-            neighbours_val[1, 1] = 0  # Keskmise väärtustamine
+            neighbours_val[(neighbours_val == self.__DEF_NEIGHBOUR_VAL) & (miss_middle == True)] = i
 
             neighbour_ind[np.ix_(start, end)] = neighbours_val
 
@@ -163,11 +175,11 @@ class PsWeed(MetaSubProcess):
     def __find_neighbours(self, ij_shift: np.ndarray, coh_thresh_ind_len: int,
                           neighbour_ind: np.ndarray) -> np.ndarray:
         # Loome tühja listi, kus on sees tühjad numpy massivid
-        neighbour_ps = [np.array([], self.IND_ARRAY_TYPE)] * (coh_thresh_ind_len + 1)
+        neighbour_ps = [np.array([], self.__IND_ARRAY_TYPE)] * (coh_thresh_ind_len + 1)
         for i in range(coh_thresh_ind_len):
-            neighbour_val = neighbour_ind[ij_shift[i, 0], ij_shift[i, 1]]
-            if neighbour_val > 0:
-                neighbour_ps[neighbour_val] = np.append(neighbour_ps[neighbour_val], [i])
+            ind = neighbour_ind[ij_shift[i, 0] - 1, ij_shift[i, 1] - 1]
+            if ind != self.__DEF_NEIGHBOUR_VAL:
+                neighbour_ps[ind] = np.append(neighbour_ps[ind], [i])
 
         return np.array(neighbour_ps)
 
