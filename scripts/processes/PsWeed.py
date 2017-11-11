@@ -75,9 +75,14 @@ class PsWeed(MetaSubProcess):
         self.__logger.debug("neighbours.len: {0}".format(len(neighbour_ind)))
 
         neighbour_ps = self.__find_neighbours(ij_shift, coh_thresh_ind_len, neighbour_ind)
+        # todo kas saab logida ka tühjade arvu?
         self.__logger.debug("neighbour_ps.len: {0}".format(len(neighbour_ps)))
 
-        self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps)
+        selectable_ps = self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps)
+        self.__logger.debug("selectable_ps.len: {0}, true vals: {1}"
+                            .format(len(selectable_ps), np.count_nonzero(selectable_ps)))
+
+        self.__filter_xy(data.xy, selectable_ps)
 
         self.__logger.info("End")
 
@@ -185,27 +190,37 @@ class PsWeed(MetaSubProcess):
 
     def __select_best(self, neighbour_ps: np.ndarray, coh_thresh_ind_len: int,
                       coh_ps: np.ndarray) -> np.ndarray:
-        weed_ind = np.ones((coh_thresh_ind_len, 1), dtype=bool)
+        """Tagastab boolean'idest array, et pärast selle järgi filteerida ülejäänud massiivid.
+        Stamps'is oli tegemist massiiv int'intidest"""
+        selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)  # Stamps'is oli see 'weed_ind'
 
         for i in range(coh_thresh_ind_len):
             # todo Stamps'is oli isEmpty kontroll selle asemel
-            same_ps = neighbour_ps[i]
-            if len(same_ps) != 0:
-                i2 = 0
-                while i2 <= len(same_ps):
-                    ps_i = same_ps[i2]
-                    same_ps = np.array([same_ps, neighbour_ps[ps_i]])
+            ps_ind = neighbour_ps[i]
+            if len(ps_ind) != 0:
+                j = 0
+                while j < len(ps_ind):
+                    ps_i = ps_ind[j]
+                    ps_ind = np.append(ps_ind, neighbour_ps[ps_i]).astype(self.__IND_ARRAY_TYPE)
                     neighbour_ps[ps_i] = np.array([])
-                    i2 += 1
+                    j += 1
 
-                same_ps = np.unique(same_ps)
+                ps_ind = np.unique(ps_ind)
+                highest_coh_ind = coh_ps[ps_ind].argmax()
 
-                highest_coh = MatlabUtils.max(coh_ps[same_ps])
+                low_coh_ind = np.ones(len(ps_ind), dtype=bool)
+                low_coh_ind[highest_coh_ind] = False
 
-                low_coh_ind = np.ones(same_ps.shape, dtype=bool)
-                low_coh_ind[highest_coh] = False
+                ps_ind = ps_ind[low_coh_ind]
+                selectable_ps[ps_ind] = False
 
-                same_ps = same_ps[low_coh_ind]
-                weed_ind[same_ps] = False
+        # todo siin oli ka zero_elev'iga filteerimine
+        return selectable_ps
 
-        return weed_ind
+    def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray):
+        weeded_xy = xy[selectable_ps] # Stamps'is oli see 'xy_weed'
+
+        weed_ind = np.nonzero(selectable_ps)[0] #todo iteratalbe get array?!??
+        unique_rows = np.unique(weeded_xy[:, 1:2], axis=0).astype(self.__IND_ARRAY_TYPE)
+        last = ArrayUtils.arange_include_last(0, MatlabUtils.sum(weed_ind).transpose())
+        dups = np.setxor1d(unique_rows, last)
