@@ -2,6 +2,7 @@ from datetime import datetime
 import numpy as np
 import numpy.matlib
 import sys
+import math
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.processes.PsEstGamma import PsEstGamma
@@ -78,11 +79,16 @@ class PsWeed(MetaSubProcess):
         # todo kas saab logida ka tühjade arvu?
         self.__logger.debug("neighbour_ps.len: {0}".format(len(neighbour_ps)))
 
-        selectable_ps = self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps)
+        selectable_ps = self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps, data.hgt)
         self.__logger.debug("selectable_ps.len: {0}, true vals: {1}"
                             .format(len(selectable_ps), np.count_nonzero(selectable_ps)))
+        # todo del neighbour_ps?
 
-        self.__filter_xy(data.xy, selectable_ps)
+        xy, selectable_ps = self.__filter_xy(data.xy, selectable_ps, data.coh_ps)
+
+        # Stamps'is oli selle asemel 'no_weed_noisy'
+        if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
+            self.__drop_nosy()
 
         self.__logger.info("End")
 
@@ -189,20 +195,19 @@ class PsWeed(MetaSubProcess):
         return np.array(neighbour_ps)
 
     def __select_best(self, neighbour_ps: np.ndarray, coh_thresh_ind_len: int,
-                      coh_ps: np.ndarray) -> np.ndarray:
+                      coh_ps: np.ndarray, htg: np.ndarray) -> np.ndarray:
         """Tagastab boolean'idest array, et pärast selle järgi filteerida ülejäänud massiivid.
         Stamps'is oli tegemist massiiv int'intidest"""
-        selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)  # Stamps'is oli see 'weed_ind'
+        selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)  # Stamps'is oli see 'ix_weed'
 
         for i in range(coh_thresh_ind_len):
-            # todo Stamps'is oli isEmpty kontroll selle asemel
             ps_ind = neighbour_ps[i]
             if len(ps_ind) != 0:
                 j = 0
                 while j < len(ps_ind):
                     ps_i = ps_ind[j]
                     ps_ind = np.append(ps_ind, neighbour_ps[ps_i]).astype(self.__IND_ARRAY_TYPE)
-                    neighbour_ps[ps_i] = np.array([])
+                    neighbour_ps[ps_i] = np.array([]) # todo jätaks selle äkki ära? pole mõtet muuta kui pärast neid andmeid ei kasuta
                     j += 1
 
                 ps_ind = np.unique(ps_ind)
@@ -214,13 +219,35 @@ class PsWeed(MetaSubProcess):
                 ps_ind = ps_ind[low_coh_ind]
                 selectable_ps[ps_ind] = False
 
-        # todo siin oli ka zero_elev'iga filteerimine
+        self.__logger.debug("self.__weed_zero_elevation: {0}, len(htg)")
+        if self.__weed_zero_elevation and len(htg) > 0:
+            self.__logger.debug("Fiding sea evel")
+            sea_ind = htg < 1e-6
+            selectable_ps[sea_ind] = False
+
         return selectable_ps
 
-    def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray):
+    def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray, coh_ps: np.ndarray):
+        """Leiame xy massiiv filteeritult
+        Siin oli veel lisaks kas tehtud dublikaatide massiv on tühi, aga selle peale leti weeded_xy
+        uuesti, aga mina sellisel tegevusel mõtet ei näinud"""
+
+        #todo funksioon väiksemaks? eraldi xy ja eraldi weed_ind?
         weeded_xy = xy[selectable_ps] # Stamps'is oli see 'xy_weed'
 
-        weed_ind = np.nonzero(selectable_ps)[0] #todo iteratalbe get array?!??
-        unique_rows = np.unique(weeded_xy[:, 1:2], axis=0).astype(self.__IND_ARRAY_TYPE)
-        last = ArrayUtils.arange_include_last(0, MatlabUtils.sum(weed_ind).transpose())
-        dups = np.setxor1d(unique_rows, last)
+        weed_ind = np.nonzero(selectable_ps)[0] # Stamsp*is oli see 'ix_weed_num' #todo iteratalbe get array?!??
+        unique_rows = np.unique(weeded_xy, return_index=True, axis=0)[1].astype(self.__IND_ARRAY_TYPE)
+        # Stamps'is transponeeriti ka veel seda järgmist, aga siin ei tee see midagi
+        last = np.arange(0, len(weed_ind))
+        # Stamps'is oli see 'dps'. Pikslid topelt lon/ lat'iga
+        dublicates = np.setxor1d(unique_rows, last)
+
+        for i in range(len(dublicates)):
+            dublicate = dublicates[i]
+            weeded_dublicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[dublicate, 0]) &
+                                      ((weeded_xy[:, 1]) == weeded_xy[dublicate, 1])) # 'dups_ix_weed' oli originaalis
+            dublicates_ind = weed_ind[weeded_dublicates_ind] #
+            high_coh_ind = coh_ps[dublicates_ind].argmax()
+            selectable_ps[dublicates_ind != high_coh_ind] = False
+
+        return xy, selectable_ps
