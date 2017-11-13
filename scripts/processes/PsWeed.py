@@ -3,12 +3,14 @@ import numpy as np
 import numpy.matlib
 import sys
 import math
+from pathlib import Path
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.utils.ArrayUtils import ArrayUtils
+from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 
@@ -19,7 +21,8 @@ class PsWeed(MetaSubProcess):
     __IND_ARRAY_TYPE = np.int32
     __DEF_NEIGHBOUR_VAL = -1
 
-    def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_select: PsSelect):
+    def __init__(self, path_to_patch: str, ps_files: PsFiles, ps_est_gamma: PsEstGamma,
+                 ps_select: PsSelect):
         self.ps_files = ps_files
         self.ps_select = ps_select
         self.ps_est_gamma = ps_est_gamma
@@ -34,6 +37,26 @@ class PsWeed(MetaSubProcess):
         # todo drop_ifg_index on juba PsSelect'is
         self.__drop_ifg_index = np.array([])
         self.__small_baseline = True
+
+        #todo object? tuple?
+        #todo milleks üldse ps_weed_edge_nr? see on ju len(ps_weed_edge_data)
+        ps_weed_edge_nr, ps_weed_edge_data = self.__load_psweed_edge_file(path_to_patch)
+
+    def __load_psweed_edge_file(self, path: str) -> (int, np.ndarray):
+        """Põhjus miks me ei loe seda faili sisse juba PsFiles'ides on see, et me ei pruugi
+        PsWeed protsessi jõuda enda töötluses ja seda läheb ainult siin vaja"""
+
+        file_name = "psweed.2.edge"
+        path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
+        self.__logger.debug("Path to psweed_edgke file: " + str(path))
+        if path.exists():
+            header = np.genfromtxt(path, max_rows=1, dtype=self.__IND_ARRAY_TYPE)
+            data = np.genfromtxt(path, skip_header=True, skip_footer=True, dtype=self.__IND_ARRAY_TYPE)
+            return header[0], data
+        else:
+            raise FileNotFoundError("{1} not found. AbsPath {0}".format(str(path.absolute()), file_name))
+
+
 
     class __DataDTO(object):
 
@@ -88,7 +111,7 @@ class PsWeed(MetaSubProcess):
 
         # Stamps'is oli selle asemel 'no_weed_noisy'
         if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
-            self.__drop_nosy()
+            self.__drop_noisy()
 
         self.__logger.info("End")
 
@@ -251,3 +274,6 @@ class PsWeed(MetaSubProcess):
             selectable_ps[dublicates_ind != high_coh_ind] = False
 
         return xy, selectable_ps
+
+    def __drop_noisy(self):
+        pass

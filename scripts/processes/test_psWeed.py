@@ -34,7 +34,7 @@ class TestPsWeed(AbstractTestCase):
         self.__start_process()
 
     def __start_process(self):
-        ps_weed_process = PsWeed(self.__ps_files, self.__est_gamma_process, self.__ps_select)
+        ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
         ps_weed_process.start_process()
 
     # todo sama asi juba test_psSelect
