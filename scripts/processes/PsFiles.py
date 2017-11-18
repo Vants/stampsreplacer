@@ -34,9 +34,10 @@ class PsFiles:
     xy = np.ndarray
     da = np.ndarray
     sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
-    master_date = datetime
+    master_date = datetime # todo date objekt sobib paremini
     ifgs = np.ndarray # todo privaatseks muutujaks?
     hgt = np.ndarray
+    ifg_dates = []
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
@@ -76,6 +77,8 @@ class PsFiles:
         self.master_date = self.__get_master_date()
         self.master_nr = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
+        self.ifg_dates = self.__get_ifg_dates()
+
         self.__rg = self.__get_rg()
 
         sat_look_angle = self.__get_look_angle()
@@ -114,7 +117,8 @@ class PsFiles:
             sort_ind=self.sort_ind,
             master_date=self.master_date,
             ifgs=self.ifgs,
-            hgt=self.hgt)
+            hgt=self.hgt,
+            ifg_dates=self.ifg_dates)
 
     def load_results(self):
         file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
@@ -135,6 +139,7 @@ class PsFiles:
         self.master_date = data['master_date']
         self.ifgs = data['ifgs']
         self.hgt = data['hgt']
+        self.ifg_dates = data['ifg_dates']
 
     def __get_wavelength(self):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
@@ -392,6 +397,20 @@ class PsFiles:
         return float(self.__params['near_range_slc']) + ij_lat * float(
             self.__params['range_pixel_spacing'])
 
+    def __get_ifg_dates(self) -> []:
+        ifgs = self.ifgs
+
+        ifg_dates = []
+        for ifg_path in ifgs:
+            ifg_date_str_yyyymmdd = ifg_path[-13:-5]
+            ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
+                                    int(ifg_date_str_yyyymmdd[4:6]),
+                                    int(ifg_date_str_yyyymmdd[6:8]))
+
+            ifg_dates.append(ifg_datetime)
+
+        return ifg_dates
+
     def get_ps_variables(self):
         """Meetod millega eksportida muutujad mida läheb PsEstGamma ja PsSelect is vaja"""
 
@@ -401,10 +420,10 @@ class PsFiles:
         return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da
 
     def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[datetime, datetime], bool],
-                                      ifgs=None, master_date=None):
+                                      ifgs=np.array([]), master_date=None):
         """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
-         Kuupäev saadakse failiteest"""
-        if ifgs is None:
+         Kuupäev saadakse failiteest (ifgs muutja)"""
+        if ifgs is None or len(ifgs) == 0:
             ifgs = self.ifgs
 
         if master_date is None:
@@ -416,6 +435,7 @@ class PsFiles:
             ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
                                     int(ifg_date_str_yyyymmdd[4:6]),
                                     int(ifg_date_str_yyyymmdd[6:8]))
+
             if comp_fun(ifg_datetime, master_date):
                 result += 1
         return result

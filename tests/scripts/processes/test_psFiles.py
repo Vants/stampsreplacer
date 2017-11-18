@@ -2,9 +2,11 @@ import os
 import scipy.io
 import h5py
 import numpy as np
+from datetime import date
 
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsFiles import PsFiles
+from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.FolderConstants import FolderConstants
 from tests.AbstractTestCase import AbstractTestCase
 
@@ -55,24 +57,29 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_allclose(self._ps_files.lonlat, ps1_mat['lonlat'])
 
         # Kuna neil pole mat'ides kontrollväärtuseid siis neid kontrollib kas on täidetud
-        self.assertNotEquals(self._ps_files.wavelength, 0)
+        self.assertNotEqual(self._ps_files.wavelength, 0)
         self.assertIsNotNone(self._ps_files.heading)
 
-        self.assertNotEquals(self._ps_files.master_date, ps1_mat['master_day'])
-        self.assertEquals(self._ps_files.master_nr, ps1_mat['master_ix'])
+        master_date_days = date.toordinal(self._ps_files.master_date.date()) + 366
+        self.assertEqual(master_date_days, ps1_mat['master_day'][0])
+        self.assertEqual(self._ps_files.master_nr, ps1_mat['master_ix'])
+
+        ifg_date_days = ArrayUtils.to_col_matrix(
+            np.array([date.toordinal(x) + 366 for x in self._ps_files.ifg_dates]))
+        np.testing.assert_array_equal(ifg_date_days, ps1_mat['day'])
 
         # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
         np.testing.assert_allclose(self._ps_files.sort_ind.view(np.ndarray), la1)
 
-        self.assertEquals(len(self._ps_files.ifgs), ps1_mat['n_ifg'])
+        self.assertEqual(len(self._ps_files.ifgs), ps1_mat['n_ifg'])
 
-        self.assertEquals(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
+        self.assertEqual(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
 
         # hgt1 on array array's seepärast on reshape vajalik
         # Teised väärtused on meil leitud maatriksitena üldse ja võrreldakse kasutades view'sid
         np.testing.assert_allclose(self._ps_files.hgt, np.reshape(hgt1, len(hgt1)))
 
-        np.testing.assert_allclose(len(self._ps_files.ph), len(ph1))
+        self.assertEqual(len(self._ps_files.ph), len(ph1))
         self.assert_ph(self._ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
@@ -115,6 +122,7 @@ class TestPsFiles(AbstractTestCase):
         self.assertEquals(ps_files_load.master_date, self._ps_files.master_date)
         np.testing.assert_array_equal(ps_files_load.ifgs, self._ps_files.ifgs)
         np.testing.assert_array_equal(ps_files_load.hgt, self._ps_files.hgt)
+        np.testing.assert_array_equal(ps_files_load.ifg_dates, self._ps_files.ifg_dates)
 
     def __start_process(self):
         self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
