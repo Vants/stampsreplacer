@@ -59,7 +59,7 @@ class TestPsFiles(AbstractTestCase):
         self.assertIsNotNone(self._ps_files.heading)
 
         self.assertNotEquals(self._ps_files.master_date, ps1_mat['master_day'])
-        self.assertEquals(self._ps_files.master_ix, ps1_mat['master_ix'])
+        self.assertEquals(self._ps_files.master_nr, ps1_mat['master_ix'])
 
         # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
         np.testing.assert_allclose(self._ps_files.sort_ind.view(np.ndarray), la1)
@@ -104,7 +104,7 @@ class TestPsFiles(AbstractTestCase):
         self.assertEquals(ps_files_load.mean_range, self._ps_files.mean_range)
         self.assertEquals(ps_files_load.wavelength, self._ps_files.wavelength)
         self.assertEquals(ps_files_load.mean_incidence, self._ps_files.mean_incidence)
-        self.assertEquals(ps_files_load.master_ix, self._ps_files.master_ix)
+        self.assertEquals(ps_files_load.master_nr, self._ps_files.master_nr)
         np.testing.assert_array_equal(ps_files_load.bperp_meaned, self._ps_files.bperp_meaned)
         np.testing.assert_array_equal(ps_files_load.bperp, self._ps_files.bperp)
         np.testing.assert_array_equal(ps_files_load.ph, self._ps_files.ph)

@@ -147,13 +147,13 @@ class PsEstGamma(MetaSubProcess):
         ph, bperp, nr_ifgs, nr_ps, xy, da = self.ps_files.get_ps_variables()
         nr_ifgs -= 1 # Teistes protsessides kus seda muutjat kasutatakse seda teha ei tohi. StaMPS'is small_basline=n
 
-        ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_ix)
+        ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_nr)
         ph_abs = np.abs(ph)
         ph = np.divide(ph_abs, ph)
 
         # bprep_meaned on massiiv ridadest, mitte veergudest
         # siis tavaline delete_master_col ei tööta
-        bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_ix - 1)
+        bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_nr - 1)
 
         # Matlab'is oli 0.052 selle math.radians(3) asemel
         sort_ind_meaned = np.mean(self.ps_files.sort_ind) + math.radians(3)

@@ -26,7 +26,7 @@ class PsFiles:
     mean_range = 0.0
     wavelength = 0.0
     mean_incidence = 0.0
-    master_ix = -1
+    master_nr = -1 # Stamps'is oli master_ix
     bperp_meaned = np.ndarray
     bperp = np.ndarray # Stamps'is oli see bperp_mat
     ph = np.ndarray
@@ -35,7 +35,7 @@ class PsFiles:
     da = np.ndarray
     sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
     master_date = datetime
-    ifgs = np.ndarray
+    ifgs = np.ndarray # todo privaatseks muutujaks?
     hgt = np.ndarray
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
@@ -74,8 +74,7 @@ class PsFiles:
         self.ifgs = self.__load_ifg_info_from_pscphase()
 
         self.master_date = self.__get_master_date()
-        # TODO parem muutuja nimi
-        self.master_ix = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
+        self.master_nr = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
         self.__rg = self.__get_rg()
 
@@ -105,7 +104,7 @@ class PsFiles:
             mean_range=self.mean_range,
             wavelength=self.wavelength,
             mean_incidence=self.mean_incidence,
-            master_ix=self.master_ix,
+            master_nr=self.master_nr,
             bprep_meaned=self.bperp_meaned,
             bperp=self.bperp,
             ph=self.ph,
@@ -125,7 +124,7 @@ class PsFiles:
         self.mean_range = data['mean_range']
         self.wavelength = data['wavelength']
         self.mean_incidence = data['mean_incidence']
-        self.master_ix = data['master_ix']
+        self.master_nr = data['master_nr']
         self.bperp_meaned = data['bprep_meaned']
         self.bperp = data['bperp']
         self.ph = data['ph']
@@ -174,7 +173,7 @@ class PsFiles:
 
         bprep_meaned = np.mean(bperp, 0).transpose()
         # Kustutame püsivpeegeldajate asukohast veeru
-        bperp = MatrixUtils.delete_master_col(bperp, self.master_ix)
+        bperp = MatrixUtils.delete_master_col(bperp, self.master_nr)
 
         return bprep_meaned, bperp
 
@@ -190,7 +189,7 @@ class PsFiles:
         count = 0
         for i in range(0, len(imag_array_raw), imag_mx_len):
             matrix_row = imag_array_raw[i:i + imag_mx_len]
-            if count == self.master_ix - 1:
+            if count == self.master_nr - 1:
                 matrix_row = np.ones((imag_mx_len), dtype=COMPLEX_TYPE)
             imag_list.append(matrix_row)
 
@@ -298,8 +297,8 @@ class PsFiles:
             raise FileNotFoundError("No file " + name + ". Abs.path " + str(file_path.absolute()))
 
     def __load_ifg_info_from_pscphase(self):
-        """pscphase.in failis on inteferogammide asukohad (kataloogiteed). Need teed ka tagastatakse.
-        Failinimes on mis on masteri kuupäev ja mis on inteferogammi pildi kuupäev."""
+        """pscphase.in failis on inteferogammide asukohad (kataloogiteed). Need teed ka tagastatakse
+        siin fuksioonis. Failinimes on mis on masteri kuupäev ja mis on inteferogammi pildi kuupäev."""
 
         path = self.__path.joinpath("pscphase.in")
         if path.exists():

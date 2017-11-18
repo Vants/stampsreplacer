@@ -84,3 +84,14 @@ class MatlabUtils:
     def filter2(h, x, mode='same'):
         """https://stackoverflow.com/questions/43270274/equivalent-of-matlab-filter2filter-image-valid-in-python"""
         return scipy.signal.convolve2d(x, np.rot90(h, 2), mode)
+
+    @staticmethod
+    def lscov(A: np.ndarray, B: np.ndarray, W: np.ndarray):
+        """Least-squares solution in presence of known covariance
+        https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix-in-python"""
+
+        W_col_array = W[np.newaxis].transpose()
+        Aw = A * np.sqrt(W_col_array)
+        Bw = B * np.sqrt(W)
+
+        np.linalg.lstsq(Aw, Bw)

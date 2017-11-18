@@ -198,10 +198,10 @@ class PsSelect(MetaSubProcess):
             comp_fun = lambda x, y: x < y
 
             no_master_ix = np.setdiff1d(np.arange(0, nr_ifgs),
-                                        self.ps_files.master_ix - 1)
+                                        self.ps_files.master_nr - 1)
 
             ifg_ind = np.setdiff1d(np.arange(0, nr_ifgs), self.__drop_ifg_index)
-            ifg_ind = np.setdiff1d(ifg_ind, self.ps_files.master_ix)
+            ifg_ind = np.setdiff1d(ifg_ind, self.ps_files.master_nr)
             master_ix = self.ps_files.get_nr_ifgs_copared_to_master(comp_fun) - 1
             ifg_ind[ifg_ind > master_ix] -= 1
 
