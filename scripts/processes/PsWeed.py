@@ -62,7 +62,7 @@ class PsWeed(MetaSubProcess):
                      k_ps: np.ndarray, c_ps: np.ndarray, coh_ps: np.ndarray, pscands_ij: np.matrix,
                      xy: np.ndarray, lonlat: np.matrix, hgt: np.ndarray, ph: np.ndarray,
                      ph2: np.ndarray, ph_patch_org: np.ndarray, bperp_meaned: np.ndarray, nr_ifgs: int,
-                     nr_ps: int, master_date: datetime, master_nr: int, ifg_ind: np.ndarray):
+                     nr_ps: int, master_date: datetime, master_nr: int, ifg_dates: []):
             self.ind = ind
             self.ph_res = ph_res
             self.coh_thresh_ind = coh_thresh_ind
@@ -81,7 +81,7 @@ class PsWeed(MetaSubProcess):
             self.nr_ps = nr_ps
             self.master_date = master_date
             self.master_nr = master_nr
-            self.ifg_ind = ifg_ind
+            self.ifg_dates = ifg_dates
 
     def start_process(self):
         self.__logger.info("Start")
@@ -137,9 +137,7 @@ class PsWeed(MetaSubProcess):
                 k_ps = self.ps_select.k_ps
                 coh_ps = self.ps_select.coh_ps2
 
-            ifg_ind = self.ps_select.ifg_ind
-
-            return ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, ifg_ind
+            return ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps
 
         def get_from_ps_files():
             pscands_ij = self.ps_files.pscands_ij[coh_thresh_ind]
@@ -147,9 +145,11 @@ class PsWeed(MetaSubProcess):
             ph = self.ps_files.ph[coh_thresh_ind]
             lonlat = self.ps_files.lonlat[coh_thresh_ind]
             hgt = self.ps_files.hgt[coh_thresh_ind]
-            master_nr = self.ps_files.master_nr
 
-            return pscands_ij, xy, ph, lonlat, hgt, master_nr
+            master_nr = self.ps_files.master_nr
+            ifg_dates = self.ps_files.ifg_dates
+
+            return pscands_ij, xy, ph, lonlat, hgt, master_nr, ifg_dates
 
         def get_from_ps_est_gamma():
 
@@ -162,9 +162,9 @@ class PsWeed(MetaSubProcess):
 
         # fixme ph_path'e on Stampsis ainult üks.
 
-        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, ifg_ind = get_from_ps_select()
+        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select()
 
-        pscands_ij, xy, ph2, lonlat, hgt, master_nr = get_from_ps_files()
+        pscands_ij, xy, ph2, lonlat, hgt, master_nr, ifg_dates = get_from_ps_files()
 
         ph_patch_org, ph, bperp_meaned, nr_ifgs, nr_ps, master_date = get_from_ps_est_gamma()
 
@@ -173,7 +173,7 @@ class PsWeed(MetaSubProcess):
 
         return self.__DataDTO(ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, pscands_ij, xy,
                               lonlat, hgt, ph, ph2, ph_patch_org, bperp_meaned, nr_ifgs, nr_ps,
-                              master_date, master_nr, ifg_ind)
+                              master_date, master_nr, ifg_dates)
 
     def __get_ij_shift(self, pscands_ij: np.matrix, coh_ps_len: int) -> np.ndarray:
         ij = np.asarray(pscands_ij[:, 1:3])
@@ -188,6 +188,7 @@ class PsWeed(MetaSubProcess):
         täidame -1'ega ja siis uute väärtustega"""
 
         def arange_neighbours_select_arr(i, ind):
+            #todo repmat?
             return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
 
         def make_miss_middle_mask():
@@ -272,15 +273,15 @@ class PsWeed(MetaSubProcess):
         # Stamps'is transponeeriti ka veel seda järgmist, aga siin ei tee see midagi
         last = np.arange(0, len(weed_ind))
         # Stamps'is oli see 'dps'. Pikslid topelt lon/ lat'iga
-        dublicates = np.setxor1d(unique_rows, last)
+        duplicates = np.setxor1d(unique_rows, last)
 
-        for i in range(len(dublicates)):
-            dublicate = dublicates[i]
-            weeded_dublicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[dublicate, 0]) &
-                                      ((weeded_xy[:, 1]) == weeded_xy[dublicate, 1])) # 'dups_ix_weed' oli originaalis
-            dublicates_ind = weed_ind[weeded_dublicates_ind] #
-            high_coh_ind = coh_ps[dublicates_ind].argmax()
-            selectable_ps[dublicates_ind != high_coh_ind] = False
+        for i in range(len(duplicates)): #todo for-each
+            duplicate = duplicates[i]
+            weeded_duplicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[duplicate, 0]) &
+                                      ((weeded_xy[:, 1]) == weeded_xy[duplicate, 1])) # 'dups_ix_weed' oli originaalis
+            duplicates_ind = weed_ind[weeded_duplicates_ind] #
+            high_coh_ind = coh_ps[duplicates_ind].argmax()
+            selectable_ps[duplicates_ind != high_coh_ind] = False
 
         return xy, selectable_ps
 
@@ -292,21 +293,27 @@ class PsWeed(MetaSubProcess):
             ph_weed = np.multiply(ph, exped)
             ph_weed = np.divide(ph_weed, np.abs(ph_weed))
             # Masteri müra lisamine. Tehti juhul kui Stamps'is oli small_baseline_flag != 'y'
-            ph_weed[:, (master_nr - 1)] = np.exp(1j * c_ps)[0]
+            # rehsape on vajalik seepärast, et c_ps on massiiv kus sees on massiivid
+            ph_weed[:, (master_nr - 1)] = np.exp(1j * c_ps).reshape(len(ph_weed))
 
             return ph_weed
+
+        def get_time_deltas_in_days(index: int) -> np.ndarray:
+            """Selleks, et saaks date objektst päevade vahemiku int'ides teeme järgnevalt"""
+            return np.array([(ifg_dates[index] - ifg_dates[x]).days for x in np.nditer(ifg_ind)])
 
         ph_filtered = data.ph2[selectable_ps]
         k_ps_filtered = data.k_ps[selectable_ps]
         c_ps_filtered = data.c_ps[selectable_ps]
         bperp_meaned = data.bperp_meaned
         master_nr = data.master_nr
-        ifgs = data.nr_ifgs
+        ifg_dates = data.ifg_dates
 
         ph_weed = get_ph_weed(bperp_meaned, k_ps_filtered, ph_filtered, c_ps_filtered, master_nr)
 
         edges = self.__ps_weed_edge_data
-        dph_space = np.multiply(ph_weed[edges[:, 2] - 1], ph_weed[edges[:, 1] - 1, :].conj())
+        #todo lõpus pole neid : vaja vist
+        dph_space = np.multiply(ph_weed[edges[:, 2] - 1, :], ph_weed[edges[:, 1] - 1, :].conj())
         dph_space = dph_space[:, ifg_ind]
 
         #todo drop_ifg_index loogika
@@ -314,33 +321,48 @@ class PsWeed(MetaSubProcess):
         # Järgnev tehti ainult siis kui small_baseline_flag != 'y'
 
         dph_shape = (len(edges), len(ifg_ind))
-        dph_smooth = np.zeros(dph_shape)
-        dph_smooth2 = np.zeros(dph_shape)
-        for i in range(len(dph_space)):
-            time_delta = ifgs[i] - ifg_ind # fixme peaks võrdlema interferogrammide kuupäevade vahel
-            weight_factor = np.exp(-(np.power(time_delta, 2))/2/self.__time_win ^ 2)
+        dph_smooth = np.zeros(dph_shape).astype(np.complex128)
+        dph_smooth2 = np.zeros(dph_shape).astype(np.complex128)
+        for i in range(len(ifg_ind)):
+            time_delta = get_time_deltas_in_days(i)
+            weight_factor = np.exp(-(np.power(time_delta, 2)) / 2 / math.pow(self.__time_win, 2))
             weight_factor = weight_factor / np.sum(weight_factor)
 
-            dph_repmat = ArrayUtils.arange_include_last(weight_factor, len(edges), 1)
-            dph_mean = np.sum(np.multiply(dph_space, dph_repmat), axis=1)
+            repmat = np.matlib.repmat(weight_factor, len(edges), 1)
+            dph_mean = np.sum(np.multiply(dph_space, repmat), axis=1)
 
-            #todo teine nimi?
-            dph_repmat = ArrayUtils.arange_include_last(dph_mean.conj(), 1, len(ifg_ind))
-            dph_mean_adj = np.angle(np.multiply(dph_space, dph_repmat))
+            # Stamps'is tehti dph_mean'ile conj() ehk konjugeerimine, aga ühemõõtmeliste
+            # Numpy array'ide puhul see ei tee midagi ja siis teeme ta siin veerumaatriksiks
+            # kasutades abifunksiooni
+            repmat = np.matlib.repmat(ArrayUtils.to_col_matrix(dph_mean).conj(), 1, len(ifg_ind))
+            dph_mean_adj = np.angle(np.multiply(dph_space, repmat))
 
-            G = np.array(np.ones((len(ifg_ind), ArrayUtils.to_col_matrix(time_delta))))
-            weighted_least_sqrt = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor) # Stamps'is oli 'm'
+            G = np.array([np.ones(len(ifg_ind)), time_delta]).transpose()
+            # Stamps'is oli 'm'
+            weighted_least_sqrt = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor)
+            #todo parem muutja nimi
+            least_sqrt_G = np.asarray((np.asmatrix(G) * np.asmatrix(weighted_least_sqrt)).transpose())
+            dph_mean_adj = np.angle(np.exp(1j * (dph_mean_adj - least_sqrt_G)))
+            # Stamps'is oli 'm2'
+            weighted_least_sqrt2 = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor)
 
-            dph_repmat = ArrayUtils.arange_include_last(dph_mean.conj(), 1, len(ifg_ind))
-            dph_mean_adj = np.angle(np.exp(1j * (dph_mean_adj - (G * weighted_least_sqrt).transpose())))
-            weighted_least_sqrt2 = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor) # Stamps'is oli 'm2'
-
-            dph_smooth_val_exp = np.exp(1j * weighted_least_sqrt[1,:].transpose() +
-                                        weighted_least_sqrt2[1,:].transpose())
+            # weighted_least_sqrt'te juures jätame transponeerimise tegemata sest see ei mõjuta midagi
+            dph_smooth_val_exp = np.exp(1j * (weighted_least_sqrt[0, :] + weighted_least_sqrt2[0, :]))
             dph_smooth[:, i] = np.multiply(dph_mean, dph_smooth_val_exp)
-            weight_factor[i] = -1 # Jätame ennast väljas
+            weight_factor[i] = 0 # Jätame ennast välja
 
             #todo koodikordus ülemisega dph_mean_adj
-            dph_repmat = ArrayUtils.arange_include_last(dph_mean.conj(), 1, len(ifg_ind))
-            dph_smooth2[:, i] = np.angle(np.multiply(dph_space, dph_repmat))
+            repmat = np.matlib.repmat(weight_factor, len(edges), 1)
+            dph_smooth2[:, i] = np.sum(np.multiply(dph_space, repmat), axis=1)
 
+        # todo tegelikult pole vaja nii palju neid dph_noise'e, saaks ka ühega hakkama, vaata kasutamise järjekorda
+        dph_noise = np.angle(np.multiply(dph_space, dph_smooth.conj()))
+        dph_noise2 = np.angle(np.multiply(dph_space, dph_smooth2.conj()))
+        ifg_var = np.var(dph_noise2, 0)
+
+        K_weights = np.divide(1, ifg_var)
+        K = MatlabUtils.lscov(bperp_meaned, dph_noise.transpose(), K_weights).conj().transpose()
+        dph_noise -= K * bperp_meaned.transpose()
+
+        edge_std = MatlabUtils.std(dph_noise, axis=1)
+        edge_max = np.max(np.abs(dph_noise), axis=1)
