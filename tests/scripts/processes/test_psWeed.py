@@ -34,8 +34,24 @@ class TestPsWeed(AbstractTestCase):
         self.__start_process()
 
     def __start_process(self):
+        def bool_to_int_array(bool_array: np.ndarray):
+            return np.where(bool_array == 1)[0]
+
         ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
         ps_weed_process.start_process()
+
+        weed_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'weed1.mat'))
+
+        np.testing.assert_array_almost_equal(np.where(ps_weed_process.selectable_ps)[0],
+                                             bool_to_int_array(weed_mat['ix_weed']))
+        np.testing.assert_array_almost_equal(np.where(ps_weed_process.selectable_ps2)[0],
+                                             bool_to_int_array(weed_mat['ix_weed2']))
+        np.testing.assert_array_almost_equal(ps_weed_process.ps_std,
+                                             np.reshape(weed_mat['ps_std'], len(ps_weed_process.ps_std)))
+        np.testing.assert_array_almost_equal(ps_weed_process.ps_max,
+                                             np.reshape(weed_mat['ps_max'], len(ps_weed_process.ps_max)))
+        np.testing.assert_array_almost_equal(np.add(ps_weed_process.ifg_ind, 1),
+                                             np.reshape(weed_mat['ifg_index'], len(ps_weed_process.ifg_ind)))
 
     # todo sama asi juba test_psSelect
     def __fill_est_gamma_with_matlab_data(self):
