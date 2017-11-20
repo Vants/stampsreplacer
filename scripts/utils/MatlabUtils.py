@@ -59,9 +59,9 @@ class MatlabUtils:
         return fn(new_xs)
 
     @staticmethod
-    def std(array: np.ndarray):
+    def std(array: np.ndarray, axis=None):
         """https://stackoverflow.com/questions/27600207/why-does-numpy-std-give-a-different-result-to-matlab-std"""
-        return np.std(array, ddof=1)
+        return np.std(array, axis, ddof=1)
 
     @staticmethod
     def polyfit_polyval(x: np.ndarray, y: np.ndarray, deg: int, max_desinty_or_percent_rand: float):
@@ -86,12 +86,12 @@ class MatlabUtils:
         return scipy.signal.convolve2d(x, np.rot90(h, 2), mode)
 
     @staticmethod
-    def lscov(A: np.ndarray, B: np.ndarray, W: np.ndarray):
+    def lscov(A: np.ndarray, B: np.ndarray, weights: np.ndarray):
         """Least-squares solution in presence of known covariance
         https://stackoverflow.com/questions/27128688/how-to-use-least-squares-with-weight-matrix-in-python"""
 
-        W_col_array = W[np.newaxis].transpose()
+        W_col_array = weights[:, np.newaxis]
         Aw = A * np.sqrt(W_col_array)
-        Bw = B * np.sqrt(W)
+        Bw = B * np.sqrt(weights)[:, np.newaxis]
 
-        np.linalg.lstsq(Aw, Bw)
+        return np.linalg.lstsq(Aw, Bw)[0]
