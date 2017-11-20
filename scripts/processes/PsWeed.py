@@ -102,6 +102,7 @@ class PsWeed(MetaSubProcess):
         # todo kas saab logida ka tühjade arvu?
         self.__logger.debug("neighbour_ps.len: {0}".format(len(neighbour_ps)))
 
+        # Stamps'is oli see 'ix_weed'
         selectable_ps = self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps, data.hgt)
         self.__logger.debug("selectable_ps.len: {0}, true vals: {1}"
                             .format(len(selectable_ps), np.count_nonzero(selectable_ps)))
@@ -116,7 +117,25 @@ class PsWeed(MetaSubProcess):
 
         # Stamps'is oli selle asemel 'no_weed_noisy'
         if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
-            self.__drop_noisy(data, selectable_ps, ifg_ind)
+            edge_std, edge_max = self.__drop_noisy(data, selectable_ps, ifg_ind,
+                                                   self.__ps_weed_edge_data)
+            self.__logger.debug("edge_std.len: {0}, edge_std.len: {1}"
+                                .format(len(edge_std), len(edge_std)))
+            ps_std, ps_max = self.__get_ps_arrays(edge_std, edge_max, self.__ps_weed_edge_data)
+            self.__logger.debug("ps_std.len: {0}, ps_max.len: {1}"
+                                .format(len(ps_std), len(ps_max)))
+            selectable_ps, selectable_ps2 = self.__estimate_max_noise(ps_std, ps_max, selectable_ps)
+            self.__logger.debug("selectable_ps.len: {0}, selectable_ps2.len: {1}"
+                                .format(len(selectable_ps), len(selectable_ps2)))
+        else:
+            self.__logger.error("weed_standard_dev or weed_max_noise where bigger than pi")
+            raise NotImplemented("weed_standard_dev or weed_max_noise where bigger than pi")
+
+        self.selectable_ps = selectable_ps
+        self.selectable_ps2 = selectable_ps2 # todo parem nimi
+        self.ifg_ind = ifg_ind
+        self.ps_max = ps_max
+        self.ps_std = ps_std
 
         self.__logger.info("End")
 
@@ -231,7 +250,7 @@ class PsWeed(MetaSubProcess):
                       coh_ps: np.ndarray, htg: np.ndarray) -> np.ndarray:
         """Tagastab boolean'idest array, et pärast selle järgi filteerida ülejäänud massiivid.
         Stamps'is oli tegemist massiiv int'intidest"""
-        selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)  # Stamps'is oli see 'ix_weed'
+        selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)
 
         for i in range(coh_thresh_ind_len):
             ps_ind = neighbour_ps[i]
@@ -285,7 +304,8 @@ class PsWeed(MetaSubProcess):
 
         return xy, selectable_ps
 
-    def __drop_noisy(self, data: __DataDTO, selectable_ps: np.ndarray, ifg_ind: np.ndarray):
+    def __drop_noisy(self, data: __DataDTO, selectable_ps: np.ndarray, ifg_ind: np.ndarray,
+                     edges: np.ndarray) -> (np.ndarray, np.ndarray):
 
         def get_ph_weed(bperp: np.ndarray, k_ps: np.ndarray, ph: np.ndarray, c_ps: np.ndarray,
                         master_nr: int):
@@ -311,7 +331,6 @@ class PsWeed(MetaSubProcess):
 
         ph_weed = get_ph_weed(bperp_meaned, k_ps_filtered, ph_filtered, c_ps_filtered, master_nr)
 
-        edges = self.__ps_weed_edge_data
         #todo lõpus pole neid : vaja vist
         dph_space = np.multiply(ph_weed[edges[:, 2] - 1, :], ph_weed[edges[:, 1] - 1, :].conj())
         dph_space = dph_space[:, ifg_ind]
@@ -366,3 +385,31 @@ class PsWeed(MetaSubProcess):
 
         edge_std = MatlabUtils.std(dph_noise, axis=1)
         edge_max = np.max(np.abs(dph_noise), axis=1)
+
+        return edge_std, edge_max
+
+    def __get_ps_arrays(self, edge_std: np.ndarray, edge_max: np.ndarray,
+                        edges: np.ndarray) -> (np.ndarray, np.ndarray):
+        def get_min(ps_array: np.ndarray, edge_array: np.ndarray, edge_ind: np.ndarray, index: int):
+            array = np.array(
+                [ps_array[edge_ind], [edge_array[index], edge_array[index]]]).transpose()
+            return np.min(array, axis=1)
+
+        ps_std = np.full(len(edge_std), np.inf)
+        ps_max = np.full(len(edge_std), np.inf)
+        for i in range(len(edges)):
+            edge = edges[i, 1:3]
+            ps_std[edge] = get_min(ps_std, edge_std, edge, i)
+            ps_max[edge] = get_min(ps_max, edge_max, edge, i)
+
+        return ps_std, ps_max
+
+    def __estimate_max_noise(self, ps_std: np.ndarray, ps_max: np.ndarray,
+                             selectable_ps: np.ndarray) -> (np.ndarray, np.ndarray):
+
+        weeded = np.where(np.logical_and(ps_std < 1, ps_max < sys.maxsize) == True)[0]
+        selectable_ps[selectable_ps == True] = weeded
+
+        return selectable_ps, weeded
+
+
