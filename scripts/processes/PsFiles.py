@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import date
 from pathlib import Path
 
 import re
@@ -34,10 +34,10 @@ class PsFiles:
     xy = np.ndarray
     da = np.ndarray
     sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
-    master_date = datetime # todo date objekt sobib paremini
+    master_date = date
     ifgs = np.ndarray # todo privaatseks muutujaks?
     hgt = np.ndarray
-    ifg_dates = []
+    ifg_dates = [] # Stamps'is oli 'day'
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
@@ -291,7 +291,7 @@ class PsFiles:
         """load_params_from_rsc_file saadud 'date' on masteri kuupäev. Selle splitime ja teeme
         datetime'iks"""
         date_arr = self.__params["date"].split('  ')
-        return datetime(int(date_arr[0]), int(date_arr[1]), int(date_arr[2]))
+        return date(int(date_arr[0]), int(date_arr[1]), int(date_arr[2]))
 
     def __load_file(self, name: str, path: Path):
         file_path = Path(path, name)
@@ -312,7 +312,7 @@ class PsFiles:
         else:
             raise FileNotFoundError("pscphase.in not found. AbsPath " + str(path.absolute()))
 
-    def __get_nr_ifgs_less_than_master(self, master_date: datetime, ifgs: np.ndarray):
+    def __get_nr_ifgs_less_than_master(self, master_date: date, ifgs: np.ndarray):
         """Mitu intefegorammi on enne masteri kuupäeva"""
         comp_fun = lambda x, y: x > y
         return self.get_nr_ifgs_copared_to_master(comp_fun, ifgs, master_date)
@@ -403,9 +403,9 @@ class PsFiles:
         ifg_dates = []
         for ifg_path in ifgs:
             ifg_date_str_yyyymmdd = ifg_path[-13:-5]
-            ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
-                                    int(ifg_date_str_yyyymmdd[4:6]),
-                                    int(ifg_date_str_yyyymmdd[6:8]))
+            ifg_datetime = date(int(ifg_date_str_yyyymmdd[:4]),
+                                int(ifg_date_str_yyyymmdd[4:6]),
+                                int(ifg_date_str_yyyymmdd[6:8]))
 
             ifg_dates.append(ifg_datetime)
 
@@ -419,7 +419,7 @@ class PsFiles:
 
         return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da
 
-    def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[datetime, datetime], bool],
+    def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[date, date], bool],
                                       ifgs=np.array([]), master_date=None):
         """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
          Kuupäev saadakse failiteest (ifgs muutja)"""
@@ -432,9 +432,9 @@ class PsFiles:
         result = 1  # StaMPS'is liideti üks juurde peale töötlust
         for ifg_path in ifgs:
             ifg_date_str_yyyymmdd = ifg_path[-13:-5]
-            ifg_datetime = datetime(int(ifg_date_str_yyyymmdd[:4]),
-                                    int(ifg_date_str_yyyymmdd[4:6]),
-                                    int(ifg_date_str_yyyymmdd[6:8]))
+            ifg_datetime = date(int(ifg_date_str_yyyymmdd[:4]),
+                                int(ifg_date_str_yyyymmdd[4:6]),
+                                int(ifg_date_str_yyyymmdd[6:8]))
 
             if comp_fun(ifg_datetime, master_date):
                 result += 1

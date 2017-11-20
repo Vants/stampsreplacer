@@ -60,7 +60,7 @@ class TestPsFiles(AbstractTestCase):
         self.assertNotEqual(self._ps_files.wavelength, 0)
         self.assertIsNotNone(self._ps_files.heading)
 
-        master_date_days = date.toordinal(self._ps_files.master_date.date()) + 366
+        master_date_days = date.toordinal(self._ps_files.master_date) + 366
         self.assertEqual(master_date_days, ps1_mat['master_day'][0])
         self.assertEqual(self._ps_files.master_nr, ps1_mat['master_ix'])
 
