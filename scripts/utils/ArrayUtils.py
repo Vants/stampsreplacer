@@ -3,14 +3,14 @@ import numpy as np
 
 class ArrayUtils:
     @staticmethod
-    def arange_include_last(start, end, step=None):
+    def arange_include_last(start: int, end: int, step=None):
         """Funktsioon on mõeldud selleks, et kui on vaja maatriksit algusest lõpuni vastava sammuga
         ning on tähtis, et viimane element oleks olemas. np.arange ei kindlusta seda, et viimane
         element oleks olemas."""
 
         aranged = np.arange(start, end, step)
         if len(aranged) == 0 or aranged[len(aranged) - 1] != end:
-            aranged = np.append(aranged, end)
+            aranged = np.append(aranged, [end])
 
         return aranged
 
