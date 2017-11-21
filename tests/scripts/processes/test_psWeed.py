@@ -29,29 +29,47 @@ class TestPsWeed(AbstractTestCase):
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__est_gamma_process)
         cls.__ps_select.load_results()
 
-    def test_start_process_with_matlab_data(self):
-        self.__fill_est_gamma_with_matlab_data()
-        self.__start_process()
+        cls.__ps_weed_process = None
 
-    def __start_process(self):
+    def test_start_process_with_matlab_data(self):
         def bool_to_int_array(bool_array: np.ndarray):
             return np.where(bool_array == 1)[0]
 
-        ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
-        ps_weed_process.start_process()
+        self.__fill_est_gamma_with_matlab_data()
+        self.__start_process()
 
         weed_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'weed1.mat'))
 
-        np.testing.assert_array_almost_equal(np.where(ps_weed_process.selectable_ps)[0],
+        np.testing.assert_array_almost_equal(np.where(self.__ps_weed_process.selectable_ps)[0],
                                              bool_to_int_array(weed_mat['ix_weed']))
-        np.testing.assert_array_almost_equal(np.where(ps_weed_process.selectable_ps2)[0],
+        np.testing.assert_array_almost_equal(np.where(self.__ps_weed_process.selectable_ps2)[0],
                                              bool_to_int_array(weed_mat['ix_weed2']))
-        np.testing.assert_array_almost_equal(ps_weed_process.ps_std,
-                                             np.reshape(weed_mat['ps_std'], len(ps_weed_process.ps_std)))
-        np.testing.assert_array_almost_equal(ps_weed_process.ps_max,
-                                             np.reshape(weed_mat['ps_max'], len(ps_weed_process.ps_max)))
-        np.testing.assert_array_almost_equal(np.add(ps_weed_process.ifg_ind, 1),
-                                             np.reshape(weed_mat['ifg_index'], len(ps_weed_process.ifg_ind)))
+        np.testing.assert_array_almost_equal(self.__ps_weed_process.ps_std,
+                                             np.reshape(weed_mat['ps_std'], len(self.__ps_weed_process.ps_std)))
+        np.testing.assert_array_almost_equal(self.__ps_weed_process.ps_max,
+                                             np.reshape(weed_mat['ps_max'], len(self.__ps_weed_process.ps_max)))
+        np.testing.assert_array_almost_equal(np.add(self.__ps_weed_process.ifg_ind, 1),
+                                             np.reshape(weed_mat['ifg_index'], len(self.__ps_weed_process.ifg_ind)))
+
+    def test_save_and_load_results(self):
+        self.__fill_est_gamma_with_matlab_data()
+        self.__start_process()
+
+        self.__ps_weed_process.save_results()
+
+        ps_weed_loaded = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
+
+        ps_weed_loaded.load_results()
+
+        np.testing.assert_array_equal(self.__ps_weed_process.selectable_ps, ps_weed_loaded.selectable_ps)
+        np.testing.assert_array_equal(self.__ps_weed_process.selectable_ps2, ps_weed_loaded.selectable_ps2)
+        np.testing.assert_array_equal(self.__ps_weed_process.ps_std, ps_weed_loaded.ps_std)
+        np.testing.assert_array_equal(self.__ps_weed_process.ps_max, ps_weed_loaded.ps_max)
+        np.testing.assert_array_equal(self.__ps_weed_process.ifg_ind, ps_weed_loaded.ifg_ind)
+
+    def __start_process(self):
+        self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
+        self.__ps_weed_process.start_process()
 
     # todo sama asi juba test_psSelect
     def __fill_est_gamma_with_matlab_data(self):

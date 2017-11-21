@@ -1,3 +1,5 @@
+import os
+
 from datetime import datetime
 import numpy as np
 import numpy.matlib
@@ -13,6 +15,7 @@ from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
+from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class PsWeed(MetaSubProcess):
@@ -20,6 +23,7 @@ class PsWeed(MetaSubProcess):
 
     __IND_ARRAY_TYPE = np.int32
     __DEF_NEIGHBOUR_VAL = -1
+    __FILE_NAME = "ps_weed"
 
     def __init__(self, path_to_patch: str, ps_files: PsFiles, ps_est_gamma: PsEstGamma,
                  ps_select: PsSelect):
@@ -141,6 +145,25 @@ class PsWeed(MetaSubProcess):
         self.ps_std = ps_std
 
         self.__logger.info("End")
+
+    def save_results(self):
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            selectable_ps = self.selectable_ps,
+            selectable_ps2 = self.selectable_ps2,
+            ifg_ind = self.ifg_ind,
+            ps_max = self.ps_max,
+            ps_std = self.ps_std
+        )
+
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.selectable_ps = data["selectable_ps"]
+        self.selectable_ps2 = data["selectable_ps2"]
+        self.ifg_ind = data["ifg_ind"]
+        self.ps_max = data["ps_max"]
+        self.ps_std = data["ps_std"]
 
     def __load_ps_params(self):
 
