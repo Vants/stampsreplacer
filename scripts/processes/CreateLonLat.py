@@ -27,10 +27,10 @@ class CreateLonLat(MetaSubProcess):
         self.__PATCH_FOLDER = os.path.join(config_utils.get_default_section("patch_folder"),
                                            FolderConstants.PATCH_FOLDER_NAME)
 
-        self.logger = LoggerFactory.create('CreateLonLat')
+        self.__logger = LoggerFactory.create('CreateLonLat')
 
     def start_process(self):
-        self.logger.debug("Start")
+        self.__logger.debug("Start")
 
         product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
         lon_band, lat_band = self.__get_lon_bands(product_with_geo_ref)
@@ -68,7 +68,7 @@ class CreateLonLat(MetaSubProcess):
 
         self.pscands_ij_array = np.reshape(self.pscands_ij_array, (len(self.pscands_ij_array), 3))
 
-        self.logger.debug("Done")
+        self.__logger.debug("Done")
 
         return np.reshape(lonlat, (len(lonlat), 2))
 
