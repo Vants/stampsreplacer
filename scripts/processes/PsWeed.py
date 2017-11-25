@@ -25,6 +25,8 @@ class PsWeed(MetaSubProcess):
     __DEF_NEIGHBOUR_VAL = -1
     __FILE_NAME = "ps_weed"
 
+    selectable_ps = np.ndarray
+
     def __init__(self, path_to_patch: str, ps_files: PsFiles, ps_est_gamma: PsEstGamma,
                  ps_select: PsSelect):
         self.ps_files = ps_files
@@ -164,6 +166,37 @@ class PsWeed(MetaSubProcess):
         self.ifg_ind = data["ifg_ind"]
         self.ps_max = data["ps_max"]
         self.ps_std = data["ps_std"]
+
+    def get_filtered_results(self):
+        """Kuna filteerimine selectable_ps'iga alusel tehakse muutjate põhjal mis on siin juba
+        leitud sisendmuutujate leidmisel ja filteeritud näiteks 'ps_select.keep_ind' siis on siin
+        klassis seda oluliselt lihtsam teha.
+
+        Stamps'is tehti uued .mat failid nende salvestamiseks"""
+
+        self.__logger.info("Finding filtered results")
+        try:
+            len(self.selectable_ps)
+        except TypeError:
+            self.__logger.info("Load results")
+            self.load_results()
+
+        data = self.__load_ps_params()
+
+        coh_ps = data.coh_ps[self.selectable_ps]
+        k_ps = data.k_ps[self.selectable_ps]
+        c_ps = data.c_ps[self.selectable_ps]
+        ph_patch = data.ph_patch_org[self.selectable_ps]
+        ph = data.ph2[self.selectable_ps]
+        xy = data.xy[self.selectable_ps]
+        pscands_ij = data.pscands_ij[self.selectable_ps]
+        lonlat = data.lonlat[self.selectable_ps]
+        hgt = data.hgt[self.selectable_ps]
+
+        bperp = self.ps_files.bperp[data.coh_thresh_ind]
+        bperp = bperp[self.selectable_ps]
+
+        return coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp
 
     def __load_ps_params(self):
 

@@ -67,6 +67,39 @@ class TestPsWeed(AbstractTestCase):
         np.testing.assert_array_equal(self.__ps_weed_process.ps_max, ps_weed_loaded.ps_max)
         np.testing.assert_array_equal(self.__ps_weed_process.ifg_ind, ps_weed_loaded.ifg_ind)
 
+    def test_get_filtered_results(self):
+        self.__fill_est_gamma_with_matlab_data()
+        self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process,
+                                        self.__ps_select)
+        coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp =\
+            self.__ps_weed_process.get_filtered_results()
+
+        pm_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm2.mat'))
+
+        np.testing.assert_array_almost_equal(coh_ps, pm_mat['coh_ps'])
+        np.testing.assert_array_almost_equal(k_ps, pm_mat['K_ps'])
+        np.testing.assert_array_almost_equal(c_ps, pm_mat['C_ps'])
+        np.testing.assert_array_almost_equal(ph_patch, pm_mat['ph_patch'])
+
+        ph_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'ph2.mat'))
+
+        np.testing.assert_array_almost_equal(ph, ph_mat['ph'])
+
+        ps = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'ps2.mat'))
+
+        # Täpselt nagu PsFiles testis me ei vaata esimest veergu, sest meil pole seda lihtsalt
+        np.testing.assert_array_almost_equal(xy, ps['xy'][:, 1:])
+        np.testing.assert_array_almost_equal(pscands_ij, ps['ij'])
+        np.testing.assert_array_almost_equal(lonlat.view(np.ndarray), ps['lonlat'], self._PLACES)
+        np.testing.assert_array_almost_equal(len(ph), ps['n_ps'][0])
+
+        hgt_mat= scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'hgt2.mat'))
+        np.testing.assert_array_almost_equal(hgt, np.reshape(hgt_mat['hgt'], len(hgt)))
+
+        bp_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'bp2.mat'))
+
+        np.testing.assert_array_almost_equal(bperp, bp_mat['bperp_mat'], self._PLACES)
+
     def __start_process(self):
         self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
         self.__ps_weed_process.start_process()
