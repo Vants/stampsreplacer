@@ -1,40 +1,74 @@
 import numpy as np
 import numpy.matlib
+import math
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
+from scripts.processes.PsWeed import PsWeed
 
 
 class PhaseCorrection(MetaSubProcess):
     """Tehtud 'ps_correct_phase' järgi"""
 
-    def __init__(self, ps_files: PsFiles, ps_select: PsSelect, ps_est_gamma: PsEstGamma):
+    def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_weed: PsWeed,
+                 ps_select: PsSelect):
         self.__ps_files = ps_files
-        self.__ps_select = ps_select
         self.__ps_est_gamma = ps_est_gamma
+        self.__ps_weed = ps_weed
+        self.__ps_select = ps_select
+
+    class __DataDTO(object):
+        def __init__(self, master_nr: int, nr_ifgs: int, bperp: np.ndarray, ph: np.ndarray,
+                     k_ps: np.ndarray,
+                     c_ps: np.ndarray, ph_patch: np.ndarray):
+            self.master_nr = master_nr
+            self.nr_ifgs = nr_ifgs
+            self.bperp = bperp
+            self.ph = ph
+            self.k_ps = k_ps
+            self.c_ps = c_ps
+            self.ph_patch = ph_patch
 
     def start_process(self):
-        master_nr = self.__ps_files.master_nr - 1 # Stamps'is oli see master_ix
-        ps_files_bperp = self.__ps_files.bperp
-        # Justkui pistame vahele
-        bperp = np.insert(ps_files_bperp, master_nr, values=0, axis=1)
+        data = self.__load_ps_params()
 
-        k_ps = self.__ps_est_gamma.k_ps
-        c_ps = self.__ps_est_gamma.c_ps
+        ph_rc = self.get_ph_rc(data)
+
+        ph_reref = self.get_ph_reref(data)
+
+        # Paneme arvutatud väljad klassimuutujatesse
+        self.ph_rc = ph_rc
+        self.ph_reref = ph_reref
+
+    def __load_ps_params(self) -> __DataDTO:
+        master_nr = self.__ps_files.master_nr - 1  # Stamps'is oli see master_ix
+
         nr_ifgs = len(self.__ps_files.ifgs)
 
-        repmated_bperp = np.multiply(-1j * np.matlib.repmat(k_ps, 1, nr_ifgs), bperp)
-        repmated_c_ps = np.matlib.repmat(c_ps, 1, nr_ifgs)
+        _, k_ps, c_ps, ph_patch, ph, _, _, _, _, bperp = self.__ps_weed.get_filtered_results()
 
-        ph = self.__ps_files.ph
-        ph_rc = np.multiply(ph, np.exp(repmated_bperp + repmated_c_ps))
+        return self.__DataDTO(master_nr, nr_ifgs, bperp, ph, k_ps, c_ps, ph_patch)
 
-        ph_patch = self.__ps_est_gamma.ph_patch
-        ph_reref = np.insert(ph_patch, master_nr, values=0, axis=1)
+    def get_ph_rc(self, data: __DataDTO):
+        bperp = data.bperp
+        master_nr = data.master_nr
+        # Justkui pistame vahele
+        bperp_master_col_zeros = np.insert(bperp, master_nr, values=0, axis=1)
 
+        nr_ifgs = data.nr_ifgs
+        repmated_bperp = np.multiply(np.matlib.repmat(data.k_ps, 1, nr_ifgs),
+                                     bperp_master_col_zeros)
+        repmated_c_ps = np.matlib.repmat(data.c_ps, 1, nr_ifgs)
+        ph_rc = np.multiply(data.ph, np.exp(-1j * (repmated_bperp + repmated_c_ps)))
 
+        return ph_rc
 
+    def get_ph_reref(self, data: __DataDTO):
+        ph_patch = data.ph_patch
+        master_nr = data.master_nr
 
+        ph_reref = np.insert(ph_patch, master_nr, values=1, axis=1)
 
+        return ph_reref

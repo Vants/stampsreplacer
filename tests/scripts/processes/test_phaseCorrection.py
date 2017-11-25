@@ -8,7 +8,10 @@ from scripts.processes.PhaseCorrection import PhaseCorrection
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
+from scripts.processes.PsWeed import PsWeed
 from tests.AbstractTestCase import AbstractTestCase
+
+import numpy as np
 
 
 class TestPhaseCorrection(AbstractTestCase):
@@ -23,26 +26,36 @@ class TestPhaseCorrection(AbstractTestCase):
         cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij_array, lonlat)
         cls.__ps_files.load_results()
 
-        cls.__ps_est_gamma = None
+        cls.__ps_est_gamma = PsEstGamma(cls.__ps_files)
+
+        self = TestPhaseCorrection() # Selleks, et saaks asju väljapool @classmethod kasutada
+        self.__fill_est_gamma_with_matlab_data()
 
         # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__ps_est_gamma)
         cls.__ps_select.load_results()
 
+        cls.__ps_weed = PsWeed(cls._PATH, cls.__ps_files, cls.__ps_est_gamma, cls.__ps_select)
+        cls.__ps_weed.load_results()
+
+        cls.__phase_correction = None
+
     def test_start_process(self):
-        self.__fill_est_gamma_with_matlab_data()
         self.__start_process()
 
+        rc_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'rc2.mat'))
 
+        np.testing.assert_allclose(self.__phase_correction.ph_rc, rc_mat['ph_rc'], atol=0.05)
+        np.testing.assert_array_almost_equal(self.__phase_correction.ph_reref, rc_mat['ph_reref'])
 
     def __start_process(self):
-        phase_correction = PhaseCorrection(self.__ps_files, self.__ps_select, self.__ps_est_gamma)
-        phase_correction.start_process()
+        self.__phase_correction = PhaseCorrection(self.__ps_files, self.__ps_est_gamma,
+                                                  self.__ps_weed, self.__ps_select)
+        self.__phase_correction.start_process()
 
     # todo sama asi juba test_psSelect
     def __fill_est_gamma_with_matlab_data(self):
         pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
-        self.__ps_est_gamma = PsEstGamma(self.__ps_files, False)
         self.__ps_est_gamma.coherence_bins = pm1_mat['coh_bins'][0]
         self.__ps_est_gamma.grid_ij = pm1_mat['grid_ij']
         self.__ps_est_gamma.nr_trial_wraps = pm1_mat['n_trial_wraps']
