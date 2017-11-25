@@ -178,7 +178,7 @@ class PsWeed(MetaSubProcess):
         try:
             len(self.selectable_ps)
         except TypeError:
-            self.__logger.info("Load results")
+            self.__logger.debug("Load results")
             self.load_results()
 
         data = self.__load_ps_params()
