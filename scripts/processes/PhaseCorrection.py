@@ -1,19 +1,26 @@
 import numpy as np
 import numpy.matlib
-import math
+import os
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
+from scripts.utils.FolderConstants import FolderConstants
+from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
 class PhaseCorrection(MetaSubProcess):
     """Tehtud 'ps_correct_phase' järgi"""
 
+    __FILE_NAME = "phase_correction"
+
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_weed: PsWeed,
                  ps_select: PsSelect):
+        self.__logger = LoggerFactory.create("PsWeed")
+
         self.__ps_files = ps_files
         self.__ps_est_gamma = ps_est_gamma
         self.__ps_weed = ps_weed
@@ -32,15 +39,32 @@ class PhaseCorrection(MetaSubProcess):
             self.ph_patch = ph_patch
 
     def start_process(self):
+        self.__logger.info("Started")
+
         data = self.__load_ps_params()
 
         ph_rc = self.get_ph_rc(data)
+        self.__logger.debug("ph_rc.len {0}".format(len(ph_rc)))
 
         ph_reref = self.get_ph_reref(data)
+        self.__logger.debug("ph_reref.len {0}".format(len(ph_reref)))
 
         # Paneme arvutatud väljad klassimuutujatesse
         self.ph_rc = ph_rc
         self.ph_reref = ph_reref
+
+    def save_results(self):
+        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+            ph_rc = self.ph_rc,
+            ph_reref = self.ph_reref
+        )
+
+    def load_results(self):
+        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+        data = np.load(file_with_path)
+
+        self.ph_rc = data['ph_rc']
+        self.ph_reref = data['ph_reref']
 
     def __load_ps_params(self) -> __DataDTO:
         master_nr = self.__ps_files.master_nr - 1  # Stamps'is oli see master_ix

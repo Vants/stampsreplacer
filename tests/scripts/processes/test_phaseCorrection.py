@@ -48,6 +48,19 @@ class TestPhaseCorrection(AbstractTestCase):
         np.testing.assert_allclose(self.__phase_correction.ph_rc, rc_mat['ph_rc'], atol=0.05)
         np.testing.assert_array_almost_equal(self.__phase_correction.ph_reref, rc_mat['ph_reref'])
 
+    def test_save_and_load_results(self):
+        self.__start_process()
+        self.__phase_correction.save_results()
+
+        phase_correction_loaded = PhaseCorrection(self.__ps_files, self.__ps_est_gamma,
+                                                  self.__ps_weed, self.__ps_select)
+        phase_correction_loaded.load_results()
+
+        np.testing.assert_array_almost_equal(self.__phase_correction.ph_rc,
+                                             phase_correction_loaded.ph_rc)
+        np.testing.assert_array_almost_equal(self.__phase_correction.ph_reref,
+                                             phase_correction_loaded.ph_reref)
+
     def __start_process(self):
         self.__phase_correction = PhaseCorrection(self.__ps_files, self.__ps_est_gamma,
                                                   self.__ps_weed, self.__ps_select)
