@@ -23,7 +23,7 @@ class ProcessDataSaver:
                                + ", file_name " + file_name)
 
     def save_data(self, **data):
-        np.savez(str(os.path.abspath(self.file_path_with_name)), **data)
+        np.savez(str(self.file_path_with_name.absolute()), **data)
 
         if self.__logger is not None:
             self.__logger.debug(data)
