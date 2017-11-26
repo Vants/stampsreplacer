@@ -7,6 +7,7 @@ from typing import Callable
 
 from numpy import matlib
 
+from scripts.MetaSubProcess import MetaSubProcess
 from scripts.utils.FolderConstants import FolderConstants
 
 import numpy as np
@@ -18,7 +19,7 @@ from scripts.utils.MatrixUtils import MatrixUtils
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
 
 
-class PsFiles:
+class PsFiles(MetaSubProcess):
     """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
     Tehtud StaMPS'i ps_load_inital_gamma järgi."""
 
@@ -61,7 +62,7 @@ class PsFiles:
 
         self.__logger = self.__logger = LoggerFactory.create("PsFiles")
 
-    def load_files(self):
+    def start_process(self):
         self.__logger.info("Start")
 
         self.__load_params_from_rsc_file()

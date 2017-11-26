@@ -17,6 +17,8 @@ class AbstractTestCase(TestCase):
 
         cls._PATH = cls._config.get_default_section('tests_files_path')
 
-        _PATCH_FOLDER = cls._config.get_default_section('patch_folder')
+        PATCH_FOLDER = cls._config.get_default_section('patch_folder')
 
-        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, _PATCH_FOLDER, FolderConstants.PATCH_FOLDER_NAME)
+        cls._PATCH_1_FOLDER = os.path.join(cls._PATH, PATCH_FOLDER, FolderConstants.PATCH_FOLDER_NAME)
+
+        cls._PATH_PATCH_FOLDER = os.path.join(cls._PATH, PATCH_FOLDER)
