@@ -19,7 +19,7 @@ class TestPsFiles(AbstractTestCase):
         cls._GEO_DATA_FILE = os.path.join(cls._PATH,
                                            'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
 
-        cls.lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE)
+        cls.lonlat_process = CreateLonLat(cls._PATH_PATCH_FOLDER, cls._GEO_DATA_FILE)
         cls.lonlat = cls.lonlat_process.load_results()
 
         cls._ps_files = None
@@ -104,7 +104,7 @@ class TestPsFiles(AbstractTestCase):
         self.__start_process()
         self._ps_files.save_results()
 
-        ps_files_load = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
+        ps_files_load = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij, self.lonlat)
         ps_files_load.load_results()
 
         self.assertIsNotNone(ps_files_load.heading)
@@ -125,5 +125,5 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_array_equal(ps_files_load.ifg_dates, self._ps_files.ifg_dates)
 
     def __start_process(self):
-        self._ps_files = PsFiles(self._PATH, self.lonlat_process.pscands_ij_array, self.lonlat)
-        self._ps_files.load_files()
+        self._ps_files = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij, self.lonlat)
+        self._ps_files.start_process()

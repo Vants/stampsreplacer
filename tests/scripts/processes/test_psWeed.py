@@ -20,7 +20,7 @@ class TestPsWeed(AbstractTestCase):
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
         lonlat = lonlat_process.load_results()
-        cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij_array, lonlat)
+        cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
         cls.__ps_files.load_results()
 
         cls.__est_gamma_process = None

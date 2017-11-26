@@ -17,10 +17,9 @@ class TestCreateLonLat(AbstractTestCase):
                                            'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
 
     def test_start_process(self):
-        process = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
-        lonlat_actual = process.start_process()
+        lonlat_actual, process = self.__start_process()
 
-        pscands_actual = process.pscands_ij_array
+        pscands_actual = process.pscands_ij
 
         lonlat_expected = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'lonlat.mat')).get(
             'lonlat')
@@ -40,15 +39,19 @@ class TestCreateLonLat(AbstractTestCase):
                                    self._PLACES)
 
     def test_save_and_load_results(self):
-        process_save = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
-        lonlat = process_save.start_process()
+        lonlat, process_save = self.__start_process()
         process_save.save_results(lonlat)
 
-        process_load = CreateLonLat(self._PATH, self._GEO_DATA_FILE)
+        process_load = CreateLonLat(self._PATH_PATCH_FOLDER, self._GEO_DATA_FILE)
         lonlat_loaded = process_load.load_results()
 
         self.assertIsNotNone(lonlat_loaded)
         self.assertNotEqual(len(lonlat_loaded), 0, "lonlat is empty")
 
-        self.assertIsNotNone(process_load.pscands_ij_array)
-        self.assertNotEqual(len(process_load.pscands_ij_array), 0, "pscands_ij_array is empty")
+        self.assertIsNotNone(process_load.pscands_ij)
+        self.assertNotEqual(len(process_load.pscands_ij), 0, "pscands_ij_array is empty")
+
+    def __start_process(self):
+        process = CreateLonLat(self._PATH_PATCH_FOLDER, self._GEO_DATA_FILE)
+        lonlat_actual = process.start_process()
+        return lonlat_actual, process

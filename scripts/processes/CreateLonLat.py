@@ -16,16 +16,13 @@ class CreateLonLat(MetaSubProcess):
     __ARRAY_TYPE = np.float32
 
     # Seda on tarvis pärast PsFiles protsessis andmete laadisel
-    pscands_ij_array = None
+    pscands_ij = None
 
     def __init__(self, path: str, geo_ref_product: str):
         self.__FILE_NAME = "lonlat_process"
-        self.path = Path(path)
         self.geo_ref_product = geo_ref_product
 
-        config_utils = ConfigUtils()
-        self.__PATCH_FOLDER = os.path.join(config_utils.get_default_section("patch_folder"),
-                                           FolderConstants.PATCH_FOLDER_NAME)
+        self.__PATCH_FOLDER = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
         self.__logger = LoggerFactory.create('CreateLonLat')
 
@@ -66,26 +63,29 @@ class CreateLonLat(MetaSubProcess):
 
                 self.__add_to_pscands_array(int(line[0]), int(line[1]), int(line[2]))
 
-        self.pscands_ij_array = np.reshape(self.pscands_ij_array, (len(self.pscands_ij_array), 3))
+        self.pscands_ij = np.reshape(self.pscands_ij, (len(self.pscands_ij), 3))
 
         self.__logger.debug("Done")
 
         return np.reshape(lonlat, (len(lonlat), 2))
 
+    def save_results(self):
+        raise NotImplementedError("Use save_results (self, lonlat: np.array)")
+
     def save_results(self, lonlat: np.array):
-        if self.pscands_ij_array is None:
+        if self.pscands_ij is None:
             raise ValueError("pscands is None")
         if lonlat is None:
             raise ValueError("pscands is None")
 
         ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
-            pscands_ij_array=self.pscands_ij_array, lonlat=lonlat)
+            pscands_ij_array=self.pscands_ij, lonlat=lonlat)
 
     def load_results(self):
         file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
-        self.pscands_ij_array = data["pscands_ij_array"]
+        self.pscands_ij = data["pscands_ij_array"]
         lonlat = data["lonlat"]
 
         return lonlat
@@ -97,10 +97,10 @@ class CreateLonLat(MetaSubProcess):
 
     def __add_to_pscands_array(self, arr1: int, arr2: int, arr3: int):
         """Samal ajal kui me käime läbi seda listi me täidame lisaks array algsete väärtustega"""
-        if (self.pscands_ij_array is None):
-            self.pscands_ij_array = []
+        if (self.pscands_ij is None):
+            self.pscands_ij = []
 
-        self.pscands_ij_array.append(np.array([arr1, arr2, arr3]))
+        self.pscands_ij.append(np.array([arr1, arr2, arr3]))
 
     # noinspection PyMethodMayBeStatic
     def __get_lon_bands(self, product_with_geo_ref):
@@ -110,9 +110,9 @@ class CreateLonLat(MetaSubProcess):
         return lon_band, lat_band
 
     def __load_pscands(self):
-        if self.path.is_dir():
+        if self.__PATCH_FOLDER.is_dir():
             # TODO Kontroll kui juba on seal kaustas
-            path_to_pscands = Path(self.path.joinpath(self.__PATCH_FOLDER), "pscands.1.ij")
+            path_to_pscands = Path(self.__PATCH_FOLDER, "pscands.1.ij")
             if path_to_pscands.exists():
                 return path_to_pscands.open()
             else:
