@@ -43,22 +43,21 @@ class PsWeed(MetaSubProcess):
         # todo drop_ifg_index on juba PsSelect'is
         self.__drop_ifg_index = np.array([])
 
-        #todo object? tuple?
-        #todo milleks üldse ps_weed_edge_nr? see on ju len(ps_weed_edge_data)
-        self.__ps_weed_edge_nr, self.__ps_weed_edge_data = self.__load_psweed_edge_file(path_to_patch)
+        self.__ps_weed_edge_data = self.__load_psweed_edge_file(path_to_patch)
 
     def __load_psweed_edge_file(self, path: str) -> (int, np.ndarray):
         """Põhjus miks me ei loe seda faili sisse juba PsFiles'ides on see, et me ei pruugi
-        PsWeed protsessi jõuda enda töötluses ja seda läheb ainult siin vaja"""
+        PsWeed protsessi jõuda enda töötluses ja seda läheb ainult siin vaja.
+
+        Stamps'is võeti päisest ka number, kui suur massiiv on, aga ma ei näe mõtet sellel"""
         # todo selle võib teha @lazy'ga PsFiles'idesse
 
         file_name = "psweed.2.edge"
         path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
         self.__logger.debug("Path to psweed_edgke file: " + str(path))
         if path.exists():
-            header = np.genfromtxt(path, max_rows=1, dtype=self.__IND_ARRAY_TYPE)
             data = np.genfromtxt(path, skip_header=True, dtype=self.__IND_ARRAY_TYPE)
-            return header[0], data
+            return data
         else:
             raise FileNotFoundError("{1} not found. AbsPath {0}".format(str(path.absolute()), file_name))
 
@@ -67,7 +66,7 @@ class PsWeed(MetaSubProcess):
         def __init__(self, ind: np.ndarray, ph_res: np.ndarray, coh_thresh_ind: np.ndarray,
                      k_ps: np.ndarray, c_ps: np.ndarray, coh_ps: np.ndarray, pscands_ij: np.matrix,
                      xy: np.ndarray, lonlat: np.matrix, hgt: np.ndarray, ph: np.ndarray,
-                     ph2: np.ndarray, ph_patch_org: np.ndarray, bperp_meaned: np.ndarray, nr_ifgs: int,
+                     ph_patch_org: np.ndarray, bperp_meaned: np.ndarray, nr_ifgs: int,
                      nr_ps: int, master_date: datetime, master_nr: int, ifg_dates: []):
             self.ind = ind
             self.ph_res = ph_res
@@ -81,7 +80,6 @@ class PsWeed(MetaSubProcess):
             self.hgt = hgt
             self.ph_patch_org = ph_patch_org
             self.ph = ph
-            self.ph2 = ph2
             self.bperp_meaned = bperp_meaned
             self.nr_ifgs = nr_ifgs
             self.nr_ps = nr_ps
@@ -187,7 +185,7 @@ class PsWeed(MetaSubProcess):
         k_ps = data.k_ps[self.selectable_ps]
         c_ps = data.c_ps[self.selectable_ps]
         ph_patch = data.ph_patch_org[self.selectable_ps]
-        ph = data.ph2[self.selectable_ps]
+        ph = data.ph[self.selectable_ps]
         xy = data.xy[self.selectable_ps]
         pscands_ij = data.pscands_ij[self.selectable_ps]
         lonlat = data.lonlat[self.selectable_ps]
@@ -200,57 +198,62 @@ class PsWeed(MetaSubProcess):
 
     def __load_ps_params(self):
 
-        def get_from_ps_select():
-            ind = self.ps_select.keep_ind
-            ph_res = self.ps_select.ph_res[ind]
+        def get_from_ps_select(ps_select: PsSelect):
+            ind = ps_select.keep_ind
+            ph_res = ps_select.ph_res[ind]
 
             if len(ind) > 0:
-                coh_thresh_ind = self.ps_select.coh_thresh_ind[ind]
-                c_ps = self.ps_select.c_ps[ind]
-                k_ps = self.ps_select.k_ps[ind]
-                coh_ps = self.ps_select.coh_ps2[ind]
+                coh_thresh_ind = ps_select.coh_thresh_ind[ind]
+                c_ps = ps_select.c_ps[ind]
+                k_ps = ps_select.k_ps[ind]
+                coh_ps = ps_select.coh_ps2[ind]
             else:
-                coh_thresh_ind = self.ps_select.coh_thresh_ind
-                c_ps = self.ps_select.c_ps
-                k_ps = self.ps_select.k_ps
-                coh_ps = self.ps_select.coh_ps2
+                coh_thresh_ind = ps_select.coh_thresh_ind
+                c_ps = ps_select.c_ps
+                k_ps = ps_select.k_ps
+                coh_ps = ps_select.coh_ps2
 
             return ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps
 
-        def get_from_ps_files():
-            pscands_ij = self.ps_files.pscands_ij[coh_thresh_ind]
-            xy = self.ps_files.xy[coh_thresh_ind]
-            ph = self.ps_files.ph[coh_thresh_ind]
-            lonlat = self.ps_files.lonlat[coh_thresh_ind]
-            hgt = self.ps_files.hgt[coh_thresh_ind]
+        def get_from_ps_files(ps_files: PsFiles, coh_thresh_ind: np.ndarray):
+            # Kasutame väärtuste saamiseks tavapärast funksiooni
+            ph, _, nr_ifgs, nr_ps, xy, _ = ps_files.get_ps_variables()
 
-            master_nr = self.ps_files.master_nr
-            ifg_dates = self.ps_files.ifg_dates
+            # Ja siis filterdame coh_thresh alusel
+            pscands_ij = ps_files.pscands_ij[coh_thresh_ind]
+            xy = xy[coh_thresh_ind]
+            ph = ph[coh_thresh_ind]
+            lonlat = ps_files.lonlat[coh_thresh_ind]
+            hgt = ps_files.hgt[coh_thresh_ind]
 
-            return pscands_ij, xy, ph, lonlat, hgt, master_nr, ifg_dates
+            # Ja siis on mõned asjad mida me ei filterda
+            master_nr = ps_files.master_nr
+            ifg_dates = ps_files.ifg_dates
+            bperp_meaned = ps_files.bperp_meaned
+            master_date = ps_files.master_date
 
-        def get_from_ps_est_gamma():
+            return pscands_ij, xy, ph, lonlat, hgt, nr_ifgs, nr_ps, master_nr, ifg_dates, \
+                   bperp_meaned, master_date
 
-            ph_patch_org = self.ps_est_gamma.ph_patch[coh_thresh_ind, :]
-            ph, _, nr_ifgs, nr_ps, _, _ = self.ps_files.get_ps_variables()
-            bperp_meaned = self.ps_files.bperp_meaned
-            master_date = self.ps_files.master_date
+        def get_from_ps_est_gamma(ps_est_gamma: PsEstGamma):
+            ph_patch = ps_est_gamma.ph_patch[coh_thresh_ind, :]
 
-            return ph_patch_org, ph, bperp_meaned, nr_ifgs, nr_ps, master_date
+            return ph_patch
 
         # fixme ph_path'e on Stampsis ainult üks.
 
-        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select()
+        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select(self.ps_select)
 
-        pscands_ij, xy, ph2, lonlat, hgt, master_nr, ifg_dates = get_from_ps_files()
+        pscands_ij, xy, ph, lonlat, hgt, nr_ifgs, nr_ps, master_nr, ifg_dates, bperp_meaned,\
+        master_date = get_from_ps_files(self.ps_files, coh_thresh_ind)
 
-        ph_patch_org, ph, bperp_meaned, nr_ifgs, nr_ps, master_date = get_from_ps_est_gamma()
+        ph_patch_org = get_from_ps_est_gamma(self.ps_est_gamma)
 
         # Stamps'is oli siin oli ka lisaks 'all_da_flag' ja leiti teised väärtused muutujatele k_ps,
         # c_ps, coh_ps, ph_patch_org, ph_res
 
         return self.__DataDTO(ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, pscands_ij, xy,
-                              lonlat, hgt, ph, ph2, ph_patch_org, bperp_meaned, nr_ifgs, nr_ps,
+                              lonlat, hgt, ph, ph_patch_org, bperp_meaned, nr_ifgs, nr_ps,
                               master_date, master_nr, ifg_dates)
 
     def __get_ij_shift(self, pscands_ij: np.matrix, coh_ps_len: int) -> np.ndarray:
@@ -318,7 +321,7 @@ class PsWeed(MetaSubProcess):
                 while j < len(ps_ind):
                     ps_i = ps_ind[j]
                     ps_ind = np.append(ps_ind, neighbour_ps[ps_i]).astype(self.__IND_ARRAY_TYPE)
-                    neighbour_ps[ps_i] = np.array([]) # todo jätaks selle äkki ära? pole mõtet muuta kui pärast neid andmeid ei kasuta
+                    neighbour_ps[ps_i] = np.array([]) # Mis on loetud tühjendame
                     j += 1
 
                 ps_ind = np.unique(ps_ind)
@@ -343,18 +346,16 @@ class PsWeed(MetaSubProcess):
         Siin oli veel lisaks kas tehtud dublikaatide massiv on tühi, aga selle peale leti weeded_xy
         uuesti, aga mina sellisel tegevusel mõtet ei näinud"""
 
-        #todo funksioon väiksemaks? eraldi xy ja eraldi weed_ind?
         weeded_xy = xy[selectable_ps] # Stamps'is oli see 'xy_weed'
 
-        weed_ind = np.nonzero(selectable_ps)[0] # Stamsp*is oli see 'ix_weed_num' #todo iteratalbe get array?!??
+        weed_ind = np.flatnonzero(selectable_ps) # Stamsp*is oli see 'ix_weed_num'
         unique_rows = np.unique(weeded_xy, return_index=True, axis=0)[1].astype(self.__IND_ARRAY_TYPE)
         # Stamps'is transponeeriti ka veel seda järgmist, aga siin ei tee see midagi
         last = np.arange(0, len(weed_ind))
         # Stamps'is oli see 'dps'. Pikslid topelt lon/ lat'iga
         duplicates = np.setxor1d(unique_rows, last)
 
-        for i in range(len(duplicates)): #todo for-each
-            duplicate = duplicates[i]
+        for duplicate in duplicates:
             weeded_duplicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[duplicate, 0]) &
                                       ((weeded_xy[:, 1]) == weeded_xy[duplicate, 1])) # 'dups_ix_weed' oli originaalis
             duplicates_ind = weed_ind[weeded_duplicates_ind] #
@@ -381,7 +382,13 @@ class PsWeed(MetaSubProcess):
             """Selleks, et saaks date objektst päevade vahemiku int'ides teeme järgnevalt"""
             return np.array([(ifg_dates[index] - ifg_dates[x]).days for x in np.nditer(ifg_ind)])
 
-        ph_filtered = data.ph2[selectable_ps]
+        def get_dph_mean(dph_space, edges_len, weight_factor):
+            repmat = np.matlib.repmat(weight_factor, edges_len, 1)
+            dph_mean = np.sum(np.multiply(dph_space, repmat), axis=1)
+
+            return dph_mean
+
+        ph_filtered = data.ph[selectable_ps]
         k_ps_filtered = data.k_ps[selectable_ps]
         c_ps_filtered = data.c_ps[selectable_ps]
         bperp_meaned = data.bperp_meaned
@@ -390,8 +397,7 @@ class PsWeed(MetaSubProcess):
 
         ph_weed = get_ph_weed(bperp_meaned, k_ps_filtered, ph_filtered, c_ps_filtered, master_nr)
 
-        #todo lõpus pole neid : vaja vist
-        dph_space = np.multiply(ph_weed[edges[:, 2] - 1, :], ph_weed[edges[:, 1] - 1, :].conj())
+        dph_space = np.multiply(ph_weed[edges[:, 2] - 1], ph_weed[edges[:, 1] - 1].conj())
         dph_space = dph_space[:, ifg_ind]
 
         #todo drop_ifg_index loogika
@@ -406,12 +412,8 @@ class PsWeed(MetaSubProcess):
             weight_factor = np.exp(-(np.power(time_delta, 2)) / 2 / math.pow(self.__time_win, 2))
             weight_factor = weight_factor / np.sum(weight_factor)
 
-            repmat = np.matlib.repmat(weight_factor, len(edges), 1)
-            dph_mean = np.sum(np.multiply(dph_space, repmat), axis=1)
+            dph_mean = get_dph_mean(dph_space, len(edges), weight_factor)
 
-            # Stamps'is tehti dph_mean'ile conj() ehk konjugeerimine, aga ühemõõtmeliste
-            # Numpy array'ide puhul see ei tee midagi ja siis teeme ta siin veerumaatriksiks
-            # kasutades abifunksiooni
             repmat = np.matlib.repmat(ArrayUtils.to_col_matrix(dph_mean).conj(), 1, len(ifg_ind))
             dph_mean_adj = np.angle(np.multiply(dph_space, repmat))
 
@@ -429,15 +431,12 @@ class PsWeed(MetaSubProcess):
             dph_smooth[:, i] = np.multiply(dph_mean, dph_smooth_val_exp)
             weight_factor[i] = 0 # Jätame ennast välja
 
-            #todo koodikordus ülemisega dph_mean_adj
-            repmat = np.matlib.repmat(weight_factor, len(edges), 1)
-            dph_smooth2[:, i] = np.sum(np.multiply(dph_space, repmat), axis=1)
+            dph_smooth2[:, i] = get_dph_mean(dph_space, len(edges), weight_factor)
 
-        # todo tegelikult pole vaja nii palju neid dph_noise'e, saaks ka ühega hakkama, vaata kasutamise järjekorda
+        dph_noise = np.angle(np.multiply(dph_space, dph_smooth2.conj()))
+        ifg_var = np.var(dph_noise, 0)
+
         dph_noise = np.angle(np.multiply(dph_space, dph_smooth.conj()))
-        dph_noise2 = np.angle(np.multiply(dph_space, dph_smooth2.conj()))
-        ifg_var = np.var(dph_noise2, 0)
-
         K_weights = np.divide(1, ifg_var)
         K = MatlabUtils.lscov(bperp_meaned, dph_noise.transpose(), K_weights).conj().transpose()
         dph_noise -= K * bperp_meaned.transpose()
