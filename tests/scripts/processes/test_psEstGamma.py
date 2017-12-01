@@ -29,7 +29,7 @@ class TestPsEstGamma(AbstractTestCase):
         # Seda kasutame teistes testides ja None'i on lihtsam kontrollida ja see protsess on natuke pikk
         cls._est_gamma_process = None
 
-    def test_start_process(self):
+    def test_start_process_rand_dist_cached_file(self):
         self.__start_process()
 
         self.assertIsNotNone(self._est_gamma_process.grid_ij)
@@ -63,6 +63,46 @@ class TestPsEstGamma(AbstractTestCase):
                                       est_gamma_process_expected['ph_grid'])
         np.testing.assert_array_equal(self._est_gamma_process.low_pass,
                                       est_gamma_process_expected['low_pass'])
+
+    def test_start_process_outter_rand_dist(self):
+        """Anname Stamps'is loodud juhuslike arvude massiivi ette"""
+        org_Nr = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'org_Nr.mat'))['Nr'][0]
+
+        self._est_gamma_process = PsEstGamma(self.ps_files, False, org_Nr)
+        self._est_gamma_process.start_process()
+
+        self.assertIsNotNone(self._est_gamma_process.grid_ij)
+        self.assertIsNotNone(self._est_gamma_process.coherence_bins)
+
+        pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
+
+        np.testing.assert_array_almost_equal(
+            self._est_gamma_process.coherence_bins,
+            pm1_mat['coh_bins'][0])
+
+        np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
+        # math.radians tekitab selle, et täpsus on natuke vähem kui tavaliselt
+        np.testing.assert_array_almost_equal(
+            self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
+
+        np.testing.assert_array_almost_equal(self._est_gamma_process.rand_dist,
+                                             pm1_mat['Nr'][0])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.ph_patch,
+                                             pm1_mat['ph_patch'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.k_ps,
+                                             pm1_mat['K_ps'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.c_ps,
+                                             pm1_mat['C_ps'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.coh_ps,
+                                             pm1_mat['coh_ps'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.n_opt,
+                                             pm1_mat['N_opt'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.ph_res,
+                                             pm1_mat['ph_res'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.ph_grid,
+                                             pm1_mat['ph_grid'])
+        np.testing.assert_array_almost_equal(self._est_gamma_process.low_pass,
+                                             pm1_mat['low_pass'])
 
     def test_save_and_load_results(self):
         self.__start_process()

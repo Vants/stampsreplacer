@@ -3,6 +3,8 @@ import os
 
 import pydsm.relab
 import sys
+
+import pyfftw as fftw
 from statsmodels.compat import scipy
 import scipy.signal
 
@@ -32,12 +34,19 @@ class PsEstGamma(MetaSubProcess):
 
     __FILE_NAME = "ps_est_gamma"
 
-    def __init__(self, ps_files: PsFiles, rand_dist_cached=False) -> None:
+    def __init__(self, ps_files: PsFiles, rand_dist_cached_file=False,
+                 outter_rand_dist=np.array([])) -> None:
+        """rand_dist_cached_file=True laeb eelnevalt leitud massiivi juhuslikkest arvudest failist
+        'tmp_rand_dist'. Täpsem loogika meetodis 'self.__make_random_dist'.
+        outter_rand_dist on massiiv juhuslikkest arvudest, mis muidu leitakse meetodiga
+        'self.__make_random_dist'. Eelkõige kasutatakse testimisekss"""
+
         self.__logger = LoggerFactory.create("PsEstGamma")
 
         self.ps_files = ps_files
         self.__set_internal_params()
-        self.rand_dist_cached = rand_dist_cached
+        self.rand_dist_cached = rand_dist_cached_file
+        self.outter_rand_dist = outter_rand_dist
 
         # StaMPS'is oli see 'coh_bins'
         self.coherence_bins = ArrayUtils.arange_include_last(0.005, 0.995, 0.01)
@@ -67,23 +76,30 @@ class PsEstGamma(MetaSubProcess):
         self.__low_coherence_tresh = 31  # Võrdne 31/100'jaga
 
     def start_process(self):
-        self.__logger.debug("Started")
+        self.__logger.info("Started")
 
         self.low_pass = self.__get_low_pass()
+        self.__logger.debug("low_pass.len: {0}".format(len(self.low_pass)))
 
         ph, bperp_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned = self.__load_ps_params()
 
         self.nr_trial_wraps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
+        self.__logger.debug("nr_trial_wraps: {0}".format(self.nr_trial_wraps))
 
         # StaMPS'is oli self.rand_dist nimetatud 'Nr'
         self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
                                                                      self.nr_trial_wraps)
+        self.__logger.debug("rand_dist.len: {0}, self.nr_max_nz_ind: {1}"
+                            .format(len(self.rand_dist), self.nr_max_nz_ind))
+
 
         self.grid_ij = self.__get_grid_ij(xy)
+        self.__logger.debug("grid_ij.len: {0}".format(len(self.grid_ij)))
 
         self.weights_org = self.__get_weights(da)
+        self.__logger.debug("weights_org.len: {0}".format(len(self.weights_org)))
 
-        weights = np.array(self.weights_org, copy=True)
+        weights = np.array(self.weights_org, copy=True) #todo miks kaks korda copy? sw_loop'i pannakse ka copy sellest
 
         # Eelnev oli sisuliselt eelöö selleks mis nüüd hakkab.
         self.ph_patch, self.k_ps, self.c_ps, self.coh_ps, self.n_opt, \
@@ -97,7 +113,7 @@ class PsEstGamma(MetaSubProcess):
                 nr_ps,
                 self.nr_trial_wraps)
 
-        self.__logger.debug("End")
+        self.__logger.info("End")
 
     def save_results(self):
         ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
@@ -137,9 +153,11 @@ class PsEstGamma(MetaSubProcess):
         freg_i = ArrayUtils.arange_include_last(start, stop, step)
 
         freg_0 = 1 / self.__clap_low_pass_wavelength
-        subtract = np.power(1 + (freg_i / freg_0), 10)
-        butter_i = np.asmatrix(np.divide(1, subtract))
-        return np.fft.fftshift(butter_i.transpose() * butter_i)
+
+        subtract = 1 + np.power(freg_i / freg_0, 10)
+        butter_i = np.divide(1, subtract)
+
+        return np.fft.fftshift(np.asmatrix(butter_i).conj().transpose() * butter_i)
 
     def __load_ps_params(self):
         """Loeb sisse muutujad ps_files'ist ja muudab neid vastavalt"""
@@ -173,7 +191,7 @@ class PsEstGamma(MetaSubProcess):
     def __make_random_dist(self, nr_ps, nr_ifgs, bperp_meaned, nr_trial_wraps):
         CACHE_FILE_NAME = "tmp_rand_dist"
 
-        def use_cached():
+        def use_cached_from_file():
             try:
                 loaded = ProcessCache.get_from_cache(CACHE_FILE_NAME, 'rand_dist', 'nr_max_nz_ind')
                 rand_dist = loaded['rand_dist']
@@ -191,6 +209,12 @@ class PsEstGamma(MetaSubProcess):
             ProcessCache.save_to_cache(CACHE_FILE_NAME,
                                        rand_dist=rand_dist,
                                        nr_max_nz_ind=nr_max_nz_ind)
+
+        def use_outter_array(outter_array: np.ndarray):
+            rand_dist = outter_array
+            nr_max_nz_ind = np.count_nonzero(rand_dist)
+
+            return rand_dist, nr_max_nz_ind
 
         def random_dist():
             NR_RAND_IFGS = nr_ps  # StaMPS'is oli see 300000
@@ -214,9 +238,13 @@ class PsEstGamma(MetaSubProcess):
 
             return rand_dist, np.count_nonzero(hist)
 
-        if (self.rand_dist_cached):
-            self.__logger.info("Using cache")
-            return use_cached()
+        if self.rand_dist_cached:
+            self.__logger.info("Using cache from file")
+            return use_cached_from_file()
+        elif len(self.outter_rand_dist) > 0:
+            self.__logger.info("Using cache parameter. self.outter_rand_dist.len: {0}"
+                               .format(len(self.outter_rand_dist)))
+            return use_outter_array(self.outter_rand_dist)
         else:
             return random_dist()
 
@@ -264,9 +292,9 @@ class PsEstGamma(MetaSubProcess):
 
         nr_i = int(np.max(self.grid_ij[:, 0]))
         nr_j = int(np.max(self.grid_ij[:, 1]))
-        # Liidame siin ühe juurde, sest indeksid hakkavad nullist
-        # Tüüp peab olema np.complex64, sest pydsm.relab.shiftdim tagastab selles tüübis
-        ph_grid = np.zeros((nr_j + 1, nr_i + 1, nr_ifgs), np.complex128)
+        # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
+        # Stamps'is tehti need while loop'i sees.
+        ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
         ph_filt = ph_grid.copy()
 
         coh_ps_result = zero_ps_array_cont()
@@ -284,19 +312,25 @@ class PsEstGamma(MetaSubProcess):
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
 
+        log_i = -1 # Logimiseks int, et näha mitmendat tiiru tehakse
+        self.__logger.debug("is_gamma_in_change_delta loop begin")
         while is_gamma_in_change_delta():
+            log_i += 1
+            self.__logger.debug("gamma change loop i " + str(log_i))
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
             for i in range(nr_ps):
-                ph_grid[int(self.grid_ij[i, 1]), int(self.grid_ij[i, 0]), :] += pydsm.relab.shiftdim(
-                    ph_weight[i, :], -1, nargout=1)[0]
+                x_ind = int(self.grid_ij[i, 0]) - 1
+                y_ind = int(self.grid_ij[i, 1]) - 1
+                ph_grid[x_ind, y_ind, :] += pydsm.relab.shiftdim(ph_weight[i, :], -1, nargout=1)[0]
 
             for i in range(nr_ifgs):
-                ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, 1], low_pass)
+                ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, i], low_pass)
 
             for i in range(nr_ps):
-                ph_patch[i, :nr_ifgs] = np.squeeze(
-                    ph_filt[int(self.grid_ij[i, 1]), int(self.grid_ij[i, 0]), :])
+                x_ind = int(self.grid_ij[i, 0]) - 1
+                y_ind = int(self.grid_ij[i, 1]) - 1
+                ph_patch[i, :nr_ifgs] = np.squeeze(ph_filt[x_ind, y_ind, :])
 
             not_zero_patches_ind = np.nonzero(ph_patch)
             ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
@@ -371,6 +405,13 @@ class PsEstGamma(MetaSubProcess):
 
             return wind_func
 
+        def get_indexes(loop_index: int, inc: int, nr_win: int) -> (int, int):
+            i1 = loop_index * inc
+            # Siin ei tee -1, sest kui me selekteerime massiivist siis viimast ei võeta
+            i2 = i1 + nr_win
+
+            return i1, i2
+
         FILTERED_TYPE = np.complex128
         filtered = np.zeros(ph.shape, FILTERED_TYPE)
 
@@ -397,8 +438,7 @@ class PsEstGamma(MetaSubProcess):
         # Todo: Refactor
         for i in range(nr_win_i):
             w_f = wind_func.copy()
-            i1 = i * nr_inc
-            i2 = i1 + nr_win
+            i1, i2 = get_indexes(i, nr_inc, nr_win)
 
             if i2 > ph_i_len:
                 i_shift = i2 - ph_i_len
@@ -409,8 +449,7 @@ class PsEstGamma(MetaSubProcess):
 
             for j in range(nr_win_j):
                 w_f2 = w_f
-                j1 = j * nr_inc
-                j2 = j1 + nr_win
+                j1, j2 = get_indexes(j, nr_inc, nr_win)
 
                 if j2 > ph_j_len:
                     j_shift = j2 - ph_j_len
@@ -421,8 +460,8 @@ class PsEstGamma(MetaSubProcess):
 
                 ph_bit[:nr_win, :nr_win] = ph[i1: i2, j1: j2]
 
-                ph_fft = np.fft.fft2(ph_bit)
-                smooth_resp = np.abs(ph_fft)
+                ph_fft = np.fft.fft2(ph_bit) # fixme fft2 on siin väär, peab leidma mingi mis töötaks kui Matlab'is
+                smooth_resp = np.abs(ph_fft) # Stamps*is oli see 'H'
                 smooth_resp = np.fft.ifftshift(
                     MatlabUtils.filter2(B, np.fft.ifftshift(smooth_resp)))
                 mean_smooth_resp = np.median(smooth_resp)
