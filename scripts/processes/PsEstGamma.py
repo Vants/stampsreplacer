@@ -73,7 +73,7 @@ class PsEstGamma(MetaSubProcess):
         # todo mean range - need only be approximately correct
         self.__mean_range = 830000
 
-        self.__low_coherence_tresh = 31  # Võrdne 31/100'jaga
+        self.__low_coherence_thresh = 31  # Võrdne 31/100'jaga
 
     def start_process(self):
         self.__logger.info("Started")
@@ -167,7 +167,8 @@ class PsEstGamma(MetaSubProcess):
 
         ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_nr)
         ph_abs = np.abs(ph)
-        ph = np.divide(ph_abs, ph)
+        ph_abs[np.where(ph_abs == 0)] = 1 # Selleks, et nulliga jagamine välistada
+        ph = np.divide(ph, ph_abs)
 
         # bprep_meaned on massiiv ridadest, mitte veergudest
         # siis tavaline delete_master_col ei tööta
@@ -288,7 +289,7 @@ class PsEstGamma(MetaSubProcess):
             return np.multiply(ph, exp_tiled_weight_multi)
 
         def is_gamma_in_change_delta():
-            return abs(gamma_change_delta) > self.__gamma_change_convergence
+            return abs(gamma_change_delta) < self.__gamma_change_convergence
 
         nr_i = int(np.max(self.grid_ij[:, 0]))
         nr_j = int(np.max(self.grid_ij[:, 1]))
@@ -314,7 +315,7 @@ class PsEstGamma(MetaSubProcess):
 
         log_i = -1 # Logimiseks int, et näha mitmendat tiiru tehakse
         self.__logger.debug("is_gamma_in_change_delta loop begin")
-        while is_gamma_in_change_delta():
+        while not is_gamma_in_change_delta():
             log_i += 1
             self.__logger.debug("gamma change loop i " + str(log_i))
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
@@ -336,6 +337,8 @@ class PsEstGamma(MetaSubProcess):
             ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
                                                        np.abs(ph_patch[not_zero_patches_ind]))
 
+            self.__logger.debug("ph_patch found")
+
             topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
             topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
 
@@ -345,27 +348,33 @@ class PsEstGamma(MetaSubProcess):
             n_opt = topofit.n_opt
             ph_res = topofit.ph_res
 
+            self.__logger.debug("topofit found")
+
             gamma_change_rms = np.sqrt(np.sum(np.power(coh_ps - coh_ps_result, 2) / nr_ps))
             gamma_change_delta = gamma_change_rms - gamma_change
             # Salvestame ajutistesse muutujatesse gamma ja koherentsuse
             gamma_change = gamma_change_rms
             coh_ps_result = coh_ps
 
-            if is_gamma_in_change_delta() or self.__filter_weighting == 'P-square':
-                hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins)
-                # todo Juhuslikud sagedused tehakse reaalseteks. Mida iganes see ka ei tähenda
+            self.__logger.debug("is_gamma_in_change_delta() and self.__filter_weighting: "
+                                + str(not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square'))
+            if not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square':
+                # todo hist pole võrdne Matlab'iga
+                hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins) # Stamps'is oli see 'Na'
+                # Juhuslikud sagedused tehakse reaalseteks
+                low_coh_thresh_ind = self.__low_coherence_thresh
                 self.rand_dist = self.rand_dist * np.sum(
-                    hist[1:self.__low_coherence_tresh]) / np.sum(
-                    self.rand_dist[1:self.__low_coherence_tresh])
+                    hist[:low_coh_thresh_ind]) / np.sum(
+                    self.rand_dist[:low_coh_thresh_ind])
 
                 hist[hist == 0] = 1
                 p_rand = np.divide(self.rand_dist, hist)
-                p_rand[1:self.__low_coherence_tresh] = 1
-                p_rand[self.nr_max_nz_ind + 1:] = 0
+                p_rand[:low_coh_thresh_ind] = 1
+                p_rand[self.nr_max_nz_ind:] = 0
                 p_rand[p_rand > 1] = 1
                 n_dimension = np.append(np.ones((1, 7)), p_rand) / np.sum(MatlabUtils.gausswin(7))
                 p_rand = scipy.signal.lfilter(MatlabUtils.gausswin(7), 1, n_dimension)
-                p_rand = p_rand[8:]
+                p_rand = p_rand[7:]
 
                 p_rand = MatlabUtils.interp(np.append(1, p_rand), 10)[:-9]
 
@@ -460,7 +469,7 @@ class PsEstGamma(MetaSubProcess):
 
                 ph_bit[:nr_win, :nr_win] = ph[i1: i2, j1: j2]
 
-                ph_fft = np.fft.fft2(ph_bit) # fixme fft2 on siin väär, peab leidma mingi mis töötaks kui Matlab'is
+                ph_fft = np.fft.fft2(ph_bit) # todo viiendast komakohast lähevad tulemused vääraks
                 smooth_resp = np.abs(ph_fft) # Stamps*is oli see 'H'
                 smooth_resp = np.fft.ifftshift(
                     MatlabUtils.filter2(B, np.fft.ifftshift(smooth_resp)))
@@ -477,7 +486,7 @@ class PsEstGamma(MetaSubProcess):
 
                 # todo mida tähistab G?
                 G = smooth_resp * self.__clap_beta + low_pass
-                ph_filt = np.fft.fft2(np.multiply(ph_fft, G))
+                ph_filt = np.fft.ifft2(np.multiply(ph_fft, G))
                 ph_filt = np.multiply(ph_filt[:nr_win, :nr_win], w_f2)
 
                 filtered[i1:i2, j1:j2] += ph_filt
