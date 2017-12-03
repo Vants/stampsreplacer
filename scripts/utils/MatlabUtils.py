@@ -39,11 +39,13 @@ class MatlabUtils:
         return w
 
     @staticmethod
-    def hist(a: np.ndarray, bins: np.ndarray):
+    def hist(a: np.ndarray, bins: np.ndarray, density=False):
         """Selleks, et Matlab'i ja Numpy hist funktsioonid oleksd võrdsed paneme bin'idele lõppu
-        lõpmatuse. density=True aitab sellega, et vastustesse tekikisd murdarvud"""
+        lõpmatuse.
+        density=True aitab sellega, et vastustesse tekikisd murdarvud"""
+
         new_bins = np.r_[-np.Inf, 0.5 * (bins[:-1] + bins[1:]), np.Inf]
-        return np.histogram(a, new_bins)
+        return np.histogram(a, new_bins, density=density)
 
     @staticmethod
     def interp(y, m):
