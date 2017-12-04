@@ -32,7 +32,7 @@ class PsTopofit:
         samamoodi"""
 
         for i in range(self.__nr_ps):
-            psdph = ph[i, :] * ph_patch[i, :].conj()
+            psdph = np.multiply(ph[i, :], ph_patch[i, :].conj())
 
             if np.count_nonzero(np.isnan(psdph)) == 0 and np.count_nonzero(psdph == 0) == 0:
                 if ifg_ind is not None:
