@@ -5,7 +5,6 @@ import pydsm.relab
 import sys
 
 import pyfftw as fftw
-from statsmodels.compat import scipy
 import scipy.signal
 
 from scripts.MetaSubProcess import MetaSubProcess
@@ -328,6 +327,9 @@ class PsEstGamma(MetaSubProcess):
             for i in range(nr_ifgs):
                 ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, i], low_pass)
 
+            self.__logger.debug("ph_filt found. first row: {0}, last row: {1}"
+                                .format(ph_filt[0], ph_filt[len(ph_filt) - 1]))
+
             for i in range(nr_ps):
                 x_ind = int(self.grid_ij[i, 0]) - 1
                 y_ind = int(self.grid_ij[i, 1]) - 1
@@ -337,7 +339,8 @@ class PsEstGamma(MetaSubProcess):
             ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
                                                        np.abs(ph_patch[not_zero_patches_ind]))
 
-            self.__logger.debug("ph_patch found")
+            self.__logger.debug("ph_patch found. first row: {0}, last row: {1}"
+                                .format(ph_patch[0], ph_patch[len(ph_patch) - 1]))
 
             topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
             topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
@@ -432,8 +435,9 @@ class PsEstGamma(MetaSubProcess):
         ph_i_len = ph.shape[0] - 1
         ph_j_len = ph.shape[1] - 1
         nr_inc = int(np.floor(nr_win / 4))
-        nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 3)
-        nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 3)
+        # Kuna indeksid hakkavad 0'ist siis need väärtused on ühe võrra suuremad võrreldes Stamps'iga
+        nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 2)
+        nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 2)
 
         wind_func = make_wind_func(create_grid(nr_win))
 
@@ -450,9 +454,9 @@ class PsEstGamma(MetaSubProcess):
             i1, i2 = get_indexes(i, nr_inc, nr_win)
 
             if i2 > ph_i_len:
-                i_shift = i2 - ph_i_len
-                i2 = ph_i_len
-                i1 = ph_i_len - nr_win
+                i_shift = i2 - ph_i_len - 1
+                i2 = ph_i_len + 1
+                i1 = ph_i_len - nr_win + 1
                 w_f = np.append(np.zeros((i_shift, nr_win)), w_f[:nr_win - i_shift, :],
                                 axis=0).astype(FILTERED_TYPE)
 
@@ -461,18 +465,24 @@ class PsEstGamma(MetaSubProcess):
                 j1, j2 = get_indexes(j, nr_inc, nr_win)
 
                 if j2 > ph_j_len:
-                    j_shift = j2 - ph_j_len
-                    j2 = ph_j_len
-                    j1 = ph_j_len - nr_win
+                    j_shift = j2 - ph_j_len - 1
+                    # Kuna massiivi pikkus (ph_i_len ja ph_j_len) on niigi lühem ja numpy ei võta
+                    # viimast numbrit selekteerimisel arvesse siis liidame ühe juurde indeksitele
+                    # juurde
+                    j2 = ph_j_len + 1
+                    j1 = ph_j_len - nr_win + 1
                     w_f2 = np.append(np.zeros((nr_win, j_shift)), w_f2[:, :nr_win - j_shift],
                                      axis=1).astype(FILTERED_TYPE)
 
                 ph_bit[:nr_win, :nr_win] = ph[i1: i2, j1: j2]
 
                 ph_fft = np.fft.fft2(ph_bit) # todo viiendast komakohast lähevad tulemused vääraks
+                # ph_fft = fftw.interfaces.numpy_fft.fft2(ph_bit) # todo viiendast komakohast lähevad tulemused vääraks
                 smooth_resp = np.abs(ph_fft) # Stamps*is oli see 'H'
                 smooth_resp = np.fft.ifftshift(
                     MatlabUtils.filter2(B, np.fft.ifftshift(smooth_resp)))
+                # smooth_resp = fftw.interfaces.numpy_fft.ifftshift(
+                #     MatlabUtils.filter2(B, fftw.interfaces.numpy_fft.ifftshift(smooth_resp)))
                 mean_smooth_resp = np.median(smooth_resp)
 
                 if mean_smooth_resp != 0:
@@ -487,6 +497,7 @@ class PsEstGamma(MetaSubProcess):
                 # todo mida tähistab G?
                 G = smooth_resp * self.__clap_beta + low_pass
                 ph_filt = np.fft.ifft2(np.multiply(ph_fft, G))
+                # ph_filt = fftw.interfaces.numpy_fft.ifft2(np.multiply(ph_fft, G))
                 ph_filt = np.multiply(ph_filt[:nr_win, :nr_win], w_f2)
 
                 filtered[i1:i2, j1:j2] += ph_filt
