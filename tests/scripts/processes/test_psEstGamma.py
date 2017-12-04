@@ -21,9 +21,9 @@ class TestPsEstGamma(AbstractTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
+        lonlat_process = CreateLonLat(cls._PATH_PATCH_FOLDER, cls._GEO_DATA_FILE_NAME)
         lonlat = lonlat_process.load_results()
-        cls.ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
+        cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
         cls.ps_files.load_results()
 
         # Seda kasutame teistes testides ja None'i on lihtsam kontrollida ja see protsess on natuke pikk
