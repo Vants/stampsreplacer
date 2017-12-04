@@ -26,6 +26,7 @@ class CreateLonLat(MetaSubProcess):
 
         self.__logger = LoggerFactory.create('CreateLonLat')
 
+        self.__logger.debug("PATCH_FOLDER {0}".format(self.__PATCH_FOLDER))
     def start_process(self):
         self.__logger.debug("Start")
 
@@ -116,4 +117,4 @@ class CreateLonLat(MetaSubProcess):
             if path_to_pscands.exists():
                 return path_to_pscands.open()
             else:
-                return None
+                raise FileNotFoundError("Path {0}".format(path_to_pscands))
