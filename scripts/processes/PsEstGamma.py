@@ -4,7 +4,6 @@ import os
 import pydsm.relab
 import sys
 
-import pyfftw as fftw
 import scipy.signal
 
 from scripts.MetaSubProcess import MetaSubProcess
