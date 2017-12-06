@@ -318,6 +318,7 @@ class PsEstGamma(MetaSubProcess):
             self.__logger.debug("gamma change loop i " + str(log_i))
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
+            #todo kas on vaja ph_grid ja ph_filt enne algust uuesti genereerida või saab hakkama ka ülekirjutamisega ?
             for i in range(nr_ps):
                 x_ind = int(self.grid_ij[i, 0]) - 1
                 y_ind = int(self.grid_ij[i, 1]) - 1
@@ -361,34 +362,37 @@ class PsEstGamma(MetaSubProcess):
             self.__logger.debug("is_gamma_in_change_delta() and self.__filter_weighting: "
                                 + str(not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square'))
             if not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square':
-                # todo hist pole võrdne Matlab'iga
                 hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins) # Stamps'is oli see 'Na'
+                self.__logger.debug("hist[0:3] " + str(hist[:3]))
                 # Juhuslikud sagedused tehakse reaalseteks
                 low_coh_thresh_ind = self.__low_coherence_thresh
-                self.rand_dist = self.rand_dist * np.sum(
-                    hist[:low_coh_thresh_ind]) / np.sum(
+                real_distr = np.sum(hist[:low_coh_thresh_ind]) / np.sum(
                     self.rand_dist[:low_coh_thresh_ind])
+                self.rand_dist = self.rand_dist * real_distr
 
                 hist[hist == 0] = 1
                 p_rand = np.divide(self.rand_dist, hist)
                 p_rand[:low_coh_thresh_ind] = 1
-                p_rand[self.nr_max_nz_ind:] = 0
+                p_rand[self.nr_max_nz_ind:] = 0 #Stampsis liideti nr_max_nz_ind'le üks juurde
                 p_rand[p_rand > 1] = 1
-                n_dimension = np.append(np.ones((1, 7)), p_rand) / np.sum(MatlabUtils.gausswin(7))
-                p_rand = scipy.signal.lfilter(MatlabUtils.gausswin(7), 1, n_dimension)
+                p_rand_added_ones = np.append(np.ones(7), p_rand)
+                filtered = scipy.signal.lfilter(MatlabUtils.gausswin(7), [1], p_rand_added_ones)
+                p_rand = filtered / np.sum(MatlabUtils.gausswin(7))
                 p_rand = p_rand[7:]
 
-                p_rand = MatlabUtils.interp(np.append(1, p_rand), 10)[:-9]
+                p_rand = MatlabUtils.interp(np.append([1], p_rand), 10)[:-9]
 
-                #todo kas siin on vaja seda reshape'de asja?
-
-                # Reshape sest zero_ps_array_cont, mis on massiiv masiividest, ei sobi
-                coh_ps_int = np.reshape(coh_ps, (coh_ps.size)).astype(np.int)
-                ps_rand = p_rand[np.round(coh_ps_int * 1000)].conj().transpose()
+                # coh_ps'ist teeme indeksite massiivi. astype on vajalik sest Numpy jaoks peavad
+                # indeksid olema int'id. reshape on vajalik seepärast, et coh_ps on massiiv
+                # massiividest
+                coh_ps_as_ind = np.round(coh_ps * 1000).astype(np.int)
+                if len(coh_ps_as_ind.shape) > 1:
+                    coh_ps_as_ind = coh_ps_as_ind.reshape(len(coh_ps))
+                # Stampsis oli see 'Prand_ps'
+                ps_rand = p_rand[coh_ps_as_ind].conj().transpose()
 
                 weights = np.reshape(np.power(1 - ps_rand, 2), SW_ARRAY_SHAPE)
 
-        #todo k_ps üle vaadata
         return ph_patch, k_ps, c_ps, coh_ps_result, n_opt, ph_res, ph_grid, low_pass
 
     def __clap_filt(self, ph: np.ndarray, low_pass: np.ndarray):
@@ -435,8 +439,8 @@ class PsEstGamma(MetaSubProcess):
         ph_j_len = ph.shape[1] - 1
         nr_inc = int(np.floor(nr_win / 4))
         # Kuna indeksid hakkavad 0'ist siis need väärtused on ühe võrra suuremad võrreldes Stamps'iga
-        nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 2)
-        nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 2)
+        nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 3)
+        nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 3) + 1
 
         wind_func = make_wind_func(create_grid(nr_win))
 
