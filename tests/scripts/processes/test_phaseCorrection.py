@@ -52,8 +52,7 @@ class TestPhaseCorrection(AbstractTestCase):
         self.__start_process()
         self.__phase_correction.save_results()
 
-        phase_correction_loaded = PhaseCorrection(self.__ps_files, self.__ps_est_gamma,
-                                                  self.__ps_weed, self.__ps_select)
+        phase_correction_loaded = PhaseCorrection(self.__ps_files, self.__ps_weed)
         phase_correction_loaded.load_results()
 
         np.testing.assert_array_almost_equal(self.__phase_correction.ph_rc,
@@ -62,8 +61,7 @@ class TestPhaseCorrection(AbstractTestCase):
                                              phase_correction_loaded.ph_reref)
 
     def __start_process(self):
-        self.__phase_correction = PhaseCorrection(self.__ps_files, self.__ps_est_gamma,
-                                                  self.__ps_weed, self.__ps_select)
+        self.__phase_correction = PhaseCorrection(self.__ps_files, self.__ps_weed)
         self.__phase_correction.start_process()
 
     # todo sama asi juba test_psSelect

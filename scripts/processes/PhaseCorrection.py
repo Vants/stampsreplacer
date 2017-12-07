@@ -17,14 +17,11 @@ class PhaseCorrection(MetaSubProcess):
 
     __FILE_NAME = "phase_correction"
 
-    def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma, ps_weed: PsWeed,
-                 ps_select: PsSelect):
+    def __init__(self, ps_files: PsFiles, ps_weed: PsWeed):
         self.__logger = LoggerFactory.create("PsWeed")
 
         self.__ps_files = ps_files
-        self.__ps_est_gamma = ps_est_gamma
         self.__ps_weed = ps_weed
-        self.__ps_select = ps_select
 
     class __DataDTO(object):
         def __init__(self, master_nr: int, nr_ifgs: int, bperp: np.ndarray, ph: np.ndarray,
