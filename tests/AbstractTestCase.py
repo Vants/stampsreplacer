@@ -2,7 +2,8 @@ import os
 from unittest import TestCase
 
 from scripts.utils.FolderConstants import FolderConstants
-from tests.ConfigUtils import ConfigUtils
+from scripts.utils.ConfigUtils import ConfigUtils
+from tests import TEST_RESOURCES_PATH
 
 
 class AbstractTestCase(TestCase):
@@ -13,7 +14,7 @@ class AbstractTestCase(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls._config = ConfigUtils()
+        cls._config = ConfigUtils(TEST_RESOURCES_PATH)
 
         cls._PATH = cls._config.get_default_section('tests_files_path')
 
