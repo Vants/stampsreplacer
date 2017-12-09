@@ -8,6 +8,7 @@ from typing import Callable
 from numpy import matlib
 
 from scripts.MetaSubProcess import MetaSubProcess
+from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.FolderConstants import FolderConstants
 
 import numpy as np
@@ -181,7 +182,8 @@ class PsFiles(MetaSubProcess):
         # Kustutame püsivpeegeldajate asukohast veeru
         bperp = MatrixUtils.delete_master_col(bperp, self.master_nr)
 
-        return bprep_meaned, bperp
+        # Tagastame array'id et pärast ei tekiks probleeme
+        return ArrayUtils.matrix_to_array(bprep_meaned), ArrayUtils.matrix_to_array(bperp)
 
     def __get_ph(self, nr_ifgs):
         """pscands.1.ph lugemine. Tegemist on binaarkujul failiga kus on kompleksarvud"""
@@ -333,10 +335,11 @@ class PsFiles(MetaSubProcess):
 
         xy = self.__scene_rotate(xy)
 
-        # Kuna maatriksitega sorteerimine ei toimi hästi siis peab läbi view tegema seda
-        xy_view = xy.view(np.ndarray)
-        sort_ind = np.lexsort((xy_view[:, 0], xy_view[:, 1]))
-        sorted_xy = np.asmatrix(xy_view[sort_ind])
+        # Lõpus on ningunii vaja array'id mitte maatriksit. Teeme selle siis siin õigeks
+        xy = ArrayUtils.matrix_to_array(xy)
+
+        sort_ind = np.lexsort((xy[:, 0], xy[:, 1]))
+        sorted_xy = xy[sort_ind]
 
         # TODO Korrutame läbi et ümarada millimeetrini? Aga see on juba int
         sorted_xy = np.around(sorted_xy * 1000) / 1000
