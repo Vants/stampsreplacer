@@ -15,13 +15,14 @@ class ProcessFactory:
     process_obj_dict = {}
     lonlat = np.array([])
 
-    def __init__(self, path: str, geo_file_path: str, save_load_path: str):
+    def __init__(self, path: str, geo_file_path: str, save_load_path: str, rand_dist_cached: bool):
         self.__path = path
         self.__geo_file_path = geo_file_path
         self.__save_load_path = save_load_path
+        self.__rand_dist_cached = rand_dist_cached
 
-    def load_lonlat(self, process: Type[CreateLonLat], path: str, geo_ref_product: str):
-        process_obj = process(path, geo_ref_product)
+    def load_lonlat(self, process: Type[CreateLonLat]):
+        process_obj = process(self.__path, self.__geo_file_path)
         self.lonlat = process_obj.load_results(self.__save_load_path)
         self.__set_process_to_dict(process, process_obj)
 
@@ -81,9 +82,9 @@ class ProcessFactory:
         if process is CreateLonLat:
             return process(self.__path, self.__geo_file_path)
         elif process is PsFiles:
-            return process(self.__path, self.process_obj_dict['LonLat'].pscans_ij, self.lonlat)
+            return process(self.__path, self.process_obj_dict['LonLat'].pscands_ij, self.lonlat)
         elif process is PsEstGamma:
-            return process(self.process_obj_dict['PsFiles'])
+            return process(self.process_obj_dict['PsFiles'], self.__rand_dist_cached)
         elif process is PsSelect:
             return process(self.process_obj_dict['PsFiles'], self.process_obj_dict['PsEstGamma'])
         elif process is PsWeed:
