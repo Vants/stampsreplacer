@@ -36,13 +36,14 @@ class TestPsFiles(AbstractTestCase):
         hgt1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'hgt1.mat'), 'hgt')
 
         self.assertEqual(len(self._ps_files.bperp), len(bp1))
-        np.testing.assert_allclose(self._ps_files.bperp.view(np.ndarray), bp1)
+        np.testing.assert_allclose(self._ps_files.bperp, bp1)
 
         self.assertEqual(len(self._ps_files.da), len(da1))
         # Loadmat'is on muutujad omakorda ühemõõtmeliste massiivide sees
         np.testing.assert_allclose(np.reshape(self._ps_files.da, (len(self._ps_files.da), 1)), da1)
 
-        np.testing.assert_allclose(self._ps_files.bperp_meaned, ps1_mat['bperp'])
+        ps1_mat_bperp = np.reshape(ps1_mat['bperp'], len(ps1_mat['bperp']))
+        np.testing.assert_allclose(self._ps_files.bperp_meaned, ps1_mat_bperp)
         np.testing.assert_allclose(self._ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
         # Meie protsessis esimest veergu ei ole, seetõttu võtame viimased kaks algsest
         np.testing.assert_allclose(self._ps_files.xy, ps1_mat['xy'][:, 1:])
@@ -125,5 +126,6 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_array_equal(ps_files_load.ifg_dates, self._ps_files.ifg_dates)
 
     def __start_process(self):
-        self._ps_files = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij, self.lonlat)
+        self._ps_files = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij,
+                                 self.lonlat)
         self._ps_files.start_process()
