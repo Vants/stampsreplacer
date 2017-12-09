@@ -3,3 +3,4 @@ path = C:\Users\Kasutaja\Desktop\loputoo\StampsReplacer\tests\resources
 patch_folder =
 geo_file = subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim
 save_load_path = C:\Users\Kasutaja\Desktop\loputoo\StampsReplacer\resources\process_saves
+rand_dist_cached = True

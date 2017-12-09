@@ -15,10 +15,7 @@ class Main:
     processes = [CreateLonLat, PsFiles, PsEstGamma, PsSelect, PsWeed, PhaseCorrection]
 
     def __init__(self) -> None:
-        self.__path, self.__geo_file_path, self.__save_load_path = self.__get_from_config()
-
-        self.__process_factory = ProcessFactory(self.__path, self.__geo_file_path,
-                                                self.__save_load_path)
+        self.__process_factory = self.__make_process_factory()
 
     def run(self, start=0, end=8):
         """Parameetrid start ja stop näitavad mitmendast protsessist alusustatakse (start) ja
@@ -26,21 +23,18 @@ class Main:
 
         Ühte ainsat protsessi saab kävitada kui panna start ja end võrdseks. Näiteks run(0, 0)."""
 
-
-
         for step in range(len(self.processes)):
             if (step - 1) == end:
                 self.__save_results(start, end)
                 break
-            elif step > start:
+            elif step < start:
                 self.__load_saved(step)
             else:
                 self.__start_process(step)
 
     def __load_saved(self, step: int):
         if step == 0:
-            self.__process_factory.load_lonlat(self.processes[0], self.__path,
-                                               self.__geo_file_path)
+            self.__process_factory.load_lonlat(self.processes[0])
         else:
             self.__process_factory.load_results(self.processes[step])
 
@@ -63,10 +57,15 @@ class Main:
         if start < 0:
             raise AttributeError("Start less than 0")
         elif stop > len(self.processes):
-            raise AttributeError("Stop more than than {0} or len(self.processes)".format(len(self.processes)))
+            raise AttributeError(
+                "Stop more than than {0} or len(self.processes)".format(len(self.processes)))
+
+    def __make_process_factory(self):
+        path, geo_file_path, save_load_path, rand_dist_cached = self.__get_from_config()
+        return ProcessFactory(path, geo_file_path, save_load_path, rand_dist_cached)
 
     # noinspection PyMethodMayBeStatic
-    def __get_from_config(self) -> (str, str, str):
+    def __get_from_config(self) -> (str, str, str, bool):
         config = ConfigUtils(RESOURCES_PATH)
         initial_path = config.get_default_section('path')
         patch_folder = config.get_default_section('patch_folder')
@@ -78,4 +77,6 @@ class Main:
 
         save_load_path = config.get_default_section('save_load_path')
 
-        return path, geo_file_path, save_load_path
+        rand_dist_cached = config.get_default_section('rand_dist_cached') == 'True'
+
+        return path, geo_file_path, save_load_path, rand_dist_cached

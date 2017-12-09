@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase
+import numpy as np
 
 from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.ConfigUtils import ConfigUtils
@@ -25,3 +26,6 @@ class AbstractTestCase(TestCase):
         cls._PATH_PATCH_FOLDER = os.path.join(cls._PATH, PATCH_FOLDER)
 
         cls._SAVE_LOAD_PATH = cls._config.get_default_section('save_load_path')
+
+    def assert_array_not_empty(self, array: np.ndarray):
+        self.assertNotEqual(array.size, 0)
