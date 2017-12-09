@@ -20,7 +20,7 @@ class TestPsFiles(AbstractTestCase):
                                            'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim')
 
         cls.lonlat_process = CreateLonLat(cls._PATH_PATCH_FOLDER, cls._GEO_DATA_FILE)
-        cls.lonlat = cls.lonlat_process.load_results()
+        cls.lonlat = cls.lonlat_process.load_results(cls._SAVE_LOAD_PATH)
 
         cls._ps_files = None
 
@@ -102,10 +102,10 @@ class TestPsFiles(AbstractTestCase):
 
     def test_save_and_load_results(self):
         self.__start_process()
-        self._ps_files.save_results()
+        self._ps_files.save_results(self._SAVE_LOAD_PATH)
 
         ps_files_load = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij, self.lonlat)
-        ps_files_load.load_results()
+        ps_files_load.load_results(self._SAVE_LOAD_PATH)
 
         self.assertIsNotNone(ps_files_load.heading)
         self.assertEquals(ps_files_load.mean_range, self._ps_files.mean_range)

@@ -15,32 +15,38 @@ class ProcessFactory:
     process_obj_dict = {}
     lonlat = np.array([])
 
-    def __init__(self, path: str, geo_file_path: str):
+    def __init__(self, path: str, geo_file_path: str, save_load_path: str):
         self.__path = path
         self.__geo_file_path = geo_file_path
+        self.__save_load_path = save_load_path
 
     def load_lonlat(self, process: Type[CreateLonLat], path: str, geo_ref_product: str):
         process_obj = process(path, geo_ref_product)
-        process_obj.load_results()
+        self.lonlat = process_obj.load_results(self.__save_load_path)
         self.__set_process_to_dict(process, process_obj)
 
     def load_results(self, process: Type[MetaSubProcess]):
         process_obj = self.__init_process(process)
-        process_obj.load_results()
+        process_obj.load_results(self.__save_load_path)
         self.__set_process_to_dict(process, process_obj)
 
     def start_process(self, process_type: Type[MetaSubProcess]):
         process_obj = self.__init_process(process_type)
-        process_obj.start_process()
+
+        if process_type is CreateLonLat:
+            self.lonlat = process_obj.start_process()
+        else:
+            process_obj.start_process()
+
         self.__set_process_to_dict(process_type, process_obj)
 
     def save_lonlat(self):
         process_obj = self.__get_process_from_dict(CreateLonLat)
-        process_obj.save_results(self.lonlat)
+        process_obj.save_results(self.__save_load_path, self.lonlat)
 
     def save_process(self, process_type: Type[MetaSubProcess]):
         process_obj = self.__get_process_from_dict(process_type)
-        process_obj.save_results()
+        process_obj.save_results(self.__save_load_path)
 
     def __set_process_to_dict(self, process_type: Type[MetaSubProcess],
                                 process_obj: MetaSubProcess):

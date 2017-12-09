@@ -19,9 +19,9 @@ class TestPsSelect(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results()
+        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
         cls._ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
-        cls._ps_files.load_results()
+        cls._ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls._est_gamma_process = None
 
@@ -64,10 +64,10 @@ class TestPsSelect(AbstractTestCase):
     def test_save_and_load_results(self):
         self.__fill_est_gamma_with_matlab_data()
         self.__start_process()
-        self._ps_select.save_results()
+        self._ps_select.save_results(self._SAVE_LOAD_PATH)
 
         ps_select_loaded = PsSelect(self._ps_files, self._est_gamma_process)
-        ps_select_loaded.load_results()
+        ps_select_loaded.load_results(self._SAVE_LOAD_PATH)
 
         np.testing.assert_array_equal(self._ps_select.ifg_ind, ps_select_loaded.ifg_ind)
         np.testing.assert_array_equal(self._ps_select.coh_thresh_ind, ps_select_loaded.coh_thresh_ind)

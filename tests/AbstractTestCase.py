@@ -23,3 +23,5 @@ class AbstractTestCase(TestCase):
         cls._PATCH_1_FOLDER = os.path.join(cls._PATH, PATCH_FOLDER, FolderConstants.PATCH_FOLDER_NAME)
 
         cls._PATH_PATCH_FOLDER = os.path.join(cls._PATH, PATCH_FOLDER)
+
+        cls._SAVE_LOAD_PATH = cls._config.get_default_section('save_load_path')

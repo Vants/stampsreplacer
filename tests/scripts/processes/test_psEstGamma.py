@@ -22,9 +22,9 @@ class TestPsEstGamma(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH_PATCH_FOLDER, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results()
+        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
         cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
-        cls.ps_files.load_results()
+        cls.ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         # Seda kasutame teistes testides ja None'i on lihtsam kontrollida ja see protsess on natuke pikk
         cls._est_gamma_process = None
@@ -106,12 +106,11 @@ class TestPsEstGamma(AbstractTestCase):
 
     def test_save_and_load_results(self):
         self.__start_process()
-
-        self._est_gamma_process.save_results()
+        self._est_gamma_process.save_results(self._SAVE_LOAD_PATH)
 
         # Loome uue, mille sisse laeme salvestatud failid
         est_gamma_loaded = PsEstGamma(self.ps_files)
-        est_gamma_loaded.load_results()
+        est_gamma_loaded.load_results(self._SAVE_LOAD_PATH)
 
         np.testing.assert_array_equal(self._est_gamma_process.ph_patch, est_gamma_loaded.ph_patch)
         np.testing.assert_array_equal(self._est_gamma_process.k_ps, est_gamma_loaded.k_ps)

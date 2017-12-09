@@ -138,8 +138,8 @@ class PsSelect(MetaSubProcess):
 
         self.__logger.debug("End")
 
-    def save_results(self):
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+    def save_results(self, save_path: str):
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             coh_thresh=self.coh_thresh,
             ph_patch=self.ph_patch,
             coh_thresh_ind=self.coh_thresh_ind,
@@ -152,8 +152,8 @@ class PsSelect(MetaSubProcess):
             ifg_ind=self.ifg_ind
         )
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path: str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.coh_thresh = data['coh_thresh']

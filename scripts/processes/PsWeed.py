@@ -54,7 +54,7 @@ class PsWeed(MetaSubProcess):
 
         file_name = "psweed.2.edge"
         path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
-        self.__logger.debug("Path to psweed_edgke file: " + str(path))
+        self.__logger.debug("Path to psweed edge file: " + str(path))
         if path.exists():
             data = np.genfromtxt(path, skip_header=True, dtype=self.__IND_ARRAY_TYPE)
             return data
@@ -146,8 +146,8 @@ class PsWeed(MetaSubProcess):
 
         self.__logger.info("End")
 
-    def save_results(self):
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+    def save_results(self, save_path: str):
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             selectable_ps = self.selectable_ps,
             selectable_ps2 = self.selectable_ps2,
             ifg_ind = self.ifg_ind,
@@ -155,8 +155,8 @@ class PsWeed(MetaSubProcess):
             ps_std = self.ps_std
         )
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path: str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.selectable_ps = data["selectable_ps"]

@@ -50,10 +50,10 @@ class TestPhaseCorrection(AbstractTestCase):
 
     def test_save_and_load_results(self):
         self.__start_process()
-        self.__phase_correction.save_results()
+        self.__phase_correction.save_results(self._SAVE_LOAD_PATH)
 
         phase_correction_loaded = PhaseCorrection(self.__ps_files, self.__ps_weed)
-        phase_correction_loaded.load_results()
+        phase_correction_loaded.load_results(self._SAVE_LOAD_PATH)
 
         np.testing.assert_array_almost_equal(self.__phase_correction.ph_rc,
                                              phase_correction_loaded.ph_rc)

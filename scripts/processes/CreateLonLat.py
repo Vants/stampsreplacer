@@ -9,7 +9,6 @@ from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 
 from scripts.utils.ProcessDataSaver import ProcessDataSaver
-from tests.ConfigUtils import ConfigUtils
 
 
 class CreateLonLat(MetaSubProcess):
@@ -70,20 +69,20 @@ class CreateLonLat(MetaSubProcess):
 
         return np.reshape(lonlat, (len(lonlat), 2))
 
-    def save_results(self):
+    def save_results(self, save_path: str):
         raise NotImplementedError("Use save_results (self, lonlat: np.array)")
 
-    def save_results(self, lonlat: np.array):
+    def save_results(self, save_path:str, lonlat: np.array):
         if self.pscands_ij is None:
             raise ValueError("pscands is None")
         if lonlat is None:
             raise ValueError("pscands is None")
 
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             pscands_ij_array=self.pscands_ij, lonlat=lonlat)
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path:str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.pscands_ij = data["pscands_ij_array"]

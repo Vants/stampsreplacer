@@ -50,14 +50,14 @@ class PhaseCorrection(MetaSubProcess):
         self.ph_rc = ph_rc
         self.ph_reref = ph_reref
 
-    def save_results(self):
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+    def save_results(self, save_path: str):
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             ph_rc = self.ph_rc,
             ph_reref = self.ph_reref
         )
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path: str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.ph_rc = data['ph_rc']
