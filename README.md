@@ -4,12 +4,28 @@
 
 ## Sättefailid ja parameetrite selgitus
 
-Kopperi fail _StampsReplacer\tests\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
+Kopperi fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
+
+Parameetrid failis on järgnevad:
+* __path__ - Algfailide asukoht
+* __patch_folder__ - Kui path kaust on veel mingis kaustas (_tmp_ on üpris levinud) siis tuleb sinna see ka panna.
+* __geo_file__ - .dim fail mida kasutatakse töötluses
+* __save_load_path__ - Salvestustee. Koht kuhu tulemused (.npz failid) salvestatakse 
+* __rand_dist_cached__ - Kas juhuslike arvude massiiv loetakse vahesalvestusest või mitte. 
+Vähendab oluliselt PsEstGamma protsessimise aega. Kui tegemist on uute andmetega siis peaks enne 
+vahesalvestatud faili ära kustutama. Asub asukohas __save_load_path\tmp__.
+
+Testiklasside jaoks on oma properties fail. Asukohast _StampsReplacer\tests\resources\properties.ini.sample_ tuleb kopeerida fail ja 
+kustutada lõpust .sample.
 
 Parameetrid failis on järgnevad:
 * __tests_files_path__ - Testifailide asukoht. Testiklassid otsivad sealt faile/ algandmeid.
 * __patch_folder__ - Kui path kaust on veel mingis kaustas (_tmp_ on üpris levinud) siis tuleb sinna see ka panna. 
 Kui PATCH_1 kaust on otse eelnimetatud tests_files_path'is on kõik korras ja selle võib jätta tühjaks.
+
+Parameetrid on samad mis mitte testi parameetrites. __tests_files_path__ on sama mis __path__ mitte testi failides.
+
+__Kõik asukohad on absoluutteena.__   
 
 ## Algfailid
 
