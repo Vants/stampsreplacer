@@ -37,15 +37,15 @@ class TestMain(AbstractTestCase):
 
         cls.__logger = LoggerFactory.create("TestMain")
 
-    @unittest.skip("Skiping whole process test")
+    # @unittest.skip("Skiping whole process test")
     def test_run_whole_process(self):
         """Selle testiga tasub ettevaatlik olla. See võtab väga kaua aega ja kustutab ära kõik
         savlestatud failid SAVE_LOAD_PATH."""
 
-        self.__delete_saved_files(self._SAVE_LOAD_PATH)
+        # self.__delete_saved_files(self._SAVE_LOAD_PATH)
 
         main = Main()
-        main.run()
+        main.run(3)
 
     def test_run_only_first(self):
         self.__delete_saved_files(self._SAVE_LOAD_PATH, "lonlat_process")

@@ -88,6 +88,7 @@ class ProcessFactory:
         elif process is PsSelect:
             return process(self.process_obj_dict['PsFiles'], self.process_obj_dict['PsEstGamma'])
         elif process is PsWeed:
-            return process(self.__path, self.process_obj_dict['PsFiles'], self.process_obj_dict['PsEstGamma'])
+            return process(self.__path, self.process_obj_dict['PsFiles'],
+                           self.process_obj_dict['PsEstGamma'], self.process_obj_dict['PsSelect'])
         elif process is PhaseCorrection:
             return process(self.process_obj_dict['PsFiles'], self.process_obj_dict['PsWeed'])
