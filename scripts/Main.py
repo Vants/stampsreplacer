@@ -8,6 +8,7 @@ from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
 from scripts.utils.ConfigUtils import ConfigUtils
+from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.ProcessFactory import ProcessFactory
 
 
@@ -15,6 +16,8 @@ class Main:
     processes = [CreateLonLat, PsFiles, PsEstGamma, PsSelect, PsWeed, PhaseCorrection]
 
     def __init__(self) -> None:
+        self.__logger = LoggerFactory.create("Main")
+
         self.__process_factory = self.__make_process_factory()
 
     def run(self, start=0, end=8):
@@ -22,15 +25,20 @@ class Main:
         lõpetada (stop). Väikseim parameeter on 0 ja suurim 5 (tulenev len(self.processes)).
 
         Ühte ainsat protsessi saab kävitada kui panna start ja end võrdseks. Näiteks run(0, 0)."""
-
-        for step in range(len(self.processes)):
-            if (step - 1) == end:
-                self.__save_results(start, end)
-                break
-            elif step < start:
-                self.__load_saved(step)
-            else:
-                self.__start_process(step)
+        step = -1
+        try:
+            for step in range(len(self.processes)):
+                if (step - 1) == end:
+                    break
+                elif step < start:
+                    self.__load_saved(step)
+                else:
+                    self.__start_process(step)
+        except Exception:
+            self.__logger.error("Main process run error", exc_info=True)
+            end = (step - 1)
+        finally:
+            self.__save_results(start, end)
 
     def __load_saved(self, step: int):
         if step == 0:
@@ -66,6 +74,8 @@ class Main:
 
     # noinspection PyMethodMayBeStatic
     def __get_from_config(self) -> (str, str, str, bool):
+        self.__logger.info("Loading params form {0}".format(RESOURCES_PATH))
+
         config = ConfigUtils(RESOURCES_PATH)
         initial_path = config.get_default_section('path')
         patch_folder = config.get_default_section('patch_folder')
@@ -79,4 +89,7 @@ class Main:
 
         rand_dist_cached = config.get_default_section('rand_dist_cached') == 'True'
 
+        self.__logger.info("Loaded params. path {0}, geo_file_path {1}, save_load_path {2},"
+                           " rand_dist_cached {3}".format(path, geo_file_path, save_load_path,
+                                                          rand_dist_cached))
         return path, geo_file_path, save_load_path, rand_dist_cached
