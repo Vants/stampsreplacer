@@ -265,7 +265,7 @@ class PsFiles(MetaSubProcess):
 
         value_regex = re.compile(r"-?[\d*.]+")
         with self.__load_file("rsc.txt", self.__path) as rsc_file:
-            rsc_par_file_abs_path = rsc_file.read()
+            rsc_par_file_abs_path = rsc_file.read().strip()
 
             rsc_par_file = Path(rsc_par_file_abs_path)
             if rsc_par_file.exists():
@@ -288,7 +288,7 @@ class PsFiles(MetaSubProcess):
                             self.__params[key] = value
             else:
                 raise FileNotFoundError(
-                    "No file. Abs.path " + str(rsc_par_file.absolute()))
+                    "No file. Abs.path '" + str(rsc_par_file.absolute()) + "'")
 
     def __get_master_date(self):
         """load_params_from_rsc_file saadud 'date' on masteri kuupäev. Selle splitime ja teeme
