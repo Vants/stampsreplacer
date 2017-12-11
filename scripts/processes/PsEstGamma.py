@@ -125,7 +125,8 @@ class PsEstGamma(MetaSubProcess):
             low_pass=self.low_pass,
             coherence_bins=self.coherence_bins,
             grid_ij=self.grid_ij,
-            nr_trial_wraps=self.nr_trial_wraps
+            nr_trial_wraps=self.nr_trial_wraps,
+            rand_dist = self.rand_dist,
         )
 
     def load_results(self):
@@ -142,7 +143,8 @@ class PsEstGamma(MetaSubProcess):
         self.low_pass = data['low_pass']
         self.coherence_bins = data['coherence_bins']
         self.grid_ij = data['grid_ij']
-        self.nr_trial_wraps = data['nr_trial_wraps']
+        self.nr_trial_wraps = data['nr_trial_wraps'].astype(np.float64)
+        self.rand_dist = data['rand_dist']
 
     def __get_low_pass(self):
         start = -(self.__clap_win) / self.__filter_grid_size / self.__clap_win / 2

@@ -122,6 +122,9 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_array_equal(self._est_gamma_process.low_pass, est_gamma_loaded.low_pass)
         np.testing.assert_array_equal(self._est_gamma_process.coherence_bins, est_gamma_loaded.coherence_bins)
         np.testing.assert_array_equal(self._est_gamma_process.nr_trial_wraps, est_gamma_loaded.nr_trial_wraps)
+        np.testing.assert_array_equal(self._est_gamma_process.rand_dist, est_gamma_loaded.rand_dist)
+        np.testing.assert_array_equal(self._est_gamma_process.grid_ij, est_gamma_loaded.grid_ij)
+        np.testing.assert_array_equal(self._est_gamma_process.coh_ps, est_gamma_loaded.coh_ps)
 
     def __start_process(self):
         self._est_gamma_process = PsEstGamma(self.ps_files, True)
