@@ -21,3 +21,7 @@ class ArrayUtils:
          Maatriksi puhul ei kontrollita kas tegemist on veeru- või reamaatriksiga."""
 
         return array[np.newaxis].transpose()
+
+    @staticmethod
+    def matrix_to_array(matrix: np.matrix) -> np.ndarray:
+        return np.squeeze(np.asarray(matrix))
