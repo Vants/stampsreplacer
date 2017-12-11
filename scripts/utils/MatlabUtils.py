@@ -1,8 +1,11 @@
-from scipy.interpolate import interp1d
+import scipy.interpolate
 import scipy.signal
 from builtins import staticmethod
 
 import numpy as np
+
+from scripts.utils.ArrayUtils import ArrayUtils
+
 
 class MatlabUtils:
     @staticmethod
@@ -48,17 +51,14 @@ class MatlabUtils:
         return np.histogram(a, new_bins, density=density)
 
     @staticmethod
-    def interp(y, m):
-        """http://stackoverflow.com/questions/23024950/interp-function-in-python-like-matlab"""
+    def interp(vector: np.ndarray, interp_factor: int, kind: str = 'cubic'):
+        vector_len = len(vector)
 
-        y = list(y)
-        y.append(2 * y[-1] - y[-2])
+        arange = np.linspace(0, .1, vector_len)
+        interp_fun = scipy.interpolate.interp1d(arange, vector, kind=kind)
 
-        xs = np.arange(len(y))
-        fn = interp1d(xs, y)
-
-        new_xs = np.arange(len(y) - 1, step=1. / m)
-        return fn(new_xs)
+        xnew = np.linspace(0, .1, vector_len * interp_factor)
+        return interp_fun(xnew)
 
     @staticmethod
     def std(array: np.ndarray, axis=None):

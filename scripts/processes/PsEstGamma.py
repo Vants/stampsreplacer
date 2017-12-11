@@ -13,7 +13,6 @@ from scripts.processes.PsFiles import PsFiles
 import numpy as np
 
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
@@ -113,8 +112,8 @@ class PsEstGamma(MetaSubProcess):
 
         self.__logger.info("End")
 
-    def save_results(self):
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+    def save_results(self, save_path: str):
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             ph_patch=self.ph_patch,
             k_ps=self.k_ps,
             c_ps=self.c_ps,
@@ -129,8 +128,8 @@ class PsEstGamma(MetaSubProcess):
             rand_dist = self.rand_dist,
         )
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path: str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.ph_patch = data['ph_patch']
@@ -382,7 +381,8 @@ class PsEstGamma(MetaSubProcess):
                 p_rand = filtered / np.sum(MatlabUtils.gausswin(7))
                 p_rand = p_rand[7:]
 
-                p_rand = MatlabUtils.interp(np.append([1], p_rand), 10)[:-9]
+                # Leidsin, et quadratic on natuke täpsem kui tavaline cubic
+                p_rand = MatlabUtils.interp(np.append([1.0], p_rand), 10, 'quadratic')[:-9]
 
                 # coh_ps'ist teeme indeksite massiivi. astype on vajalik sest Numpy jaoks peavad
                 # indeksid olema int'id. reshape on vajalik seepärast, et coh_ps on massiiv
