@@ -283,7 +283,7 @@ class PsSelect(MetaSubProcess):
             else:
                 percent_rand = np.flip(nr_cumsum, axis=0)
 
-            ok_ind = np.where(percent_rand < max_rand)
+            ok_ind = np.where(percent_rand < max_rand)[0]
 
             if len(ok_ind) == 0:
                 # Kui koherentsuse väärtused ületavad lubatu väärtuse
@@ -530,7 +530,7 @@ class PsSelect(MetaSubProcess):
         bperp = self.ps_files.bperp[coh_thresh_ind]
 
         topofit = PsTopofit(SW_ARRAY_SHAPE, NR_PS, data.nr_ifgs)
-        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.ps_est_gamma.nr_trial_wraps[0][0],
+        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.ps_est_gamma.nr_trial_wraps,
                                 data.ifg_ind)
 
         # StaMPS'is muudeti eelmisena saadud tulemust. Siin nii ei tee
