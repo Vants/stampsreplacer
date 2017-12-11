@@ -1,5 +1,7 @@
 import os
 
+import sys
+
 from scripts import RESOURCES_PATH
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PhaseCorrection import PhaseCorrection
@@ -93,3 +95,14 @@ class Main:
                            " rand_dist_cached {3}".format(path, geo_file_path, save_load_path,
                                                           rand_dist_cached))
         return path, geo_file_path, save_load_path, rand_dist_cached
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 3:
+        print("Use Main <start> <end>. Params are not mandatory")
+    elif len(sys.argv) == 1:
+        main = Main()
+        main.run()
+    else:
+        main = Main()
+        main.run(start=sys.argv[1], end=sys.argv[2])
