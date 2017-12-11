@@ -419,12 +419,15 @@ class PsWeed(MetaSubProcess):
 
             G = np.array([np.ones(len(ifg_ind)), time_delta]).transpose()
             # Stamps'is oli 'm'
-            weighted_least_sqrt = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor)
+            weighted_least_sqrt = MatlabUtils.lscov(G, dph_mean_adj.conj().transpose(),
+                                                    weight_factor)
             #todo parem muutja nimi
-            least_sqrt_G = np.asarray((np.asmatrix(G) * np.asmatrix(weighted_least_sqrt)).transpose())
+            least_sqrt_G = np.asarray((np.asmatrix(G) * np.asmatrix(weighted_least_sqrt))
+                                      .conj().transpose())
             dph_mean_adj = np.angle(np.exp(1j * (dph_mean_adj - least_sqrt_G)))
             # Stamps'is oli 'm2'
-            weighted_least_sqrt2 = MatlabUtils.lscov(G, dph_mean_adj.transpose(), weight_factor)
+            weighted_least_sqrt2 = MatlabUtils.lscov(G, dph_mean_adj.conj().transpose(),
+                                                     weight_factor)
 
             # weighted_least_sqrt'te juures jätame transponeerimise tegemata sest see ei mõjuta midagi
             dph_smooth_val_exp = np.exp(1j * (weighted_least_sqrt[0, :] + weighted_least_sqrt2[0, :]))
@@ -438,7 +441,7 @@ class PsWeed(MetaSubProcess):
 
         dph_noise = np.angle(np.multiply(dph_space, dph_smooth.conj()))
         K_weights = np.divide(1, ifg_var)
-        K = MatlabUtils.lscov(bperp_meaned, dph_noise.transpose(), K_weights).conj().transpose()
+        K = MatlabUtils.lscov(bperp_meaned, dph_noise.conj().transpose(), K_weights).conj().transpose()
         dph_noise -= K * bperp_meaned.transpose()
 
         edge_std = MatlabUtils.std(dph_noise, axis=1)

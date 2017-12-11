@@ -87,7 +87,7 @@ class TestPsSelect(AbstractTestCase):
         self._est_gamma_process = PsEstGamma(self._ps_files, False)
         self._est_gamma_process.coherence_bins = pm1_mat['coh_bins'][0]
         self._est_gamma_process.grid_ij = pm1_mat['grid_ij']
-        self._est_gamma_process.nr_trial_wraps = pm1_mat['n_trial_wraps']
+        self._est_gamma_process.nr_trial_wraps = pm1_mat['n_trial_wraps'][0][0]
         self._est_gamma_process.ph_patch = pm1_mat['ph_patch']
         self._est_gamma_process.k_ps = pm1_mat['K_ps']
         self._est_gamma_process.c_ps = pm1_mat['C_ps']
