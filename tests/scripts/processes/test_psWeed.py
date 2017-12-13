@@ -19,15 +19,15 @@ class TestPsWeed(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results()
+        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
         cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
-        cls.__ps_files.load_results()
+        cls.__ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__est_gamma_process = None
 
         # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__est_gamma_process)
-        cls.__ps_select.load_results()
+        cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__ps_weed_process = None
 
@@ -62,11 +62,11 @@ class TestPsWeed(AbstractTestCase):
         self.__fill_est_gamma_with_matlab_data()
         self.__start_process()
 
-        self.__ps_weed_process.save_results()
+        self.__ps_weed_process.save_results(self._SAVE_LOAD_PATH)
 
         ps_weed_loaded = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
 
-        ps_weed_loaded.load_results()
+        ps_weed_loaded.load_results(self._SAVE_LOAD_PATH)
 
         np.testing.assert_array_equal(self.__ps_weed_process.selectable_ps, ps_weed_loaded.selectable_ps)
         np.testing.assert_array_equal(self.__ps_weed_process.selectable_ps2, ps_weed_loaded.selectable_ps2)

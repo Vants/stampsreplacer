@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
+from scripts import RESOURCES_PATH
+from scripts.utils.ConfigUtils import ConfigUtils
+
 
 class FolderConstants:
     PATCH_FOLDER_NAME = "PATCH_1"
 
-    SAVE_FOLDER = "process_saves"
-    SAVE_PATH = os.path.abspath(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'tests', "resources",
-                     SAVE_FOLDER))
+    __SAVE_PATH = ConfigUtils(RESOURCES_PATH).get_default_section('save_load_path')
 
-    CACHE_PATH = os.path.join(SAVE_PATH, "tmp")
+    CACHE_PATH = os.path.join(__SAVE_PATH, "tmp")

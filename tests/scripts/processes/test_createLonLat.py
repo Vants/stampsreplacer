@@ -2,9 +2,7 @@ import os
 import scipy.io
 
 from scripts.processes.CreateLonLat import CreateLonLat
-from scripts.utils.FolderConstants import FolderConstants
 from tests.AbstractTestCase import AbstractTestCase
-from tests.ConfigUtils import ConfigUtils
 
 
 class TestCreateLonLat(AbstractTestCase):
@@ -40,10 +38,10 @@ class TestCreateLonLat(AbstractTestCase):
 
     def test_save_and_load_results(self):
         lonlat, process_save = self.__start_process()
-        process_save.save_results(lonlat)
+        process_save.save_results(self._SAVE_LOAD_PATH, lonlat)
 
         process_load = CreateLonLat(self._PATH_PATCH_FOLDER, self._GEO_DATA_FILE)
-        lonlat_loaded = process_load.load_results()
+        lonlat_loaded = process_load.load_results(self._SAVE_LOAD_PATH)
 
         self.assertIsNotNone(lonlat_loaded)
         self.assertNotEqual(len(lonlat_loaded), 0, "lonlat is empty")

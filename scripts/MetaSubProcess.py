@@ -6,7 +6,7 @@ class MetaSubProcess(metaclass=ABCMeta):
     def start_process(self): pass
 
     @abstractmethod
-    def save_results(self): pass
+    def save_results(self, save_path: str): pass
 
     @abstractmethod
-    def load_results(self): pass
+    def load_results(self, load_path): pass

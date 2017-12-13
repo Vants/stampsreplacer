@@ -103,8 +103,8 @@ class PsFiles(MetaSubProcess):
 
         self.__logger.info("End")
 
-    def save_results(self):
-        ProcessDataSaver(FolderConstants.SAVE_PATH, self.__FILE_NAME).save_data(
+    def save_results(self, save_path: str):
+        ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
             heading=self.heading,
             mean_range=self.mean_range,
             wavelength=self.wavelength,
@@ -122,8 +122,8 @@ class PsFiles(MetaSubProcess):
             hgt=self.hgt,
             ifg_dates=self.ifg_dates)
 
-    def load_results(self):
-        file_with_path = os.path.join(FolderConstants.SAVE_PATH, self.__FILE_NAME + ".npz")
+    def load_results(self, load_path: str):
+        file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.heading = data['heading']
