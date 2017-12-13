@@ -292,10 +292,6 @@ class PsEstGamma(MetaSubProcess):
 
         nr_i = int(np.max(self.grid_ij[:, 0]))
         nr_j = int(np.max(self.grid_ij[:, 1]))
-        # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
-        # Stamps'is tehti need while loop'i sees.
-        ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
-        ph_filt = ph_grid.copy()
 
         coh_ps_result = zero_ps_array_cont()
         gamma_change = 0
@@ -319,12 +315,17 @@ class PsEstGamma(MetaSubProcess):
             self.__logger.debug("gamma change loop i " + str(log_i))
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
-            #todo kas on vaja ph_grid ja ph_filt enne algust uuesti genereerida või saab hakkama ka ülekirjutamisega ?
+            # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
+            # ph_grid'i ja ph_filt peab uuesti looma. Vastasel juhul jäävad vanad tulemused sisse
+            # ja väärtused on valed
+            ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
+
             for i in range(nr_ps):
                 x_ind = int(self.grid_ij[i, 0]) - 1
                 y_ind = int(self.grid_ij[i, 1]) - 1
                 ph_grid[x_ind, y_ind, :] += pydsm.relab.shiftdim(ph_weight[i, :], -1, nargout=1)[0]
 
+            ph_filt = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
             for i in range(nr_ifgs):
                 ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, i], low_pass)
 
