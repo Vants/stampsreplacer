@@ -49,25 +49,26 @@ class PsEstGamma(MetaSubProcess):
         self.coherence_bins = ArrayUtils.arange_include_last(0.005, 0.995, 0.01)
 
     def __set_internal_params(self):
-        """StaMPS'is loeti need setparam'iga süsteemi. Väärtused on saadud ps_params_default failist"""
+        """StaMPS'is loeti need setparam'iga süsteemi. Väärtused on saadud ps_params_default failist.
+        Selgtused on leitud Hooperi Stamps'i kasutusjuhendist"""
 
-        # Todo Pixel size of grid (meetrites)
+        # Pixel size of grid (meetrites)
         self.__filter_grid_size = 50
-        # Todo Weighting scheme (PS probability squared)
+        # Weighting scheme (PS probability squared)
         self.__filter_weighting = 'P-square'
-        # Todo CLAP (Combined Low-pass and Adaptive Phase) libiseva akna suurus.
+        # CLAP (Combined Low-pass and Adaptive Phase) libiseva akna suurus.
         self.__clap_win = 32
-        # Todo Selllest suuremad lainepikkused pääsevad läbi
+        # Selllest suuremad lainepikkused pääsevad läbi
         self.__clap_low_pass_wavelength = 800
 
         self.__clap_alpha = 1
         self.__clap_beta = 0.3
-        # todo Maksimaalne DEM'i (digitaalse kõrgusmudeli) viga (meetrites).
+        # Maksimaalne DEM'i (digitaalse kõrgusmudeli) viga (meetrites).
         # Sellest suurema väärtusega ei arvestata
         self.__max_topo_err = 5
-        # Todo Lubatud muutuste keskmine väärtus. Koherentsuse sarnane väärtus.
+        # Lubatud muutuste keskmine väärtus. Koherentsuse sarnane väärtus.
         self.__gamma_change_convergence = 0.005
-        # todo mean range - need only be approximately correct
+        # mean range - need only be approximately correct
         self.__mean_range = 830000
 
         self.__low_coherence_thresh = 31  # Võrdne 31/100'jaga
@@ -88,7 +89,6 @@ class PsEstGamma(MetaSubProcess):
                                                                      self.nr_trial_wraps)
         self.__logger.debug("rand_dist.len: {0}, self.nr_max_nz_ind: {1}"
                             .format(len(self.rand_dist), self.nr_max_nz_ind))
-
 
         self.grid_ij = self.__get_grid_ij(xy)
         self.__logger.debug("grid_ij.len: {0}".format(len(self.grid_ij)))
@@ -277,9 +277,8 @@ class PsEstGamma(MetaSubProcess):
 
         SW_ARRAY_SHAPE = (nr_ps, 1)
 
-        # Konstruktor tühja pusivpeegeladajate info massiivi loomiseks
-        # TODO: on siin vaja sellist suurust?
         def zero_ps_array_cont():
+            """Konstruktor tühja pusivpeegeladajate info massiivi loomiseks"""
             return np.zeros(SW_ARRAY_SHAPE)
 
         def get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights):
@@ -289,6 +288,41 @@ class PsEstGamma(MetaSubProcess):
 
         def is_gamma_in_change_delta():
             return abs(gamma_change_delta) < self.__gamma_change_convergence
+
+        def make_ph_grid(ph_grid_shape: tuple, grid_ij: np.ndarray, weights: np.ndarray,
+                         loop_nr: int) -> np.ndarray:
+            # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
+            # ph_grid'i ja ph_filt peab uuesti looma. Vastasel juhul jäävad vanad tulemused sisse
+            # ja väärtused on valed
+
+            ph_grid = np.zeros(ph_grid_shape, np.complex128)
+            for id in range(loop_nr):
+                x_ind = int(grid_ij[id, 0]) - 1
+                y_ind = int(grid_ij[id, 1]) - 1
+                ph_grid[x_ind, y_ind, :] += pydsm.relab.shiftdim(weights[id, :], -1, nargout=1)[0]
+
+            return ph_grid
+
+        def make_ph_filt(ph_grid_shape: tuple, ph_grid: np.ndarray, loop_nr: int,
+                         low_pass: np.ndarray) -> np.ndarray:
+            ph_filt = np.zeros(ph_grid_shape, np.complex128)
+            for i in range(loop_nr):
+                ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, i], low_pass)
+
+            return ph_filt
+
+        def make_ph_path(ph_patch: np.ndarray, ph_filt: np.ndarray, grid_ij: np.ndarray,
+                         loop_nr: int) -> np.ndarray:
+            for i in range(loop_nr):
+                x_ind = int(grid_ij[i, 0]) - 1
+                y_ind = int(grid_ij[i, 1]) - 1
+                ph_patch[i, :nr_ifgs] = np.squeeze(ph_filt[x_ind, y_ind, :])
+
+            not_zero_patches_ind = np.nonzero(ph_patch)
+            ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
+                                                       np.abs(ph_patch[not_zero_patches_ind]))
+
+            return ph_patch
 
         nr_i = int(np.max(self.grid_ij[:, 0]))
         nr_j = int(np.max(self.grid_ij[:, 1]))
@@ -302,67 +336,57 @@ class PsEstGamma(MetaSubProcess):
         k_ps = zero_ps_array_cont()
 
         # Est topo error
-        # todo: siin me loome muutujad, et returnida, refacto
+        # Siin me loome muutujad, et returnida, refacto
         c_ps = zero_ps_array_cont()
-        coh_ps = zero_ps_array_cont()
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
+        ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
 
-        log_i = -1 # Logimiseks int, et näha mitmendat tiiru tehakse
+
+        log_i = 0 # Logimiseks int, et näha mitmendat tiiru tehakse
         self.__logger.debug("is_gamma_in_change_delta loop begin")
+
+        PH_GRID_SHAPE = (nr_i, nr_j, nr_ifgs)
         while not is_gamma_in_change_delta():
             log_i += 1
             self.__logger.debug("gamma change loop i " + str(log_i))
             ph_weight = get_ph_weight(bprep, k_ps, nr_ifgs, ph, weights)
 
-            # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
-            # ph_grid'i ja ph_filt peab uuesti looma. Vastasel juhul jäävad vanad tulemused sisse
-            # ja väärtused on valed
-            ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
-
-            for i in range(nr_ps):
-                x_ind = int(self.grid_ij[i, 0]) - 1
-                y_ind = int(self.grid_ij[i, 1]) - 1
-                ph_grid[x_ind, y_ind, :] += pydsm.relab.shiftdim(ph_weight[i, :], -1, nargout=1)[0]
-
-            ph_filt = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
-            for i in range(nr_ifgs):
-                ph_filt[:, :, i] = self.__clap_filt(ph_grid[:, :, i], low_pass)
+            ph_grid = make_ph_grid(PH_GRID_SHAPE, self.grid_ij, ph_weight, nr_ps)
+            ph_filt = make_ph_filt(PH_GRID_SHAPE, ph_grid, nr_ifgs, low_pass)
 
             self.__logger.debug("ph_filt found. first row: {0}, last row: {1}"
                                 .format(ph_filt[0], ph_filt[len(ph_filt) - 1]))
 
-            for i in range(nr_ps):
-                x_ind = int(self.grid_ij[i, 0]) - 1
-                y_ind = int(self.grid_ij[i, 1]) - 1
-                ph_patch[i, :nr_ifgs] = np.squeeze(ph_filt[x_ind, y_ind, :])
-
-            not_zero_patches_ind = np.nonzero(ph_patch)
-            ph_patch[not_zero_patches_ind] = np.divide(ph_patch[not_zero_patches_ind],
-                                                       np.abs(ph_patch[not_zero_patches_ind]))
+            ph_patch = make_ph_path(ph_patch, ph_filt, self.grid_ij, nr_ps)
 
             self.__logger.debug("ph_patch found. first row: {0}, last row: {1}"
                                 .format(ph_patch[0], ph_patch[len(ph_patch) - 1]))
 
+            del ph_filt
+
+            # See on siin protsessis kõige aeglasem koht
             topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
             topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
-
             k_ps = topofit.k_ps
             c_ps = topofit.c_ps
             coh_ps = topofit.coh_ps
             n_opt = topofit.n_opt
             ph_res = topofit.ph_res
 
+            del topofit
+
             self.__logger.debug("topofit found")
 
             gamma_change_rms = np.sqrt(np.sum(np.power(coh_ps - coh_ps_result, 2) / nr_ps))
             gamma_change_delta = gamma_change_rms - gamma_change
-            # Salvestame ajutistesse muutujatesse gamma ja koherentsuse
+            # Salvestame ajutistesse muutujatesse gamma ja koherentsuse_mida pärast tagastada
             gamma_change = gamma_change_rms
             coh_ps_result = coh_ps
 
             self.__logger.debug("is_gamma_in_change_delta() and self.__filter_weighting: "
-                                + str(not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square'))
+                                + str(not is_gamma_in_change_delta() and
+                                      self.__filter_weighting == 'P-square'))
             if not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square':
                 hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins) # Stamps'is oli see 'Na'
                 self.__logger.debug("hist[0:3] " + str(hist[:3]))
@@ -390,7 +414,7 @@ class PsEstGamma(MetaSubProcess):
                 # massiividest
                 coh_ps_as_ind = np.round(coh_ps * 1000).astype(np.int)
                 if len(coh_ps_as_ind.shape) > 1:
-                    coh_ps_as_ind = coh_ps_as_ind.reshape(len(coh_ps))
+                    coh_ps_as_ind = np.squeeze(coh_ps_as_ind)
                 # Stampsis oli see 'Prand_ps'
                 ps_rand = p_rand[coh_ps_as_ind].conj().transpose()
 
