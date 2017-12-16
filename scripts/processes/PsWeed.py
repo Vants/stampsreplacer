@@ -7,11 +7,13 @@ import sys
 import math
 from pathlib import Path
 
+from scripts import RESOURCES_PATH
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.utils.ArrayUtils import ArrayUtils
+from scripts.utils.ConfigUtils import ConfigUtils
 from scripts.utils.FolderConstants import FolderConstants
 from scripts.utils.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
@@ -44,6 +46,7 @@ class PsWeed(MetaSubProcess):
         self.__drop_ifg_index = np.array([])
 
         self.__ps_weed_edge_data = self.__load_psweed_edge_file(path_to_patch)
+        self.__logger.debug("self.__ps_weed_edge_data.len: " + str(len(self.__ps_weed_edge_data)))
 
     def __load_psweed_edge_file(self, path: str) -> (int, np.ndarray):
         """Põhjus miks me ei loe seda faili sisse juba PsFiles'ides on see, et me ei pruugi
@@ -59,7 +62,8 @@ class PsWeed(MetaSubProcess):
             data = np.genfromtxt(path, skip_header=True, dtype=self.__IND_ARRAY_TYPE)
             return data
         else:
-            raise FileNotFoundError("{1} not found. AbsPath {0}".format(str(path.absolute()), file_name))
+            raise FileNotFoundError("File named '{1}' not found. AbsPath '{0}'".format(
+                str(path.absolute()), file_name))
 
     class __DataDTO(object):
 
@@ -165,7 +169,7 @@ class PsWeed(MetaSubProcess):
         self.ps_max = data["ps_max"]
         self.ps_std = data["ps_std"]
 
-    def get_filtered_results(self):
+    def get_filtered_results(self, load_path: str = None):
         """Kuna filteerimine selectable_ps'iga alusel tehakse muutjate põhjal mis on siin juba
         leitud sisendmuutujate leidmisel ja filteeritud näiteks 'ps_select.keep_ind' siis on siin
         klassis seda oluliselt lihtsam teha.
@@ -177,7 +181,12 @@ class PsWeed(MetaSubProcess):
             len(self.selectable_ps)
         except TypeError:
             self.__logger.debug("Load results")
-            self.load_results()
+            if load_path is None:
+                load_path = ConfigUtils(RESOURCES_PATH).get_default_section("save_load_path")
+                self.__logger.info("Using default load/save path from config: '{0}'".format(
+                    load_path))
+
+            self.load_results(load_path)
 
         data = self.__load_ps_params()
 
@@ -239,8 +248,6 @@ class PsWeed(MetaSubProcess):
             ph_patch = ps_est_gamma.ph_patch[coh_thresh_ind, :]
 
             return ph_patch
-
-        # fixme ph_path'e on Stampsis ainult üks.
 
         ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select(self.ps_select)
 
@@ -333,7 +340,8 @@ class PsWeed(MetaSubProcess):
                 ps_ind = ps_ind[low_coh_ind]
                 selectable_ps[ps_ind] = False
 
-        self.__logger.debug("self.__weed_zero_elevation: {0}, len(htg)")
+        self.__logger.debug("self.__weed_zero_elevation: {0}, len(htg): {1}".format(
+            self.__weed_zero_elevation, len(htg)))
         if self.__weed_zero_elevation and len(htg) > 0:
             self.__logger.debug("Fiding sea evel")
             sea_ind = htg < 1e-6

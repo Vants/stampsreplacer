@@ -125,7 +125,7 @@ class PsEstGamma(MetaSubProcess):
             coherence_bins=self.coherence_bins,
             grid_ij=self.grid_ij,
             nr_trial_wraps=self.nr_trial_wraps,
-            rand_dist = self.rand_dist,
+            rand_dist=self.rand_dist,
         )
 
     def load_results(self, load_path: str):

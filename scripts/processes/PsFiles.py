@@ -54,10 +54,12 @@ class PsFiles(MetaSubProcess):
         self.lonlat = np.asmatrix(lonlat)
 
         if not self.__path.exists():
-            raise FileNotFoundError("No PATCH folder. Load abs.path " + str(self.__path.absolute()))
+            raise FileNotFoundError("No PATCH folder. Load abs.path '{0}'".format(
+                str(self.__path.absolute())))
         if not self.__patch_path.exists():
             raise FileNotFoundError(
-                "No PATCH folder. Load abs.path " + str(self.__patch_path.absolute()))
+                "No PATCH folder. Load abs.path '{0}'".format(
+                    str(self.__patch_path.absolute())))
         if self.pscands_ij is None:
             raise AttributeError("pscands_ij_array is None")
 
