@@ -2,6 +2,25 @@
 
 # Enne kävitamist
 
+# Keskkonna seadistus
+
+Esmalt tuleb luua virtualenv'iga keskkond. Siin luuakse virtuaalkeskkond virtualenv'iga nimetusega
+_virtevn_. Virtuaalkeskkonda ei või teha Araconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
+
+`virtualenv virtevn`
+
+Siis see aktiveerida Windows'is järgneva käsuga:
+
+`C:\Users\<Kasutaja>\Anaconda3\envs\virtevn\Scripts\activate`
+
+või Linux'is
+
+`source virtevn/bin/activate`
+
+Ning siis laadida sõltuvused failist _env_intel.txt_:
+
+`pip install -r env_intel.txt`
+
 ## Sättefailid ja parameetrite selgitus
 
 Kopperi fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
