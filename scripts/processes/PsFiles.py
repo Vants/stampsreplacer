@@ -24,22 +24,22 @@ class PsFiles(MetaSubProcess):
     """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
     Tehtud StaMPS'i ps_load_inital_gamma järgi."""
 
-    heading = None
-    mean_range = 0.0
-    wavelength = 0.0
-    mean_incidence = 0.0
-    master_nr = -1 # Stamps'is oli master_ix
-    bperp_meaned = np.ndarray
-    bperp = np.ndarray # Stamps'is oli see bperp_mat
-    ph = np.ndarray
-    ll = np.ndarray
-    xy = np.ndarray
-    da = np.ndarray
-    sort_ind = np.ndarray # Stamps'is oli see la1.mat olev la
-    master_date = date
-    ifgs = np.ndarray # todo privaatseks muutujaks?
-    hgt = np.ndarray
-    ifg_dates = [] # Stamps'is oli 'day'
+    heading: str = None
+    mean_range: float = 0.0
+    wavelength: float = 0.0
+    mean_incidence: float = 0.0
+    master_nr: int = -1  # Stamps'is oli master_ix
+    bperp_meaned: np.ndarray
+    bperp: np.ndarray  # Stamps'is oli see bperp_mat
+    ph: np.ndarray
+    ll: np.ndarray
+    xy: np.ndarray
+    da: np.ndarray
+    sort_ind: np.matrix  # Stamps'is oli see la1.mat'is olev la
+    master_date: date
+    ifgs: np.ndarray  # todo privaatseks muutujaks?
+    hgt: np.ndarray
+    ifg_dates: list = []  # Stamps'is oli 'day'
 
     def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
@@ -158,8 +158,6 @@ class PsFiles(MetaSubProcess):
         kolmanda veeruga. Python'is on selline protsess liiga aeglane (ligi 30 sekundit)"""
         ARRAY_TYPE = np.float64
 
-
-
         cos_sat_look_angle = np.cos(sat_look_angle)
         sin_sat_look_angle = np.sin(sat_look_angle)
 
@@ -170,7 +168,7 @@ class PsFiles(MetaSubProcess):
         bperp = matlib.zeros((len(self.pscands_ij), nr_ifgs), dtype=ARRAY_TYPE)
 
         bc_bn_formula = lambda tcn, baseline_rate: tcn + baseline_rate * (
-            ij_lon - mean_azimuth_line) / float(self.__params['prf'])
+                ij_lon - mean_azimuth_line) / float(self.__params['prf'])
 
         for i in range(nr_ifgs):
             tcn, baseline_rate = self.__get_baseline_params(ifgs[i])
@@ -392,7 +390,7 @@ class PsFiles(MetaSubProcess):
             2 * float(self.__params['sar_to_earth_center']) * self.__rg))
 
     def __get_hgt(self):
-        FLOAT_TYPE = ">f4" # "big-endian" float32
+        FLOAT_TYPE = ">f4"  # "big-endian" float32
         hgt_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.hgt").open("rb"), FLOAT_TYPE)
         hgt = hgt_raw.conj().transpose()
 
@@ -445,4 +443,3 @@ class PsFiles(MetaSubProcess):
             if comp_fun(ifg_datetime, master_date):
                 result += 1
         return result
-
