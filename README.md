@@ -23,7 +23,7 @@ Ning siis laadida sõltuvused failist _env_intel.txt_:
 
 ## Sättefailid ja parameetrite selgitus
 
-Kopperi fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
+Kopeeri fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
 
 Parameetrid failis on järgnevad:
 * __path__ - Algfailide asukoht
