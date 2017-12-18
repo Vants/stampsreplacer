@@ -13,11 +13,11 @@ from scripts.processes.PsFiles import PsFiles
 import numpy as np
 
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
-from scripts.utils.ProcessCache import ProcessCache
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.ProcessCache import ProcessCache
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsEstGamma(MetaSubProcess):

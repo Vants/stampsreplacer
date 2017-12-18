@@ -4,8 +4,6 @@ import scipy.io
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
-from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.FolderConstants import FolderConstants
 from tests.AbstractTestCase import AbstractTestCase
 
 import numpy as np

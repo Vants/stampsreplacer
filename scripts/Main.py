@@ -9,9 +9,9 @@ from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
-from scripts.utils.ConfigUtils import ConfigUtils
-from scripts.utils.LoggerFactory import LoggerFactory
-from scripts.utils.ProcessFactory import ProcessFactory
+from scripts.utils.internal.ConfigUtils import ConfigUtils
+from scripts.utils.internal.LoggerFactory import LoggerFactory
+from scripts.utils.internal.ProcessFactory import ProcessFactory
 
 
 class Main:
@@ -105,4 +105,4 @@ if __name__ == '__main__':
         main.run()
     else:
         main = Main()
-        main.run(start=sys.argv[1], end=sys.argv[2])
+        main.run(start=int(sys.argv[1]), end=int(sys.argv[2]))

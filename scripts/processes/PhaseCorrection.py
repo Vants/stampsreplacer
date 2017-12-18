@@ -3,13 +3,10 @@ import numpy.matlib
 import os
 
 from scripts.MetaSubProcess import MetaSubProcess
-from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
-from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.LoggerFactory import LoggerFactory
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.LoggerFactory import LoggerFactory
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PhaseCorrection(MetaSubProcess):

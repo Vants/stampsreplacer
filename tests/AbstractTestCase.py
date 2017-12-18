@@ -2,8 +2,8 @@ import os
 from unittest import TestCase
 import numpy as np
 
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.ConfigUtils import ConfigUtils
+from scripts.utils.internal.FolderConstants import FolderConstants
+from scripts.utils.internal.ConfigUtils import ConfigUtils
 from tests import TEST_RESOURCES_PATH
 
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 
 
 class ProcessDataSaver:

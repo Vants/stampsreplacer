@@ -7,7 +7,6 @@ from datetime import date
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsFiles import PsFiles
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.FolderConstants import FolderConstants
 from tests.AbstractTestCase import AbstractTestCase
 
 

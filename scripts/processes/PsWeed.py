@@ -13,11 +13,11 @@ from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.ConfigUtils import ConfigUtils
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.ConfigUtils import ConfigUtils
+from scripts.utils.internal.FolderConstants import FolderConstants
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsWeed(MetaSubProcess):
@@ -27,7 +27,7 @@ class PsWeed(MetaSubProcess):
     __DEF_NEIGHBOUR_VAL = -1
     __FILE_NAME = "ps_weed"
 
-    selectable_ps = np.ndarray
+    selectable_ps = np.array([])
 
     def __init__(self, path_to_patch: str, ps_files: PsFiles, ps_est_gamma: PsEstGamma,
                  ps_select: PsSelect):
@@ -177,9 +177,8 @@ class PsWeed(MetaSubProcess):
         Stamps'is tehti uued .mat failid nende salvestamiseks"""
 
         self.__logger.info("Finding filtered results")
-        try:
-            len(self.selectable_ps)
-        except TypeError:
+
+        if len(self.selectable_ps) == 0:
             self.__logger.debug("Load results")
             if load_path is None:
                 load_path = ConfigUtils(RESOURCES_PATH).get_default_section("save_load_path")

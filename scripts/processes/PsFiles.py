@@ -9,15 +9,15 @@ from numpy import matlib
 
 from scripts.MetaSubProcess import MetaSubProcess
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.FolderConstants import FolderConstants
+from scripts.utils.internal.FolderConstants import FolderConstants
 
 import numpy as np
 import math
 
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
 from scripts.utils.MatrixUtils import MatrixUtils
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsFiles(MetaSubProcess):

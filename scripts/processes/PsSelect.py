@@ -1,7 +1,6 @@
 import enum
 
 import numpy as np
-import scipy
 import os
 
 from scripts.MetaSubProcess import MetaSubProcess
@@ -9,12 +8,10 @@ from scripts.funs.PsTopofit import PsTopofit
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.utils.ArrayUtils import ArrayUtils
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 from scripts.utils.MatlabUtils import MatlabUtils
-from scripts.utils.MatrixUtils import MatrixUtils
-from scripts.utils.ProcessCache import ProcessCache
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.ProcessCache import ProcessCache
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsSelect(MetaSubProcess):

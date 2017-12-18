@@ -1,5 +1,3 @@
-import unittest
-
 import os
 import numpy as np
 
@@ -8,9 +6,9 @@ from scripts.Main import Main
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
-from scripts.utils.ConfigUtils import ConfigUtils
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.LoggerFactory import LoggerFactory
+from scripts.utils.internal.ConfigUtils import ConfigUtils
+from scripts.utils.internal.FolderConstants import FolderConstants
+from scripts.utils.internal.LoggerFactory import LoggerFactory
 from tests.AbstractTestCase import AbstractTestCase
 
 
@@ -45,7 +43,7 @@ class TestMain(AbstractTestCase):
         # self.__delete_saved_files(self._SAVE_LOAD_PATH)
 
         main = Main()
-        main.run(3)
+        main.run(2, 4)
 
     def test_run_only_first(self):
         self.__delete_saved_files(self._SAVE_LOAD_PATH, "lonlat_process")

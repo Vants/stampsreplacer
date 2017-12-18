@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 
 from scripts import RESOURCES_PATH
-from scripts.utils.ConfigUtils import ConfigUtils
+from scripts.utils.internal.ConfigUtils import ConfigUtils
 
 
 class FolderConstants:

@@ -79,7 +79,7 @@ class TestPsWeed(AbstractTestCase):
         self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process,
                                         self.__ps_select)
         coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp =\
-            self.__ps_weed_process.get_filtered_results()
+            self.__ps_weed_process.get_filtered_results(self._SAVE_LOAD_PATH)
 
         pm_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm2.mat'))
 

@@ -1,11 +1,10 @@
-from typing import Union
 import os
 
 import numpy as np
 from numpy.lib.npyio import NpzFile
 
-from scripts.utils.FolderConstants import FolderConstants
-from scripts.utils.ProcessDataSaver import ProcessDataSaver
+from scripts.utils.internal.FolderConstants import FolderConstants
+from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 # Todo kas seda klassi saab teha dünaamilisemaks? Et tagastab kohe õiged asjad kui käss on ja kui ei ole
