@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from scripts import RESOURCES_PATH
-from scripts.Main import Main
+from Main import Main
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
@@ -43,7 +43,7 @@ class TestMain(AbstractTestCase):
         # self.__delete_saved_files(self._SAVE_LOAD_PATH)
 
         main = Main()
-        main.run(2, 4)
+        main.run(4, 4)
 
     def test_run_only_first(self):
         self.__delete_saved_files(self._SAVE_LOAD_PATH, "lonlat_process")
