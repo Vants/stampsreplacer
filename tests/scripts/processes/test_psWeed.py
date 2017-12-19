@@ -20,7 +20,7 @@ class TestPsWeed(AbstractTestCase):
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
         lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
-        cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
+        cls.__ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
         cls.__ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__est_gamma_process = None
@@ -108,7 +108,7 @@ class TestPsWeed(AbstractTestCase):
         np.testing.assert_array_almost_equal(bperp, bp_mat['bperp_mat'], self._PLACES)
 
     def __start_process(self):
-        self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process, self.__ps_select)
+        self.__ps_weed_process = PsWeed(self._PATH_PATCH_FOLDER, self.__ps_files, self.__est_gamma_process, self.__ps_select)
         self.__ps_weed_process.start_process()
 
     # todo sama asi juba test_psSelect

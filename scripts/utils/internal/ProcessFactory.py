@@ -24,12 +24,12 @@ class ProcessFactory:
     def load_lonlat(self, process: Type[CreateLonLat]):
         process_obj = process(self.__path, self.__geo_file_path)
         self.lonlat = process_obj.load_results(self.__save_load_path)
-        self.__set_process_to_dict(process, process_obj)
+        self.__set_process_to_dict(process_obj)
 
     def load_results(self, process: Type[MetaSubProcess]):
         process_obj = self.__init_process(process)
         process_obj.load_results(self.__save_load_path)
-        self.__set_process_to_dict(process, process_obj)
+        self.__set_process_to_dict(process_obj)
 
     def start_process(self, process_type: Type[MetaSubProcess]):
         process_obj = self.__init_process(process_type)
@@ -39,7 +39,7 @@ class ProcessFactory:
         else:
             process_obj.start_process()
 
-        self.__set_process_to_dict(process_type, process_obj)
+        self.__set_process_to_dict(process_obj)
 
     def save_lonlat(self):
         process_obj = self.__get_process_from_dict(CreateLonLat)
@@ -49,8 +49,9 @@ class ProcessFactory:
         process_obj = self.__get_process_from_dict(process_type)
         process_obj.save_results(self.__save_load_path)
 
-    def __set_process_to_dict(self, process_type: Type[MetaSubProcess],
-                                process_obj: MetaSubProcess):
+    def __set_process_to_dict(self, process_obj: MetaSubProcess):
+        process_type = type(process_obj)
+
         if process_type is CreateLonLat:
             self.process_obj_dict['LonLat'] = process_obj
         elif process_type is PsFiles:
@@ -64,7 +65,7 @@ class ProcessFactory:
         elif process_type is PhaseCorrection:
             self.process_obj_dict['PhaseCorrection'] = process_obj
 
-    def __get_process_from_dict(self, process: Type[MetaSubProcess]):
+    def __get_process_from_dict(self, process: Type[MetaSubProcess]) -> MetaSubProcess:
         if process is CreateLonLat:
             return self.process_obj_dict['LonLat']
         elif process is PsFiles:

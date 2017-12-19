@@ -95,9 +95,11 @@ class PsWeed(MetaSubProcess):
         self.__logger.info("Start")
 
         data = self.__load_ps_params()
-        # Stamps*is oli see nimetatud kui nr_ps, aga see on meil juba olemas
+        # Stamps'is oli see nimetatud kui nr_ps, aga see on meil juba olemas
         coh_thresh_ind_len = len(data.coh_thresh_ind)
-        self.__logger.debug("Loaded data. coh_thresh_ind.len: {0}, coh_thresh_ind_len: {1}"
+        if coh_thresh_ind_len == 0:
+            self.__logger.warn("coh_thresh_ind is empty")
+        self.__logger.debug("Loaded data. coh_thresh_ind.len: {0}, data.nr_ps: {1}"
                             .format(coh_thresh_ind_len, data.nr_ps))
 
         ij_shift = self.__get_ij_shift(data.pscands_ij, coh_thresh_ind_len)
