@@ -19,8 +19,8 @@ class TestPsSelect(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
-        cls._ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
+        lonlat_process.load_results(cls._SAVE_LOAD_PATH)
+        cls._ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls._ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls._est_gamma_process = None

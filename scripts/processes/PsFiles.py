@@ -8,6 +8,7 @@ from typing import Callable
 from numpy import matlib
 
 from scripts.MetaSubProcess import MetaSubProcess
+from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.internal.FolderConstants import FolderConstants
 
@@ -41,7 +42,7 @@ class PsFiles(MetaSubProcess):
     hgt: np.ndarray
     ifg_dates: list = []  # Stamps'is oli 'day'
 
-    def __init__(self, path: str, pscands_ij_array: np.ndarray, lonlat: np.ndarray):
+    def __init__(self, path: str, create_lonlat: CreateLonLat):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
         self.__FILE_NAME = "ps_files"
         self.__params = {}
@@ -50,8 +51,9 @@ class PsFiles(MetaSubProcess):
         self.__path = Path(path)
         self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
-        self.pscands_ij = np.asmatrix(pscands_ij_array)
-        self.lonlat = np.asmatrix(lonlat)
+        # Kuna muutujaid on vaid kaks mida laadida siis laeme need siin
+        self.pscands_ij = np.asmatrix(create_lonlat.pscands_ij)
+        self.lonlat = np.asmatrix(create_lonlat.lonlat)
 
         if not self.__path.exists():
             raise FileNotFoundError("No PATCH folder. Load abs.path '{0}'".format(

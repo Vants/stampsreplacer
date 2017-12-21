@@ -96,14 +96,12 @@ class PsEstGamma(MetaSubProcess):
         self.weights_org = self.__get_weights(da)
         self.__logger.debug("weights_org.len: {0}".format(len(self.weights_org)))
 
-        weights = np.array(self.weights_org, copy=True) #todo miks kaks korda copy? sw_loop'i pannakse ka copy sellest
-
         # Eelnev oli sisuliselt eelöö selleks mis nüüd hakkab.
         self.ph_patch, self.k_ps, self.c_ps, self.coh_ps, self.n_opt, \
         self.ph_res, self.ph_grid, self.low_pass = \
             self.__sw_loop(
                 ph,
-                weights.copy(),
+                self.weights_org.copy(),
                 self.low_pass,
                 bperp,
                 nr_ifgs,
@@ -368,11 +366,11 @@ class PsEstGamma(MetaSubProcess):
             # See on siin protsessis kõige aeglasem koht
             topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
             topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
-            k_ps = topofit.k_ps
-            c_ps = topofit.c_ps
-            coh_ps = topofit.coh_ps
-            n_opt = topofit.n_opt
-            ph_res = topofit.ph_res
+            k_ps = topofit.k_ps.copy()
+            c_ps = topofit.c_ps.copy()
+            coh_ps = topofit.coh_ps.copy()
+            n_opt = topofit.n_opt.copy()
+            ph_res = topofit.ph_res.copy()
 
             del topofit
 

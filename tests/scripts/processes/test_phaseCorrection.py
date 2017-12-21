@@ -22,9 +22,9 @@ class TestPhaseCorrection(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results()
-        cls.__ps_files = PsFiles(cls._PATH, lonlat_process.pscands_ij, lonlat)
-        cls.__ps_files.load_results()
+        lonlat_process.load_results(cls._SAVE_LOAD_PATH)
+        cls.__ps_files = PsFiles(cls._PATH, lonlat_process)
+        cls.__ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__ps_est_gamma = PsEstGamma(cls.__ps_files)
 
@@ -33,10 +33,10 @@ class TestPhaseCorrection(AbstractTestCase):
 
         # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__ps_est_gamma)
-        cls.__ps_select.load_results()
+        cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__ps_weed = PsWeed(cls._PATH, cls.__ps_files, cls.__ps_est_gamma, cls.__ps_select)
-        cls.__ps_weed.load_results()
+        cls.__ps_weed.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__phase_correction = None
 

@@ -16,6 +16,7 @@ class CreateLonLat(MetaSubProcess):
 
     # Seda on tarvis pärast PsFiles protsessis andmete laadisel
     pscands_ij = None
+    lonlat = None
 
     def __init__(self, path: str, geo_ref_product: str):
         self.__FILE_NAME = "lonlat_process"
@@ -26,6 +27,7 @@ class CreateLonLat(MetaSubProcess):
         self.__logger = LoggerFactory.create('CreateLonLat')
 
         self.__logger.debug("PATCH_FOLDER {0}".format(self.__PATCH_FOLDER))
+
     def start_process(self):
         self.__logger.debug("Start")
 
@@ -67,28 +69,24 @@ class CreateLonLat(MetaSubProcess):
 
         self.__logger.debug("Done")
 
-        return np.reshape(lonlat, (len(lonlat), 2))
+        self.lonlat = np.reshape(lonlat, (len(lonlat), 2))
 
     def save_results(self, save_path: str):
-        raise NotImplementedError("Use save_results (self, lonlat: np.array)")
-
-    def save_results(self, save_path:str, lonlat: np.array):
         if self.pscands_ij is None:
             raise ValueError("pscands is None")
-        if lonlat is None:
+        if self.lonlat is None:
             raise ValueError("pscands is None")
 
         ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
-            pscands_ij_array=self.pscands_ij, lonlat=lonlat)
+            pscands_ij_array=self.pscands_ij,
+            lonlat=self.lonlat)
 
     def load_results(self, load_path:str):
         file_with_path = os.path.join(load_path, self.__FILE_NAME + ".npz")
         data = np.load(file_with_path)
 
         self.pscands_ij = data["pscands_ij_array"]
-        lonlat = data["lonlat"]
-
-        return lonlat
+        self.lonlat = data["lonlat"]
 
     # TODO kõige aeglasem koht
     # noinspection PyMethodMayBeStatic

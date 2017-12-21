@@ -20,8 +20,8 @@ class TestPsEstGamma(AbstractTestCase):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH_PATCH_FOLDER, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
-        cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
+        lonlat_process.load_results(cls._SAVE_LOAD_PATH)
+        cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls.ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         # Seda kasutame teistes testides ja None'i on lihtsam kontrollida ja see protsess on natuke pikk
@@ -98,7 +98,10 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_allclose(self._est_gamma_process.low_pass, pm1_mat['low_pass'])
 
     def test_save_and_load_results(self):
-        self.__start_process()
+        org_Nr = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'org_Nr.mat'))['Nr'][0]
+        self._est_gamma_process = PsEstGamma(self.ps_files, False, org_Nr)
+        self._est_gamma_process.start_process()
+
         self._est_gamma_process.save_results(self._SAVE_LOAD_PATH)
 
         # Loome uue, mille sisse laeme salvestatud failid

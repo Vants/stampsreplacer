@@ -1,4 +1,6 @@
 import os
+import unittest
+
 import numpy as np
 
 from scripts import RESOURCES_PATH
@@ -35,7 +37,7 @@ class TestMain(AbstractTestCase):
 
         cls.__logger = LoggerFactory.create("TestMain")
 
-    # @unittest.skip("Skiping whole process test")
+    @unittest.skip("Skiping whole process test")
     def test_run_whole_process(self):
         """Selle testiga tasub ettevaatlik olla. See võtab väga kaua aega ja kustutab ära kõik
         savlestatud failid SAVE_LOAD_PATH."""
@@ -52,10 +54,10 @@ class TestMain(AbstractTestCase):
         main.run(0, 0)
 
         # geo_ref_product parameeter võib olla tühi, sest me laeme salvestatud andmeid
-        lonlat_process = CreateLonLat(self._PATH_PATCH_FOLDER, "")
-        lonlat = lonlat_process.load_results(self._SAVE_LOAD_PATH)
+        lonlat_process = CreateLonLat(self._PATH, "")
+        lonlat_process.load_results(self._SAVE_LOAD_PATH)
 
-        self.assert_array_not_empty(lonlat)
+        self.assert_array_not_empty(lonlat_process.lonlat)
         self.assert_array_not_empty(lonlat_process.pscands_ij)
 
     def test_run_start_second_stop_second(self):
@@ -65,7 +67,7 @@ class TestMain(AbstractTestCase):
         main.run(1, 1)
 
         # Paneme siia tühjad array, sest neid pole vaja andmete laadmisel täita
-        ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, np.array([]), np.array([]))
+        ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, CreateLonLat(self._PATH, ""))
         ps_files_loaded.load_results(self._SAVE_LOAD_PATH)
 
         # Ühest kontrollist piisab küll. Täpsemad kontrollid on juba spetsiifilises klassis
@@ -79,7 +81,7 @@ class TestMain(AbstractTestCase):
         main.run(1, 2)
 
         # Paneme siia tühjad array, sest neid pole vaja andmete laadmisel täita
-        ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, np.array([]), np.array([]))
+        ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, CreateLonLat(self._PATH, ""))
         ps_files_loaded.load_results(self._SAVE_LOAD_PATH)
 
         self.assert_array_not_empty(ps_files_loaded.bperp)

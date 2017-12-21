@@ -43,10 +43,7 @@ class Main:
             self.__save_results(start, end)
 
     def __load_saved(self, step: int):
-        if step == 0:
-            self.__process_factory.load_lonlat(self.processes[0])
-        else:
-            self.__process_factory.load_results(self.processes[step])
+        self.__process_factory.load_results(self.processes[step])
 
     def __start_process(self, step: int):
         self.__process_factory.start_process(self.processes[step])
@@ -58,10 +55,7 @@ class Main:
             elif (step - 1) == end:
                 break
             elif step >= start:
-                if step == 0:
-                    self.__process_factory.save_lonlat()
-                else:
-                    self.__process_factory.save_process(self.processes[step])
+                self.__process_factory.save_process(self.processes[step])
 
     def __assert_params(self, start: int, stop: int):
         if start < 0:
@@ -70,7 +64,7 @@ class Main:
             raise AttributeError(
                 "Stop more than than {0} or len(self.processes)".format(len(self.processes)))
 
-    def __make_process_factory(self):
+    def __make_process_factory(self) -> ProcessFactory:
         path, geo_file_path, save_load_path, rand_dist_cached = self.__get_from_config()
         return ProcessFactory(path, geo_file_path, save_load_path, rand_dist_cached)
 

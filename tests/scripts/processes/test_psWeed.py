@@ -14,16 +14,17 @@ from tests.AbstractTestCase import AbstractTestCase
 class TestPsWeed(AbstractTestCase):
     _GEO_DATA_FILE_NAME = 'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim'
 
+    # noinspection PyUnresolvedReferences
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
-        lonlat = lonlat_process.load_results(cls._SAVE_LOAD_PATH)
-        cls.__ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process.pscands_ij, lonlat)
+        lonlat_process.load_results(cls._SAVE_LOAD_PATH)
+        cls.__ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls.__ps_files.load_results(cls._SAVE_LOAD_PATH)
 
-        cls.__est_gamma_process = None
+        cls.__est_gamma_process: PsEstGamma = None
 
         # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__est_gamma_process)

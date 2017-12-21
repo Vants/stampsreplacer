@@ -104,7 +104,7 @@ class TestPsFiles(AbstractTestCase):
         self.__start_process()
         self._ps_files.save_results(self._SAVE_LOAD_PATH)
 
-        ps_files_load = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij, self.lonlat)
+        ps_files_load = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process)
         ps_files_load.load_results(self._SAVE_LOAD_PATH)
 
         self.assertIsNotNone(ps_files_load.heading)
@@ -125,6 +125,5 @@ class TestPsFiles(AbstractTestCase):
         np.testing.assert_array_equal(ps_files_load.ifg_dates, self._ps_files.ifg_dates)
 
     def __start_process(self):
-        self._ps_files = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process.pscands_ij,
-                                 self.lonlat)
+        self._ps_files = PsFiles(self._PATH_PATCH_FOLDER, self.lonlat_process)
         self._ps_files.start_process()

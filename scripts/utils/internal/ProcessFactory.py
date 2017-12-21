@@ -21,11 +21,6 @@ class ProcessFactory:
         self.__save_load_path = save_load_path
         self.__rand_dist_cached = rand_dist_cached
 
-    def load_lonlat(self, process: Type[CreateLonLat]):
-        process_obj = process(self.__path, self.__geo_file_path)
-        self.lonlat = process_obj.load_results(self.__save_load_path)
-        self.__set_process_to_dict(process_obj)
-
     def load_results(self, process: Type[MetaSubProcess]):
         process_obj = self.__init_process(process)
         process_obj.load_results(self.__save_load_path)
@@ -33,17 +28,9 @@ class ProcessFactory:
 
     def start_process(self, process_type: Type[MetaSubProcess]):
         process_obj = self.__init_process(process_type)
-
-        if process_type is CreateLonLat:
-            self.lonlat = process_obj.start_process()
-        else:
-            process_obj.start_process()
+        process_obj.start_process()
 
         self.__set_process_to_dict(process_obj)
-
-    def save_lonlat(self):
-        process_obj = self.__get_process_from_dict(CreateLonLat)
-        process_obj.save_results(self.__save_load_path, self.lonlat)
 
     def save_process(self, process_type: Type[MetaSubProcess]):
         process_obj = self.__get_process_from_dict(process_type)
@@ -83,7 +70,7 @@ class ProcessFactory:
         if process is CreateLonLat:
             return process(self.__path, self.__geo_file_path)
         elif process is PsFiles:
-            return process(self.__path, self.process_obj_dict['LonLat'].pscands_ij, self.lonlat)
+            return process(self.__path, self.process_obj_dict['LonLat'])
         elif process is PsEstGamma:
             return process(self.process_obj_dict['PsFiles'], self.__rand_dist_cached)
         elif process is PsSelect:
