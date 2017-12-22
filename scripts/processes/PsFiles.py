@@ -42,10 +42,10 @@ class PsFiles(MetaSubProcess):
     hgt: np.ndarray
     ifg_dates: list = []  # Stamps'is oli 'day'
 
+    __FILE_NAME = "ps_files"
+
     def __init__(self, path: str, create_lonlat: CreateLonLat):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
-        self.__FILE_NAME = "ps_files"
-        self.__params = {}
 
         self.__path = Path(path)
         self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
@@ -69,28 +69,28 @@ class PsFiles(MetaSubProcess):
     def start_process(self):
         self.__logger.info("Start")
 
-        self.__load_params_from_rsc_file()
+        params = self.__load_params_from_rsc_file()
 
         # Parameetrid mida läheb väljaspool seda protsessi tarvis. Matlab'is loeti need param'itesse
-        self.heading = float(self.__params['heading'])
-        self.mean_range = float(self.__params['center_range_slc'])
+        self.heading = float(params['heading'])
+        self.mean_range = float(params['center_range_slc'])
 
-        self.wavelength = self.__get_wavelength()
+        self.wavelength = self.__get_wavelength(params)
 
         self.ifgs = self.__load_ifg_info_from_pscphase()
 
-        self.master_date = self.__get_master_date()
+        self.master_date = self.__get_master_date(params)
         self.master_nr = self.__get_nr_ifgs_less_than_master(self.master_date, self.ifgs)
 
         self.ifg_dates = self.__get_ifg_dates()
 
-        rg = self.__get_rg()
+        rg = self.__get_rg(params)
 
-        sat_look_angle = self.__get_look_angle(rg)
+        sat_look_angle = self.__get_look_angle(rg, params)
 
-        self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs, sat_look_angle)
+        self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs, sat_look_angle, params)
 
-        self.mean_incidence = self.__get_meaned_incidence(rg)
+        self.mean_incidence = self.__get_meaned_incidence(rg, params)
 
         self.ph = self.__get_ph(len(self.ifgs))
 
@@ -146,12 +146,12 @@ class PsFiles(MetaSubProcess):
         self.hgt = data['hgt']
         self.ifg_dates = data['ifg_dates']
 
-    def __get_wavelength(self):
+    def __get_wavelength(self, params: dict):
         velocity = 299792458  # Signaali levimise kiirus (m/s)
-        freg = float(self.__params['radar_frequency']) * math.pow(10, 9)  # Signaali sagedus (GHz)
+        freg = float(params['radar_frequency']) * math.pow(10, 9)  # Signaali sagedus (GHz)
         return velocity / freg
 
-    def __get_bprep(self, ifgs: np.ndarray, sat_look_angle: np.ndarray):
+    def __get_bprep(self, ifgs: np.ndarray, sat_look_angle: np.ndarray, params: dict):
         """Leitakse bprep_meaned ja bprep_arr. StaMPS'is vastavalt bperp ja bperp_mat. 
         Salvestan mõlemad igaksjuhuks.
         
@@ -162,14 +162,14 @@ class PsFiles(MetaSubProcess):
         cos_sat_look_angle = np.cos(sat_look_angle)
         sin_sat_look_angle = np.sin(sat_look_angle)
 
-        mean_azimuth_line = float(self.__params['azimuth_lines']) / 2 - 0.5
+        mean_azimuth_line = float(params['azimuth_lines']) / 2 - 0.5
 
         ij_lon = self.pscands_ij[:, 1]
         nr_ifgs = len(ifgs)
         bperp = matlib.zeros((len(self.pscands_ij), nr_ifgs), dtype=ARRAY_TYPE)
 
         bc_bn_formula = lambda tcn, baseline_rate: tcn + baseline_rate * (
-                ij_lon - mean_azimuth_line) / float(self.__params['prf'])
+                ij_lon - mean_azimuth_line) / float(params['prf'])
 
         for i in range(nr_ifgs):
             tcn, baseline_rate = self.__get_baseline_params(ifgs[i])
@@ -206,15 +206,15 @@ class PsFiles(MetaSubProcess):
 
         return np.asarray(imag_list, COMPLEX_TYPE).transpose()
 
-    def __get_meaned_incidence(self, rg: np.ndarray):
-        sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
-        earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
+    def __get_meaned_incidence(self, rg: np.ndarray, params: dict):
+        sar_to_earth_center_sq = math.pow(float(params['sar_to_earth_center']), 2)
+        earth_radius_below_sensor_sq = math.pow(float(params['earth_radius_below_sensor']),
                                                 2)
 
         incidence = np.arccos(
             np.divide(
                 (sar_to_earth_center_sq - earth_radius_below_sensor_sq - np.power(rg, 2)),
-                (2 * float(self.__params['earth_radius_below_sensor']) * rg)))
+                (2 * float(params['earth_radius_below_sensor']) * rg)))
         return incidence.mean()
 
     def __get_baseline_params(self, ifg_name: str):
@@ -245,10 +245,11 @@ class PsFiles(MetaSubProcess):
         else:
             raise FileNotFoundError(base_file_name + " not found.")
 
-    def __load_params_from_rsc_file(self):
+    def __load_params_from_rsc_file(self) -> dict:
         """Esimesest failist loetakse teise faili asukoht, kus on sateliidi metadata.
-        Lubatud parameetrid salvestame self.__params'i."""
-        # TODO tagastada dict mitte globaalsesse salvestada
+        Lubatud parameetrid salvestame params dict'i mille tagastame."""
+
+        params = {}
 
         ALLOWED_PARAMS = ["azimuth_lines",
                           "heading",
@@ -284,15 +285,17 @@ class PsFiles(MetaSubProcess):
                             else:
                                 value = value_regex.findall(splited[1])[0]
 
-                            self.__params[key] = value
+                            params[key] = value
             else:
                 raise FileNotFoundError(
                     "No file. Abs.path '" + str(rsc_par_file.absolute()) + "'")
 
-    def __get_master_date(self):
+            return params
+
+    def __get_master_date(self, params: dict):
         """load_params_from_rsc_file saadud 'date' on masteri kuupäev. Selle splitime ja teeme
         datetime'iks"""
-        date_arr = self.__params["date"].split('  ')
+        date_arr = params["date"].split('  ')
         return date(int(date_arr[0]), int(date_arr[1]), int(date_arr[2]))
 
     def __load_file(self, name: str, path: Path):
@@ -380,13 +383,13 @@ class PsFiles(MetaSubProcess):
         """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
         return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))
 
-    def __get_look_angle(self, rg: np.ndarray):
-        sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
-        earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
+    def __get_look_angle(self, rg: np.ndarray, params):
+        sar_to_earth_center_sq = math.pow(float(params['sar_to_earth_center']), 2)
+        earth_radius_below_sensor_sq = math.pow(float(params['earth_radius_below_sensor']),
                                                 2)
         return np.arccos(np.divide(
             sar_to_earth_center_sq + np.power(rg, 2) - earth_radius_below_sensor_sq,
-            2 * float(self.__params['sar_to_earth_center']) * rg))
+            2 * float(params['sar_to_earth_center']) * rg))
 
     def __get_hgt(self):
         FLOAT_TYPE = ">f4"  # "big-endian" float32
@@ -395,10 +398,9 @@ class PsFiles(MetaSubProcess):
 
         return hgt
 
-    def __get_rg(self):
+    def __get_rg(self, params: dict):
         ij_lat = self.pscands_ij[:, 2]
-        return float(self.__params['near_range_slc']) + ij_lat * float(
-            self.__params['range_pixel_spacing'])
+        return float(params['near_range_slc']) + ij_lat * float(params['range_pixel_spacing'])
 
     def __get_ifg_dates(self) -> []:
         ifgs = self.ifgs
