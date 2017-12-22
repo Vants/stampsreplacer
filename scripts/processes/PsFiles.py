@@ -191,8 +191,12 @@ class PsFiles(MetaSubProcess):
         BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "big-endian" 64bit kompleksarvud
 
         COMPLEX_TYPE = np.complex64
-        imag_array_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.ph").open("rb"),
-                                     BINARY_COMPLEX_TYPE)
+
+        path_to_ph = self.__patch_path.joinpath("pscands.1.ph")
+
+        with path_to_ph.open("rb") as file:
+            imag_array_raw = np.fromfile(file, BINARY_COMPLEX_TYPE)
+
         imag_mx_len = int(len(imag_array_raw) / nr_ifgs)
         imag_list = []
         count = 0
@@ -393,7 +397,11 @@ class PsFiles(MetaSubProcess):
 
     def __get_hgt(self):
         FLOAT_TYPE = ">f4"  # "big-endian" float32
-        hgt_raw = np.fromfile(self.__patch_path.joinpath("pscands.1.hgt").open("rb"), FLOAT_TYPE)
+        path_to_hgt = self.__patch_path.joinpath("pscands.1.hgt")
+
+        with path_to_hgt.open("rb") as file:
+            hgt_raw = np.fromfile(file, FLOAT_TYPE)
+
         hgt = hgt_raw.conj().transpose()
 
         return hgt
