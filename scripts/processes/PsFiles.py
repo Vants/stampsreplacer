@@ -25,7 +25,7 @@ class PsFiles(MetaSubProcess):
     """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
     Tehtud StaMPS'i ps_load_inital_gamma järgi."""
 
-    heading: str = None
+    heading: float = None
     mean_range: float = 0.0
     wavelength: float = 0.0
     mean_incidence: float = 0.0
@@ -46,7 +46,6 @@ class PsFiles(MetaSubProcess):
         # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
         self.__FILE_NAME = "ps_files"
         self.__params = {}
-        self.__rg = None
 
         self.__path = Path(path)
         self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
@@ -85,13 +84,13 @@ class PsFiles(MetaSubProcess):
 
         self.ifg_dates = self.__get_ifg_dates()
 
-        self.__rg = self.__get_rg()
+        rg = self.__get_rg()
 
-        sat_look_angle = self.__get_look_angle()
+        sat_look_angle = self.__get_look_angle(rg)
 
         self.bperp_meaned, self.bperp = self.__get_bprep(self.ifgs, sat_look_angle)
 
-        self.mean_incidence = self.__get_meaned_incidence()
+        self.mean_incidence = self.__get_meaned_incidence(rg)
 
         self.ph = self.__get_ph(len(self.ifgs))
 
@@ -207,12 +206,10 @@ class PsFiles(MetaSubProcess):
 
         return np.asarray(imag_list, COMPLEX_TYPE).transpose()
 
-    def __get_meaned_incidence(self):
+    def __get_meaned_incidence(self, rg: np.ndarray):
         sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
         earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
                                                 2)
-
-        rg = self.__rg
 
         incidence = np.arccos(
             np.divide(
@@ -383,13 +380,13 @@ class PsFiles(MetaSubProcess):
         """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
         return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))
 
-    def __get_look_angle(self):
+    def __get_look_angle(self, rg: np.ndarray):
         sar_to_earth_center_sq = math.pow(float(self.__params['sar_to_earth_center']), 2)
         earth_radius_below_sensor_sq = math.pow(float(self.__params['earth_radius_below_sensor']),
                                                 2)
         return np.arccos(np.divide(
-            sar_to_earth_center_sq + np.power(self.__rg, 2) - earth_radius_below_sensor_sq,
-            2 * float(self.__params['sar_to_earth_center']) * self.__rg))
+            sar_to_earth_center_sq + np.power(rg, 2) - earth_radius_below_sensor_sq,
+            2 * float(self.__params['sar_to_earth_center']) * rg))
 
     def __get_hgt(self):
         FLOAT_TYPE = ">f4"  # "big-endian" float32
@@ -426,7 +423,7 @@ class PsFiles(MetaSubProcess):
         return self.ph, self.bperp, nr_ifgs, nr_ps, self.xy, self.da
 
     def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[date, date], bool],
-                                      ifgs=np.array([]), master_date=None):
+                                      ifgs=np.array([]), master_date: date=None):
         """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
          Kuupäev saadakse failiteest (ifgs muutja)"""
         if ifgs is None or len(ifgs) == 0:
