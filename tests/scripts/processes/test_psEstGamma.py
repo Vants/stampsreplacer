@@ -89,7 +89,7 @@ class TestPsEstGamma(AbstractTestCase):
                                    rtol=0.2, atol=0.4)
         np.testing.assert_allclose(self._est_gamma_process.k_ps, pm1_mat['K_ps'], atol=0.1)
         np.testing.assert_allclose(self._est_gamma_process.c_ps, pm1_mat['C_ps'], rtol=1, atol=3.15)
-        np.testing.assert_allclose(self._est_gamma_process.coh_ps, pm1_mat['coh_ps'], atol=0.85)
+        np.testing.assert_allclose(self._est_gamma_process.coh_ps, pm1_mat['coh_ps'], atol=0.7)
         np.testing.assert_allclose(self._est_gamma_process.n_opt, pm1_mat['N_opt'])
         np.testing.assert_allclose(self._est_gamma_process.ph_res, pm1_mat['ph_res'],
                                    rtol=1, atol=3.15)

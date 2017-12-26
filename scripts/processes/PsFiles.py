@@ -316,10 +316,11 @@ class PsFiles(MetaSubProcess):
 
         path = self.__path.joinpath("pscphase.in")
         if path.exists():
-            pscphase = np.genfromtxt(str(path), dtype=str)
-            return pscphase[1:]  # Esimest rida pole vaja
+            pscphase = np.genfromtxt(str(path), dtype=str, skip_header=True)
+            return pscphase
         else:
-            raise FileNotFoundError("pscphase.in not found. AbsPath " + str(path.absolute()))
+            raise FileNotFoundError("pscphase.in not found. AbsPath {0}".format(
+                str(path.absolute())))
 
     def __get_nr_ifgs_less_than_master(self, master_date: date, ifgs: np.ndarray):
         """Mitu intefegorammi on enne masteri kuupäeva"""
