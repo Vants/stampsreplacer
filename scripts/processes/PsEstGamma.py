@@ -172,6 +172,7 @@ class PsEstGamma(MetaSubProcess):
         bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_nr - 1)
 
         # Matlab'is oli 0.052 selle math.radians(3) asemel
+        # Stamps'is oli nimetatud 'inc_mean'
         sort_ind_meaned = np.mean(self.ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
@@ -218,16 +219,15 @@ class PsEstGamma(MetaSubProcess):
             NR_RAND_IFGS = nr_ps  # StaMPS'is oli see 300000
             random = np.random.RandomState(2005)
 
-            rnd_ifgs = np.array(2 * math.pi * random.rand(NR_RAND_IFGS, nr_ifgs), np.complex64)
+            rnd_ifgs = 2 * math.pi * random.rand(NR_RAND_IFGS, nr_ifgs)
 
             random_coherence = np.zeros((NR_RAND_IFGS, 1))
             for i in range(NR_RAND_IFGS - 1, 0, -1):
                 phase = np.exp(1j * rnd_ifgs[i])
                 # Siin juhul kasutame ainult esimest parameetrit
-                phase_residual, _, _, _ = PsTopofit.ps_topofit_fun(phase, bperp_meaned, nr_trial_wraps)
-                random_coherence[i] = phase_residual[0]
+                _, coherence_0, _, _ = PsTopofit.ps_topofit_fun(phase, bperp_meaned, nr_trial_wraps)
+                random_coherence[i] = coherence_0[0]
 
-            # todo
             del rnd_ifgs
 
             hist, _ = MatlabUtils.hist(random_coherence, self.coherence_bins)
