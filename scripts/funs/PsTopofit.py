@@ -97,11 +97,14 @@ class PsTopofit:
             re_phase_weighted = re_phase_weighted[0]
 
         mopt = np.linalg.lstsq(bperp_meaned_weighted, re_phase_weighted)[0][0]
+        # StaMPS'is k0
         k_0 = k_0 + mopt
 
         phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
         phase_residual_sum = MatlabUtils.sum(phase_residual)
+        # StaMPS'os oli see c0
         static_offset = np.angle(phase_residual_sum)
+        # StaMPS'is oli see coh0
         coherence_0 = np.abs(phase_residual_sum) / MatlabUtils.sum(np.abs(phase_residual))
 
         return phase_residual, coherence_0, static_offset, k_0
