@@ -11,7 +11,7 @@ from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
 
 
-class ProcessFactory:
+class ProcessHandler:
     process_obj_dict = {}
     lonlat = np.array([])
 

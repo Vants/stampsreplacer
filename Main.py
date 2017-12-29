@@ -11,7 +11,7 @@ from scripts.processes.PsSelect import PsSelect
 from scripts.processes.PsWeed import PsWeed
 from scripts.utils.internal.ConfigUtils import ConfigUtils
 from scripts.utils.internal.LoggerFactory import LoggerFactory
-from scripts.utils.internal.ProcessFactory import ProcessFactory
+from scripts.utils.internal.ProcessHandler import ProcessHandler
 
 
 class Main:
@@ -64,9 +64,9 @@ class Main:
             raise AttributeError(
                 "Stop more than than {0} or len(self.processes)".format(len(self.processes)))
 
-    def __make_process_factory(self) -> ProcessFactory:
+    def __make_process_factory(self) -> ProcessHandler:
         path, geo_file_path, save_load_path, rand_dist_cached = self.__get_from_config()
-        return ProcessFactory(path, geo_file_path, save_load_path, rand_dist_cached)
+        return ProcessHandler(path, geo_file_path, save_load_path, rand_dist_cached)
 
     # noinspection PyMethodMayBeStatic
     def __get_from_config(self) -> (str, str, str, bool):
