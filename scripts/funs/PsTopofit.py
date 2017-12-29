@@ -15,7 +15,7 @@ class PsTopofit:
     n_opt = np.ndarray
     ph_res = np.ndarray
 
-    def __init__(self, sw_array_shape, nr_ps, nr_ifg):
+    def __init__(self, sw_array_shape: tuple, nr_ps: int, nr_ifg: int):
         self.__nr_ps = nr_ps
 
         self.k_ps = np.zeros(sw_array_shape)

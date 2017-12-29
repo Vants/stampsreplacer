@@ -177,7 +177,7 @@ class PsEstGamma(MetaSubProcess):
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
 
-    def __get_nr_trial_wraps(self, bperp_meaned, sort_ind_meaned):
+    def __get_nr_trial_wraps(self, bperp_meaned, sort_ind_meaned) -> np.float64:
         # todo mis on k?
         k = self.ps_files.wavelength * self.__mean_range * np.sin(sort_ind_meaned) / 4 / math.pi
         max_k = self.__max_topo_err / k
@@ -224,7 +224,7 @@ class PsEstGamma(MetaSubProcess):
             random_coherence = np.zeros((NR_RAND_IFGS, 1))
             for i in range(NR_RAND_IFGS - 1, 0, -1):
                 phase = np.exp(1j * rnd_ifgs[i])
-                # Siin juhul kasutame ainult esimest parameetrit
+                # Siin juhul kasutame ainult koherentsust
                 _, coherence_0, _, _ = PsTopofit.ps_topofit_fun(phase, bperp_meaned, nr_trial_wraps)
                 random_coherence[i] = coherence_0[0]
 
@@ -248,7 +248,7 @@ class PsEstGamma(MetaSubProcess):
 
     def __get_grid_ij(self, xy: np.ndarray):
 
-        def fill_cols_with_xy_values(xy_col):
+        def fill_cols_with_xy_values(xy_col: np.ndarray):
             # Float32 on vajalik selleks, et komakohti ei tekiks liiga palju. Kui komakohti on
             # liiga palju siis võib juhtuda, et arvud on näiteks 2224.000001, mis ümardatakse 2225'eni
             col_formula = lambda x: np.ceil((x - np.amin(x) + 1e-6).astype(np.float32) / self.__filter_grid_size)
@@ -266,7 +266,7 @@ class PsEstGamma(MetaSubProcess):
 
         return grid_ij
 
-    def __get_weights(self, da):
+    def __get_weights(self, da: np.ndarray):
         return ArrayUtils.to_col_matrix(np.divide(1, da))
 
     def __sw_loop(self, ph: np.ndarray, weights: np.ndarray,
@@ -292,7 +292,6 @@ class PsEstGamma(MetaSubProcess):
             # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
             # ph_grid'i ja ph_filt peab uuesti looma. Vastasel juhul jäävad vanad tulemused sisse
             # ja väärtused on valed
-
             ph_grid = np.zeros(ph_grid_shape, np.complex128)
             for id in range(loop_nr):
                 x_ind = int(grid_ij[id, 0]) - 1
@@ -324,10 +323,11 @@ class PsEstGamma(MetaSubProcess):
 
         nr_i = int(np.max(self.grid_ij[:, 0]))
         nr_j = int(np.max(self.grid_ij[:, 1]))
+        PH_GRID_SHAPE = (nr_i, nr_j, nr_ifgs)
 
         coh_ps_result = zero_ps_array_cont()
         gamma_change = 0
-        gamma_change_delta = sys.maxsize
+        gamma_change_delta = np.inf
 
         ph_patch = np.zeros(ph.shape, np.complex128)
 
@@ -338,13 +338,9 @@ class PsEstGamma(MetaSubProcess):
         c_ps = zero_ps_array_cont()
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
-        ph_grid = np.zeros((nr_i, nr_j, nr_ifgs), np.complex128)
-
 
         log_i = 0 # Logimiseks int, et näha mitmendat tiiru tehakse
         self.__logger.debug("is_gamma_in_change_delta loop begin")
-
-        PH_GRID_SHAPE = (nr_i, nr_j, nr_ifgs)
         while not is_gamma_in_change_delta():
             log_i += 1
             self.__logger.debug("gamma change loop i " + str(log_i))
