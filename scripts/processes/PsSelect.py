@@ -17,7 +17,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 class PsSelect(MetaSubProcess):
     """Stabiilsete pikslite valimine, et neist teha püsivpeegeldajad"""
 
-    _DEF_COH_THRESH = 0.3
+
     __B = np.array([])
 
     __FILE_NAME = "ps_select"
@@ -36,7 +36,7 @@ class PsSelect(MetaSubProcess):
         Kõik väärtused on võetud, et small_baseline_flag on 'N'
 
         StaMPS'is oli max_desinty_rand ja max_percent_rand muutujad eraldi ja sarnaselt neile siin.
-        Siin aga saadakse see fukstioonist __get_max_rand.
+        Siin aga saadakse see funktsioonist __get_max_rand.
         """
         self.__slc_osf = 1
         self.__clap_alpha = 1
@@ -169,7 +169,7 @@ class PsSelect(MetaSubProcess):
         Natuke kattub __load_ps_params meetodiga PsEstGamma funkstioonis"""
 
         def get_da_max(da):
-            # todo miks 1000?
+            # todo miks 10000?
             if da.size >= 10000:
                 da_sorted = np.sort(da, axis=0)
                 if da.size >= 50000:
@@ -179,7 +179,6 @@ class PsSelect(MetaSubProcess):
 
                 # bin_size - 1 on selleks, et võtta täpselt need elemendid nende indeksitega
                 # mis Matlab'is
-                # todo kas siin on vaja transponeerida?
                 da_max = np.concatenate(
                     (np.zeros(1), da_sorted[bin_size - 1: -bin_size - 1: bin_size],
                      np.array([da_sorted[-1]])))
@@ -190,7 +189,7 @@ class PsSelect(MetaSubProcess):
             return da_max, da
 
         def filter_params_based_on_ifgs_and_master(ph: np.ndarray, bperp: np.ndarray, nr_ifgs: int):
-            """Leiame, et mis osad andmetest on ajaliselt peale masteri ja valime need"""
+            """Filteerime ph ja bperp massiividest välja masteri veeru"""
 
             comp_fun = lambda x, y: x < y
 
@@ -208,7 +207,6 @@ class PsSelect(MetaSubProcess):
 
             return ifg_ind, ph, bperp, nr_ifgs
 
-        # todo Mida pole vaja loopida ära ka PsEstGammma'st!
         ph, bperp, nr_ifgs, _, xy, da = self.ps_files.get_ps_variables()
 
         # StaMPS'is tehti see siis kui small_baseline_flag ei olnud 'y'. Siin protsessis on see alati sedasi
@@ -222,7 +220,7 @@ class PsSelect(MetaSubProcess):
         data_dto = self.__DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
         return data_dto
 
-    def __get_max_rand(self, da_max, xy):
+    def __get_max_rand(self, da_max: np.ndarray, xy: np.ndarray):
         """Funkstioon leidmaks muutuja mis oli StaMPS'is nimega 'max_percent_rand'.
 
         StaMPS'is loeti see parameetritest sisse, aga kuna seda ka muudetakse vajadusel siis
@@ -301,8 +299,7 @@ class PsSelect(MetaSubProcess):
                     if max_fit_ind > len(percent_rand) - 1:
                         max_fit_ind = len(percent_rand) - 1
 
-                    x_cordinates = percent_rand[
-                                   min_fit_ind:max_fit_ind + 1]  # todo see +1 eemaldada?
+                    x_cordinates = percent_rand[min_fit_ind:max_fit_ind + 1]
 
                     y_cordinates = ArrayUtils.arange_include_last((min_fit_ind + 1) * 0.01,
                                                                   (max_fit_ind + 1) * 0.01, 0.01)
@@ -312,7 +309,7 @@ class PsSelect(MetaSubProcess):
         # Leiame kas min_coh on täis nan'e ja on täiesti kasutamatu.
         # See osa oli natuke teisem StaMPS'is, Siin olen ma toonud kogu min_coh'i ja da_mean'iga tegevused ühte meetodi
         not_nan_ind = np.where(min_coh != np.nan)[0]
-        is_min_coh_nan_array = sum(not_nan_ind) == 0  # todo miks StaMPS siin tehti sum'i?
+        is_min_coh_nan_array = sum(not_nan_ind) == 0
         # Kui erinevusi ei olnud siis pole ka mõtet võtta array'idest osasid
         if not is_min_coh_nan_array or (not_nan_ind == array_size):
             min_coh = min_coh[not_nan_ind]
@@ -323,15 +320,17 @@ class PsSelect(MetaSubProcess):
     def __get_coh_thresh(self, min_coh: np.ndarray, da_mean: np.ndarray,
                          is_min_coh_nan_array: bool, da: np.ndarray):
         """Siin ei tagatsata coh_tresh_coffs'i kuna seda seda kasutati StaMPS'is vaid joonistamiseks"""
+        DEF_COH_THRESH = 0.3
+
         if is_min_coh_nan_array:
             self.__logger.warn(
                 'Not enough random phase pixels to set gamma threshold - using default threshold of '
-                + str(self._DEF_COH_THRESH))
+                + str(DEF_COH_THRESH))
             # Tavaväärtus pannakse üksikult massiivi, et pärast kontollida selle jägi
-            coh_thresh = np.array([self._DEF_COH_THRESH])
+            coh_thresh = np.array([DEF_COH_THRESH])
         else:
             # Kuna eelmises funktsioonis muutsime juba vastavalt min_coh ja da_mean parameetreid
-            if min_coh.shape[0] > 1:
+            if len(min_coh) > 1:
                 coh_thresh_coffs = np.polyfit(da_mean, min_coh, 1)
 
                 if coh_thresh_coffs[0] > 0:
@@ -385,16 +384,7 @@ class PsSelect(MetaSubProcess):
 
     def __get_ph_patch(self, coh_thresh_ind: np.ndarray, data: __DataDTO):
 
-        NR_PS = len(coh_thresh_ind)
-
-        SW_ARRAY_SHAPE = (NR_PS, 1)
-
         CACHE_FILE_NAME = "tmp_ph_patch"
-
-        # Konstruktor tühja pusivpeegeladajate info massiivi loomiseks
-        # TODO: Samasugune asi oli juba PsEstGammas, Refacto?
-        def zero_ps_array():
-            return np.zeros(SW_ARRAY_SHAPE)
 
         def get_max_min(ps_ij_col: np.ndarray, nr_ij: int):
             min_val = max(ps_ij_col - self.__clap_win / 2, 0)
@@ -421,6 +411,7 @@ class PsSelect(MetaSubProcess):
         def ph_path_loop():
             # StaMPS'is siin hetkel kusutati eelmisest protsessist saadud 'ph_res' ja 'ph_patch'
 
+            NR_PS = len(coh_thresh_ind)
             ph_patch = self.__zero_ph_array(NR_PS, data.nr_ifgs)
 
             # Sarnane 'nr_i' ja 'nr_j' oli juba PsEstGammas
@@ -449,8 +440,7 @@ class PsSelect(MetaSubProcess):
                 ph_bit_ind_j = get_ph_bit_ind_array(ps_bit_j, ph_bit_len)
                 ph_bit[ph_bit_ind_i, ph_bit_ind_j, 0] = 0
 
-                # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev,
-                # kuna clap_filt meetod on teine
+                # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev
                 for j in range(ph_patch.shape[1]):
                     ph_filt[:, :, j] = self.__clap_filt_for_patch(ph_bit[:, :, j],
                                                                   self.ps_est_gamma.low_pass)
@@ -520,9 +510,6 @@ class PsSelect(MetaSubProcess):
         NR_PS = len(coh_thresh_ind)
         SW_ARRAY_SHAPE = (NR_PS, 1)
 
-        def zero_ps_array():
-            self.__zero_ps_array(SW_ARRAY_SHAPE)
-
         ph = data.ph[coh_thresh_ind, :]
         bperp = self.ps_files.bperp[coh_thresh_ind]
 
@@ -531,7 +518,7 @@ class PsSelect(MetaSubProcess):
                                 data.ifg_ind)
 
         # StaMPS'is muudeti eelmisena saadud tulemust. Siin nii ei tee
-        coh_ps = self.ps_est_gamma.coh_ps
+        coh_ps = self.ps_est_gamma.coh_ps.copy()
         coh_ps[coh_thresh_ind] = topofit.coh_ps
 
         return coh_ps, topofit
@@ -560,4 +547,4 @@ class PsSelect(MetaSubProcess):
 
     # TODO: Miks see on erinev PsEstGammast?
     def __zero_ph_array(self, nr_ps, nr_ifgs):
-        return np.ndarray((nr_ps, nr_ifgs), np.complex128)
+        return np.zeros((nr_ps, nr_ifgs), np.complex128)
