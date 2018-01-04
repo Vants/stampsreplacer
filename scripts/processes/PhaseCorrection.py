@@ -67,7 +67,7 @@ class PhaseCorrection(MetaSubProcess):
 
         nr_ifgs = len(self.__ps_files.ifgs)
 
-        _, k_ps, c_ps, ph_patch, ph, _, _, _, _, bperp = self.__ps_weed.get_filtered_results()
+        _, k_ps, c_ps, ph_patch, ph, _, _, _, _, bperp, _ = self.__ps_weed.get_filtered_results()
 
         return self.__DataDTO(master_nr, nr_ifgs, bperp, ph, k_ps, c_ps, ph_patch)
 
