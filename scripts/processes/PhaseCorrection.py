@@ -15,7 +15,7 @@ class PhaseCorrection(MetaSubProcess):
     __FILE_NAME = "phase_correction"
 
     def __init__(self, ps_files: PsFiles, ps_weed: PsWeed):
-        self.__logger = LoggerFactory.create("PsWeed")
+        self.__logger = LoggerFactory.create("PhaseCorrection")
 
         self.__ps_files = ps_files
         self.__ps_weed = ps_weed
@@ -33,7 +33,7 @@ class PhaseCorrection(MetaSubProcess):
             self.ph_patch = ph_patch
 
     def start_process(self):
-        self.__logger.info("Started")
+        self.__logger.info("Start")
 
         data = self.__load_ps_params()
 
@@ -46,6 +46,8 @@ class PhaseCorrection(MetaSubProcess):
         # Paneme arvutatud väljad klassimuutujatesse
         self.ph_rc = ph_rc
         self.ph_reref = ph_reref
+
+        self.__logger.info("End")
 
     def save_results(self, save_path: str):
         ProcessDataSaver(save_path, self.__FILE_NAME).save_data(
