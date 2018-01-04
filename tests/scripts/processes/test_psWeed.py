@@ -79,7 +79,7 @@ class TestPsWeed(AbstractTestCase):
         self.__fill_est_gamma_with_matlab_data()
         self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process,
                                         self.__ps_select)
-        coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp =\
+        coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp, sort_ind =\
             self.__ps_weed_process.get_filtered_results(self._SAVE_LOAD_PATH)
 
         pm_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm2.mat'))
@@ -107,6 +107,10 @@ class TestPsWeed(AbstractTestCase):
         bp_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'bp2.mat'))
 
         np.testing.assert_array_almost_equal(bperp, bp_mat['bperp_mat'], self._PLACES)
+
+        la_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'la2.mat'))
+
+        np.testing.assert_array_almost_equal(sort_ind, la_mat['la'])
 
     def __start_process(self):
         self.__ps_weed_process = PsWeed(self._PATH_PATCH_FOLDER, self.__ps_files, self.__est_gamma_process, self.__ps_select)

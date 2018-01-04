@@ -118,12 +118,13 @@ class PsWeed(MetaSubProcess):
                             .format(len(selectable_ps), np.count_nonzero(selectable_ps)))
         del neighbour_ps
 
-        xy, selectable_ps = self.__filter_xy(data.xy, selectable_ps, data.coh_ps)
+        selectable_ps = self.__filter_xy(data.xy, selectable_ps, data.coh_ps)
 
         # PsWeed'is tehakse oma inteferogrammide massiiv. Stamps'is oli muutuja nimi 'ifg_index'
         ifg_ind = np.arange(0, data.nr_ifgs, dtype=self.__IND_ARRAY_TYPE)
         if len(self.__drop_ifg_index) > 0:
             self.__logger.debug("Dropping indexes {0}".format(self.__drop_ifg_index))
+            np.setdiff1d(ifg_ind, self.__drop_ifg_index)
 
         # Stamps'is oli selle asemel 'no_weed_noisy'
         if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
@@ -204,7 +205,10 @@ class PsWeed(MetaSubProcess):
         bperp = self.ps_files.bperp[data.coh_thresh_ind]
         bperp = bperp[self.selectable_ps]
 
-        return coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp
+        sort_ind = self.ps_files.sort_ind[data.coh_thresh_ind]
+        sort_ind = sort_ind[self.selectable_ps]
+
+        return coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp, sort_ind
 
     def __load_ps_params(self):
 
@@ -350,7 +354,7 @@ class PsWeed(MetaSubProcess):
 
         return selectable_ps
 
-    def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray, coh_ps: np.ndarray):
+    def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray, coh_ps: np.ndarray) -> np.ndarray:
         """Leiame xy massiiv filteeritult
         Siin oli veel lisaks kas tehtud dublikaatide massiv on tühi, aga selle peale leti weeded_xy
         uuesti, aga mina sellisel tegevusel mõtet ei näinud"""
@@ -367,11 +371,11 @@ class PsWeed(MetaSubProcess):
         for duplicate in duplicates:
             weeded_duplicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[duplicate, 0]) &
                                       ((weeded_xy[:, 1]) == weeded_xy[duplicate, 1])) # 'dups_ix_weed' oli originaalis
-            duplicates_ind = weed_ind[weeded_duplicates_ind] #
+            duplicates_ind = weed_ind[weeded_duplicates_ind]
             high_coh_ind = coh_ps[duplicates_ind].argmax()
             selectable_ps[duplicates_ind != high_coh_ind] = False
 
-        return xy, selectable_ps
+        return selectable_ps
 
     def __drop_noisy(self, data: __DataDTO, selectable_ps: np.ndarray, ifg_ind: np.ndarray,
                      edges: np.ndarray) -> (np.ndarray, np.ndarray):
