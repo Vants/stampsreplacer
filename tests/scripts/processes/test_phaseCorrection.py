@@ -23,7 +23,7 @@ class TestPhaseCorrection(AbstractTestCase):
 
         lonlat_process = CreateLonLat(cls._PATH, cls._GEO_DATA_FILE_NAME)
         lonlat_process.load_results(cls._SAVE_LOAD_PATH)
-        cls.__ps_files = PsFiles(cls._PATH, lonlat_process)
+        cls.__ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls.__ps_files.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__ps_est_gamma = PsEstGamma(cls.__ps_files)
@@ -35,7 +35,7 @@ class TestPhaseCorrection(AbstractTestCase):
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__ps_est_gamma)
         cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
-        cls.__ps_weed = PsWeed(cls._PATH, cls.__ps_files, cls.__ps_est_gamma, cls.__ps_select)
+        cls.__ps_weed = PsWeed(cls._PATH_PATCH_FOLDER, cls.__ps_files, cls.__ps_est_gamma, cls.__ps_select)
         cls.__ps_weed.load_results(cls._SAVE_LOAD_PATH)
 
         cls.__phase_correction = None
