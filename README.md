@@ -19,9 +19,13 @@ või Linux'is
 
 `source virtevn/bin/activate`
 
-Ning siis laadida sõltuvused failist _env_intel.txt_:
+Ning siis laadida sõltuvused failist _env.txt_ või _env\_intel.txt_:
 
-`pip install -r env_intel.txt`
+`pip install -r env.txt`
+
+_env.txt_ on tavalisele Python'ile ja _env\_intel.txt_ on mõeldud Intel'i Python'ile. 
+Viimase puhul Numpy ja SciPy paketid tuleb käsitsi paigaldada. Naad saab Windows'i 
+operatsioonisüsteemi jaoks alla laadida siit: https://www.lfd.uci.edu/~gohlke/pythonlibs/.
 
 ## Sättefailid ja parameetrite selgitus
 
