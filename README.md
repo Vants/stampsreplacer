@@ -75,6 +75,6 @@ Cython kopmileerib Python'i kood C koodi. See mõningates protessi sammudes para
 
 Failid mida kompileeritakse on kirjas _cython_setup.py_. See tuleb ka käivitada kompileerimiseks. Käsk on järgnev:
 
-`python setup.py build_ext --inplace`
+`python cython_setup.py build_ext --inplace`
 
 Peale mida juba Python kasutab ise kompileeritud faile.
