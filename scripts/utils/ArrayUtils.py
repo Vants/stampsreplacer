@@ -3,7 +3,7 @@ import numpy as np
 
 class ArrayUtils:
     @staticmethod
-    def arange_include_last(start: float, end: float, step: float = None):
+    def arange_include_last(start: float, end: float, step: float = 1.0):
         """Funktsioon on mõeldud selleks, et kui on vaja maatriksit algusest lõpuni vastava sammuga
         ning on tähtis, et viimane element oleks olemas. np.arange ei kindlusta seda, et viimane
         element oleks olemas."""
