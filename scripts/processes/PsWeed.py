@@ -281,9 +281,7 @@ class PsWeed(MetaSubProcess):
         täidame -1'ega ja siis uute väärtustega"""
 
         def arange_neighbours_select_arr(i, ind):
-            # astype on vajalik selleks, et tehtaks massiiv täisarvudest. Muidu ei ole indeksid
-            return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind]).astype(
-                self.__IND_ARRAY_TYPE)
+            return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
 
         def make_miss_middle_mask():
             miss_middle = np.ones((3, 3), dtype=bool)

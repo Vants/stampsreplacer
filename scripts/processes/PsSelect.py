@@ -399,7 +399,7 @@ class PsSelect(MetaSubProcess):
         def get_ph_bit_ind_array(ps_bit_col: int, ph_bit_len):
             slc_osf = self.__slc_osf - 1
             ind_array = ArrayUtils.arange_include_last(start=ps_bit_col - slc_osf,
-                                                       end=ps_bit_col + slc_osf)
+                                                       end=ps_bit_col + slc_osf).astype(np.int32)
             ind_array = ind_array[(ind_array > 0) & (0 <= ph_bit_len)]
 
             # Tühjast list'ist ei oska Python midagi võtta

@@ -8,7 +8,12 @@ class ArrayUtils:
         ning on tähtis, et viimane element oleks olemas. np.arange ei kindlusta seda, et viimane
         element oleks olemas."""
 
-        aranged = np.arange(start, end, step)
+        # Nii peab tegema, sest muidu on tagastusmassiiv tüübiga float64
+        if step == 1.0:
+            aranged = np.arange(start, end)
+        else:
+            aranged = np.arange(start, end, step)
+
         if len(aranged) == 0 or aranged[len(aranged) - 1] != end:
             aranged = np.append(aranged, [end])
 
