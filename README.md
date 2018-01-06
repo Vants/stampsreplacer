@@ -4,6 +4,8 @@
 
 ## Keskkonna seadistus
 
+Rakendus on kirjutatud Python'i versioonis 3.6.3.
+
 Esmalt tuleb luua virtualenv'iga keskkond. Siin luuakse virtuaalkeskkond virtualenv'iga nimetusega
 _virtevn_. Virtuaalkeskkonda ei või teha Araconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
 
@@ -71,7 +73,7 @@ Cython kopmileerib Python'i kood C koodi. See mõningates protessi sammudes para
 
 ### Kompileerimiseks
 
-Failid mida kompileeritakse on kirjas "cython_setup.py". See tuleb ka käivitada kompileerimiseks. Käsk on järgnev:
+Failid mida kompileeritakse on kirjas _cython_setup.py_. See tuleb ka käivitada kompileerimiseks. Käsk on järgnev:
 
 `python setup.py build_ext --inplace`
 
