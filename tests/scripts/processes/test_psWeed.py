@@ -77,8 +77,8 @@ class TestPsWeed(AbstractTestCase):
 
     def test_get_filtered_results(self):
         self.__fill_est_gamma_with_matlab_data()
-        self.__ps_weed_process = PsWeed(self._PATH, self.__ps_files, self.__est_gamma_process,
-                                        self.__ps_select)
+        self.__ps_weed_process = PsWeed(self._PATH_PATCH_FOLDER, self.__ps_files,
+                                        self.__est_gamma_process, self.__ps_select)
         coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp, sort_ind =\
             self.__ps_weed_process.get_filtered_results(self._SAVE_LOAD_PATH)
 
