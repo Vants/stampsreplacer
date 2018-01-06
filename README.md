@@ -2,7 +2,7 @@
 
 # Enne kävitamist
 
-# Keskkonna seadistus
+## Keskkonna seadistus
 
 Esmalt tuleb luua virtualenv'iga keskkond. Siin luuakse virtuaalkeskkond virtualenv'iga nimetusega
 _virtevn_. Virtuaalkeskkonda ei või teha Araconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
@@ -64,3 +64,15 @@ Kui kõiki teste ei soovi teha siis võib käivitada ainult salvestamise ja laad
 teine test ka edasi minna. 
 
 See on seepärast selliselt tehtud, et algandmed võivad kõigil erinevad olla ja seega ka selle programmi loodud vahetulemus.  
+
+## Cython
+
+Cython kopmileerib Python'i kood C koodi. See mõningates protessi sammudes parandab kiirust.
+
+### Kompileerimiseks
+
+Failid mida kompileeritakse on kirjas "cython_setup.py". See tuleb ka käivitada kompileerimiseks. Käsk on järgnev:
+
+`python setup.py build_ext --inplace`
+
+Peale mida juba Python kasutab ise kompileeritud faile.
