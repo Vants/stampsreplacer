@@ -25,7 +25,7 @@ class PsFiles(MetaSubProcess):
     """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
     Tehtud StaMPS'i ps_load_inital_gamma järgi."""
 
-    heading: float = None
+    heading: float = 0.0
     mean_range: float = 0.0
     wavelength: float = 0.0
     mean_incidence: float = 0.0
@@ -221,7 +221,7 @@ class PsFiles(MetaSubProcess):
                 (2 * float(params['earth_radius_below_sensor']) * rg)))
         return incidence.mean()
 
-    def __get_baseline_params(self, ifg_name: str):
+    def __get_baseline_params(self, ifg_name: np.str_):
         """Tagastab kaks muutujat tcn (initial baseline) ja baseline_rate. 
         Need leitakse inteferogrammile vastavast .base failist. Igasühes on 
         np.narray kolme muutujaga"""
