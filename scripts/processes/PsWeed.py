@@ -56,14 +56,14 @@ class PsWeed(MetaSubProcess):
         # todo selle võib teha @lazy'ga PsFiles'idesse
 
         file_name = "psweed.2.edge"
-        path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
-        self.__logger.debug("Path to psweed edge file: " + str(path))
-        if path.exists():
-            data = np.genfromtxt(path, skip_header=True, dtype=self.__IND_ARRAY_TYPE)
+        psweed_path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
+        self.__logger.debug("Path to psweed edge file: " + str(psweed_path))
+        if psweed_path.exists():
+            data = np.genfromtxt(psweed_path, skip_header=True, dtype=self.__IND_ARRAY_TYPE)
             return data
         else:
             raise FileNotFoundError("File named '{1}' not found. AbsPath '{0}'".format(
-                str(path.absolute()), file_name))
+                str(psweed_path.absolute()), file_name))
 
     class __DataDTO(object):
 
@@ -276,13 +276,14 @@ class PsWeed(MetaSubProcess):
         return ij_shift
 
     def __init_neighbours(self, ij_shift: np.ndarray, coh_ps_len: int) -> np.ndarray:
-        """Stamps'is täideti massiiv nullidega siis mina täidan siin -1 'ega.
+        """Stamps'is täideti massiiv nullidega siis mina täidan siin -1'ega (DEF_NEIGHBOUR_VAL).
         Kuna täidetakse massiiv indeksitest ja Numpy's/ Python'is hakkavad indeksid nullist siis
         täidame -1'ega ja siis uute väärtustega"""
 
         def arange_neighbours_select_arr(i, ind):
-            #todo repmat?
-            return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
+            # astype on vajalik selleks, et tehtaks massiiv täisarvudest. Muidu ei ole indeksid
+            return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind]).astype(
+                self.__IND_ARRAY_TYPE)
 
         def make_miss_middle_mask():
             miss_middle = np.ones((3, 3), dtype=bool)
