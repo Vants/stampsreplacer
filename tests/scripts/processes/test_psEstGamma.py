@@ -4,12 +4,12 @@ import scipy.io
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
-from tests.AbstractTestCase import AbstractTestCase
+from tests.MetaTestCase import MetaTestCase
 
 import numpy as np
 
 
-class TestPsEstGamma(AbstractTestCase):
+class TestPsEstGamma(MetaTestCase):
     _TEST_RESOUCES_PATH = ''
 
     _GEO_DATA_FILE_NAME = 'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim'
@@ -44,7 +44,6 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_array_almost_equal(
             self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
 
-        # TODO Tulevikus kontrollime juhuslikke arve. Hetkel aga kontrollime ühe eelmise vastu.
         est_gamma_process_expected = np.load(os.path.join(self._PATH, 'ps_est_gamma_save.npz'))
 
         np.testing.assert_array_equal(self._est_gamma_process.ph_patch,
@@ -98,9 +97,7 @@ class TestPsEstGamma(AbstractTestCase):
         np.testing.assert_allclose(self._est_gamma_process.low_pass, pm1_mat['low_pass'])
 
     def test_save_and_load_results(self):
-        org_Nr = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'org_Nr.mat'))['Nr'][0]
-        self._est_gamma_process = PsEstGamma(self.ps_files, False, org_Nr)
-        self._est_gamma_process.start_process()
+        self.__start_process()
 
         self._est_gamma_process.save_results(self._SAVE_LOAD_PATH)
 

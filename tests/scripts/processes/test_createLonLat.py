@@ -2,10 +2,10 @@ import os
 import scipy.io
 
 from scripts.processes.CreateLonLat import CreateLonLat
-from tests.AbstractTestCase import AbstractTestCase
+from tests.MetaTestCase import MetaTestCase
 
 
-class TestCreateLonLat(AbstractTestCase):
+class TestCreateLonLat(MetaTestCase):
 
     @classmethod
     def setUpClass(cls):

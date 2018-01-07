@@ -7,7 +7,7 @@ from scripts.utils.internal.ConfigUtils import ConfigUtils
 from tests import TEST_RESOURCES_PATH
 
 
-class AbstractTestCase(TestCase):
+class MetaTestCase(TestCase):
     """See klass on justkui abstraktne klass testidele. Siin on üldmeetodi ja setup testidele"""
     _PLACES = 5
 

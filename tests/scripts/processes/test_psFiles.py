@@ -7,10 +7,10 @@ from datetime import date
 from scripts.processes.CreateLonLat import CreateLonLat
 from scripts.processes.PsFiles import PsFiles
 from scripts.utils.ArrayUtils import ArrayUtils
-from tests.AbstractTestCase import AbstractTestCase
+from tests.MetaTestCase import MetaTestCase
 
 
-class TestPsFiles(AbstractTestCase):
+class TestPsFiles(MetaTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

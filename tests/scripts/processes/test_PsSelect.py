@@ -8,10 +8,10 @@ from scripts.processes.PsEstGamma import PsEstGamma
 from scripts.processes.PsFiles import PsFiles
 from scripts.processes.PsSelect import PsSelect
 from scripts.utils.ArrayUtils import ArrayUtils
-from tests.AbstractTestCase import AbstractTestCase
+from tests.MetaTestCase import MetaTestCase
 
 
-class TestPsSelect(AbstractTestCase):
+class TestPsSelect(MetaTestCase):
     _GEO_DATA_FILE_NAME = 'subset_8_of_S1A_IW_SLC__1SDV_20160614T043402_20160614T043429_011702_011EEA_F130_Stack_deb_ifg_Geo.dim'
 
     @classmethod
