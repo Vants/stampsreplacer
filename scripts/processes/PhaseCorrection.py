@@ -37,15 +37,11 @@ class PhaseCorrection(MetaSubProcess):
 
         data = self.__load_ps_params()
 
-        ph_rc = self.get_ph_rc(data)
-        self.__logger.debug("ph_rc.len {0}".format(len(ph_rc)))
+        self.ph_rc = self.__get_ph_rc(data)
+        self.__logger.debug("ph_rc.len {0}".format(len(self.ph_rc)))
 
-        ph_reref = self.get_ph_reref(data)
-        self.__logger.debug("ph_reref.len {0}".format(len(ph_reref)))
-
-        # Paneme arvutatud väljad klassimuutujatesse
-        self.ph_rc = ph_rc
-        self.ph_reref = ph_reref
+        self.ph_reref = self.__get_ph_reref(data)
+        self.__logger.debug("ph_reref.len {0}".format(len(self.ph_reref)))
 
         self.__logger.info("End")
 
@@ -71,7 +67,7 @@ class PhaseCorrection(MetaSubProcess):
 
         return self.__DataDTO(master_nr, nr_ifgs, bperp, ph, k_ps, c_ps, ph_patch)
 
-    def get_ph_rc(self, data: __DataDTO):
+    def __get_ph_rc(self, data: __DataDTO):
         bperp = data.bperp
         master_nr = data.master_nr
         # Justkui pistame vahele
@@ -85,7 +81,7 @@ class PhaseCorrection(MetaSubProcess):
 
         return ph_rc
 
-    def get_ph_reref(self, data: __DataDTO):
+    def __get_ph_reref(self, data: __DataDTO):
         ph_patch = data.ph_patch
         master_nr = data.master_nr
 
