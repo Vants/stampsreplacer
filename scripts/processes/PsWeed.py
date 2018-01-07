@@ -31,9 +31,9 @@ class PsWeed(MetaSubProcess):
 
     def __init__(self, path_to_patch: str, ps_files: PsFiles, ps_est_gamma: PsEstGamma,
                  ps_select: PsSelect):
-        self.ps_files = ps_files
-        self.ps_select = ps_select
-        self.ps_est_gamma = ps_est_gamma
+        self.__ps_files = ps_files
+        self.__ps_select = ps_select
+        self.__ps_est_gamma = ps_est_gamma
 
         self.__logger = LoggerFactory.create("PsWeed")
 
@@ -202,10 +202,10 @@ class PsWeed(MetaSubProcess):
         lonlat = data.lonlat[self.selectable_ps]
         hgt = data.hgt[self.selectable_ps]
 
-        bperp = self.ps_files.bperp[data.coh_thresh_ind]
+        bperp = self.__ps_files.bperp[data.coh_thresh_ind]
         bperp = bperp[self.selectable_ps]
 
-        sort_ind = self.ps_files.sort_ind[data.coh_thresh_ind]
+        sort_ind = self.__ps_files.sort_ind[data.coh_thresh_ind]
         sort_ind = sort_ind[self.selectable_ps]
 
         return coh_ps, k_ps, c_ps, ph_patch, ph, xy, pscands_ij, lonlat, hgt, bperp, sort_ind
@@ -254,12 +254,12 @@ class PsWeed(MetaSubProcess):
 
             return ph_patch
 
-        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select(self.ps_select)
+        ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps = get_from_ps_select(self.__ps_select)
 
         pscands_ij, xy, ph, lonlat, hgt, nr_ifgs, nr_ps, master_nr, ifg_dates, bperp_meaned,\
-        master_date = get_from_ps_files(self.ps_files, coh_thresh_ind)
+        master_date = get_from_ps_files(self.__ps_files, coh_thresh_ind)
 
-        ph_patch_org = get_from_ps_est_gamma(self.ps_est_gamma)
+        ph_patch_org = get_from_ps_est_gamma(self.__ps_est_gamma)
 
         # Stamps'is oli siin oli ka lisaks 'all_da_flag' ja leiti teised väärtused muutujatele k_ps,
         # c_ps, coh_ps, ph_patch_org, ph_res

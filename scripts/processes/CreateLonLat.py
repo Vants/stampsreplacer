@@ -20,7 +20,7 @@ class CreateLonLat(MetaSubProcess):
 
     def __init__(self, path: str, geo_ref_product: str):
         self.__FILE_NAME = "lonlat_process"
-        self.geo_ref_product = geo_ref_product
+        self.__geo_ref_product = geo_ref_product
 
         self.__PATCH_FOLDER = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
@@ -31,7 +31,7 @@ class CreateLonLat(MetaSubProcess):
     def start_process(self):
         self.__logger.debug("Start")
 
-        product_with_geo_ref = ProductIO.readProduct(self.geo_ref_product)
+        product_with_geo_ref = ProductIO.readProduct(self.__geo_ref_product)
         lon_band, lat_band = self.__get_lon_bands(product_with_geo_ref)
 
         if lon_band is None or lat_band is None:

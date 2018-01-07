@@ -24,8 +24,8 @@ class PsSelect(MetaSubProcess):
 
     def __init__(self, ps_files: PsFiles, ps_est_gamma: PsEstGamma):
         self.__PH_PATCH_CACHE = True
-        self.ps_files = ps_files
-        self.ps_est_gamma = ps_est_gamma
+        self.__ps_files = ps_files
+        self.__ps_est_gamma = ps_est_gamma
 
         self.__logger = LoggerFactory.create("PsSelect")
 
@@ -86,7 +86,7 @@ class PsSelect(MetaSubProcess):
         self.__logger.debug("max_rand: {0}".format(max_rand))
 
         min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(
-            self.ps_est_gamma.coh_ps, max_rand, data)
+            self.__ps_est_gamma.coh_ps, max_rand, data)
         self.__logger.debug("min_coh.len: {0} ; da_mean.len: {1}"
                             .format(len(min_coh), len(da_mean)))
 
@@ -184,7 +184,7 @@ class PsSelect(MetaSubProcess):
                      np.array([da_sorted[-1]])))
             else:
                 da_max = np.array([0], [1])
-                da = np.ones(len(self.ps_est_gamma.coh_ps))
+                da = np.ones(len(self.__ps_est_gamma.coh_ps))
 
             return da_max, da
 
@@ -194,11 +194,11 @@ class PsSelect(MetaSubProcess):
             comp_fun = lambda x, y: x < y
 
             no_master_ix = np.setdiff1d(np.arange(0, nr_ifgs),
-                                        self.ps_files.master_nr - 1)
+                                        self.__ps_files.master_nr - 1)
 
             ifg_ind = np.setdiff1d(np.arange(0, nr_ifgs), self.__drop_ifg_index)
-            ifg_ind = np.setdiff1d(ifg_ind, self.ps_files.master_nr)
-            master_ix = self.ps_files.get_nr_ifgs_copared_to_master(comp_fun) - 1
+            ifg_ind = np.setdiff1d(ifg_ind, self.__ps_files.master_nr)
+            master_ix = self.__ps_files.get_nr_ifgs_copared_to_master(comp_fun) - 1
             ifg_ind[ifg_ind > master_ix] -= 1
 
             ph = ph[:, no_master_ix]
@@ -207,7 +207,7 @@ class PsSelect(MetaSubProcess):
 
             return ifg_ind, ph, bperp, nr_ifgs
 
-        ph, bperp, nr_ifgs, _, xy, da = self.ps_files.get_ps_variables()
+        ph, bperp, nr_ifgs, _, xy, da = self.__ps_files.get_ps_variables()
 
         # StaMPS'is tehti see siis kui small_baseline_flag ei olnud 'y'. Siin protsessis on see alati sedasi
         ifg_ind, ph, bperp, nr_ifgs = filter_params_based_on_ifgs_and_master(ph, bperp, nr_ifgs)
@@ -215,7 +215,7 @@ class PsSelect(MetaSubProcess):
         da_max, da = get_da_max(da)
 
         # StaMPS'is oli see nimetatud nr_dist
-        rand_dist = self.ps_est_gamma.rand_dist
+        rand_dist = self.__ps_est_gamma.rand_dist
 
         data_dto = self.__DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
         return data_dto
@@ -242,8 +242,8 @@ class PsSelect(MetaSubProcess):
 
         # Paneme kohalikesse muutujatesse eelmistest protsessidest saadud tulemused,
         # kuna täisnimetusi on paha kirjutada
-        coherence_bins = self.ps_est_gamma.coherence_bins
-        rand_dist = self.ps_est_gamma.rand_dist
+        coherence_bins = self.__ps_est_gamma.coherence_bins
+        rand_dist = self.__ps_est_gamma.rand_dist
 
         array_size = data.da_max.size - 1
 
@@ -354,8 +354,8 @@ class PsSelect(MetaSubProcess):
 
             return function_result
 
-        coh_ps = self.ps_est_gamma.coh_ps
-        ph_res = self.ps_est_gamma.ph_res
+        coh_ps = self.__ps_est_gamma.coh_ps
+        ph_res = self.__ps_est_gamma.ph_res
 
         # reshape on vajalik, et where saaks hakkama, see massiiv on natuke imelik
         # [0] on vajalik where pärast, mis tagastab tuple
@@ -415,20 +415,20 @@ class PsSelect(MetaSubProcess):
             ph_patch = self.__zero_ph_array(NR_PS, data.nr_ifgs)
 
             # Sarnane 'nr_i' ja 'nr_j' oli juba PsEstGammas
-            nr_i = MatlabUtils.max(self.ps_est_gamma.grid_ij[:, 0])
-            nr_j = MatlabUtils.max(self.ps_est_gamma.grid_ij[:, 1])
+            nr_i = MatlabUtils.max(self.__ps_est_gamma.grid_ij[:, 0])
+            nr_j = MatlabUtils.max(self.__ps_est_gamma.grid_ij[:, 1])
 
             # StaMPS'is oli sel muutujal nimes taga '2'
             ph_filt = np.zeros((self.__clap_win, self.__clap_win, data.nr_ifgs), np.complex128)
 
             for i in range(ph_patch.shape[0]):
-                ps_ij = self.ps_est_gamma.grid_ij[coh_thresh_ind[i], :]
+                ps_ij = self.__ps_est_gamma.grid_ij[coh_thresh_ind[i], :]
 
                 i_min, i_max = get_max_min(ps_ij[0] - 1, nr_i)
                 j_min, j_max = get_max_min(ps_ij[1] - 1, nr_j)
 
                 # Kui siin ei tee copy't siis muudatused tehakse ka ph_grid'is
-                ph_bit = np.copy(self.ps_est_gamma.ph_grid[i_min:i_max + 1, j_min:j_max + 1, :])
+                ph_bit = np.copy(self.__ps_est_gamma.ph_grid[i_min:i_max + 1, j_min:j_max + 1, :])
 
                 ps_bit_i = int(ps_ij[0] - i_min - 1)
                 ps_bit_j = int(ps_ij[1] - j_min - 1)
@@ -443,7 +443,7 @@ class PsSelect(MetaSubProcess):
                 # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev
                 for j in range(ph_patch.shape[1]):
                     ph_filt[:, :, j] = self.__clap_filt_for_patch(ph_bit[:, :, j],
-                                                                  self.ps_est_gamma.low_pass)
+                                                                  self.__ps_est_gamma.low_pass)
 
                 ph_patch[i, :] = np.squeeze(ph_filt[ps_bit_i, ps_bit_j, :])
 
@@ -511,14 +511,14 @@ class PsSelect(MetaSubProcess):
         SW_ARRAY_SHAPE = (NR_PS, 1)
 
         ph = data.ph[coh_thresh_ind, :]
-        bperp = self.ps_files.bperp[coh_thresh_ind]
+        bperp = self.__ps_files.bperp[coh_thresh_ind]
 
         topofit = PsTopofit(SW_ARRAY_SHAPE, NR_PS, data.nr_ifgs)
-        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.ps_est_gamma.nr_trial_wraps,
+        topofit.ps_topofit_loop(ph, ph_patch, bperp, self.__ps_est_gamma.nr_trial_wraps,
                                 data.ifg_ind)
 
         # StaMPS'is muudeti eelmisena saadud tulemust. Siin nii ei tee
-        coh_ps = self.ps_est_gamma.coh_ps.copy()
+        coh_ps = self.__ps_est_gamma.coh_ps.copy()
         coh_ps[coh_thresh_ind] = topofit.coh_ps
 
         return coh_ps, topofit
@@ -527,8 +527,8 @@ class PsSelect(MetaSubProcess):
                        coh_thresh_ind : np.ndarray, k_ps2: np.ndarray) -> np.ndarray:
         """Stamps'is oli samasugune asi nimetatud 'keep_ix'"""
 
-        bperp_meaned = self.ps_files.bperp_meaned
-        k_ps = self.ps_est_gamma.k_ps[coh_thresh_ind]
+        bperp_meaned = self.__ps_files.bperp_meaned
+        k_ps = self.__ps_est_gamma.k_ps[coh_thresh_ind]
         bperp_delta = np.max(bperp_meaned) - np.min(bperp_meaned)
 
         # Reshape on vajalik selleks, et ei tekiks massiivi massiivis

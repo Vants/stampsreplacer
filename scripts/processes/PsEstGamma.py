@@ -40,7 +40,7 @@ class PsEstGamma(MetaSubProcess):
 
         self.__logger = LoggerFactory.create("PsEstGamma")
 
-        self.ps_files = ps_files
+        self.__ps_files = ps_files
         self.__set_internal_params()
         self.rand_dist_cached = rand_dist_cached_file
         self.outter_rand_dist = outter_rand_dist
@@ -159,27 +159,27 @@ class PsEstGamma(MetaSubProcess):
     def __load_ps_params(self):
         """Loeb sisse muutujad ps_files'ist ja muudab neid vastavalt"""
 
-        ph, bperp, nr_ifgs, nr_ps, xy, da = self.ps_files.get_ps_variables()
+        ph, bperp, nr_ifgs, nr_ps, xy, da = self.__ps_files.get_ps_variables()
         nr_ifgs -= 1 # Teistes protsessides kus seda muutjat kasutatakse seda teha ei tohi. StaMPS'is small_basline=n
 
-        ph = MatrixUtils.delete_master_col(ph, self.ps_files.master_nr)
+        ph = MatrixUtils.delete_master_col(ph, self.__ps_files.master_nr)
         ph_abs = np.abs(ph)
         ph_abs[np.where(ph_abs == 0)] = 1 # Selleks, et nulliga jagamine välistada
         ph = np.divide(ph, ph_abs)
 
         # bprep_meaned on massiiv ridadest, mitte veergudest
         # siis tavaline delete_master_col ei tööta
-        bprep_meaned = np.delete(self.ps_files.bperp_meaned, self.ps_files.master_nr - 1)
+        bprep_meaned = np.delete(self.__ps_files.bperp_meaned, self.__ps_files.master_nr - 1)
 
         # Matlab'is oli 0.052 selle math.radians(3) asemel
         # Stamps'is oli nimetatud 'inc_mean'
-        sort_ind_meaned = np.mean(self.ps_files.sort_ind) + math.radians(3)
+        sort_ind_meaned = np.mean(self.__ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
 
     def __get_nr_trial_wraps(self, bperp_meaned, sort_ind_meaned) -> np.float64:
         # todo mis on k?
-        k = self.ps_files.wavelength * self.__mean_range * np.sin(sort_ind_meaned) / 4 / math.pi
+        k = self.__ps_files.wavelength * self.__mean_range * np.sin(sort_ind_meaned) / 4 / math.pi
         max_k = self.__max_topo_err / k
 
         bperp_range = MatlabUtils.max(bperp_meaned) - MatlabUtils.min(bperp_meaned)
