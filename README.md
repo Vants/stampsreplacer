@@ -7,11 +7,11 @@
 Rakendus on kirjutatud Python'i versioonis 3.6.3.
 
 Esmalt tuleb luua virtualenv'iga keskkond. Siin luuakse virtuaalkeskkond virtualenv'iga nimetusega
-_virtevn_. Virtuaalkeskkonda ei või teha Araconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
+_virtevn_. Virtuaalkeskkonda ei või teha Anaconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
 
 `virtualenv virtevn`
 
-Siis see aktiveerida Windows'is järgneva käsuga:
+Siis see aktiveerida Windows’is järgneva käsuga:
 
 `C:\Users\<Kasutaja>\Anaconda3\envs\virtevn\Scripts\activate`
 
@@ -24,7 +24,7 @@ Ning siis laadida sõltuvused failist _env.txt_ või _env\_intel.txt_:
 `pip install -r env.txt`
 
 _env.txt_ on tavalisele Python'ile ja _env\_intel.txt_ on mõeldud Intel'i Python'ile. 
-Viimase puhul Numpy ja SciPy paketid tuleb käsitsi paigaldada. Naad saab Windows'i 
+Viimase puhul Numpy ja SciPy paketid tuleb käsitsi paigaldada. Need saab Windows'i 
 operatsioonisüsteemi jaoks alla laadida siit: https://www.lfd.uci.edu/~gohlke/pythonlibs/.
 
 ## Sättefailid ja parameetrite selgitus
@@ -73,7 +73,7 @@ See on seepärast selliselt tehtud, et algandmed võivad kõigil erinevad olla j
 
 ## Cython
 
-Cython kopmileerib Python'i kood C koodi. See mõningates protessi sammudes parandab kiirust.
+Cython kompileerib Python'i kood C koodi. See mõningates protsessi sammudes parandab kiirust.
 
 ### Kompileerimiseks
 
