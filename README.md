@@ -1,6 +1,6 @@
 # Stamps replacer
 
-# Enne kävitamist
+# Enne käivitamist
 
 ## Keskkonna seadistus
 
@@ -29,7 +29,7 @@ operatsioonisüsteemi jaoks alla laadida siit: https://www.lfd.uci.edu/~gohlke/p
 
 ## Sättefailid ja parameetrite selgitus
 
-Kopeeri fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust sample.
+Kopeeri fail _StampsReplacer\resources\properties.ini.sample_ ja kustuta sealt lõpust _.sample_.
 
 Parameetrid failis on järgnevad:
 * __path__ - Algfailide asukoht
@@ -40,8 +40,8 @@ Parameetrid failis on järgnevad:
 Vähendab oluliselt PsEstGamma protsessimise aega. Kui tegemist on uute andmetega siis peaks enne 
 vahesalvestatud faili ära kustutama. Asub asukohas __save_load_path\tmp__.
 
-Testiklasside jaoks on oma properties fail. Asukohast _StampsReplacer\tests\resources\properties.ini.sample_ tuleb kopeerida fail ja 
-kustutada lõpust .sample.
+Testiklasside jaoks on oma _properties.ini_ fail. Asukohast _StampsReplacer\tests\resources\properties.ini.sample_ tuleb kopeerida fail ja 
+kustutada lõpust _.sample_.
 
 Parameetrid failis on järgnevad:
 * __tests_files_path__ - Testifailide asukoht. Testiklassid otsivad sealt faile/ algandmeid.
