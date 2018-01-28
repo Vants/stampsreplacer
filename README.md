@@ -1,6 +1,6 @@
 # Stamps replacer
 
-# Tutorial in English.
+# Tutorial in English
 
 Estonian below/ Eesti keeles allpool.
 
