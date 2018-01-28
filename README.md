@@ -52,9 +52,9 @@ Parameters in the file are:
 * __tests_files_path__ - Tests files path. Test classes are looking source files from that location.
 * __patch_folder__ - When PATCH folder is in other folder (like _tmp_) then put that folder here.
 
-Other parameters are the same. __tests_files_path__ is the same __path__ that in not test propertes file. 
+Other parameters are the same. __tests_files_path__ is the same __path__ that in not test properties file. 
 
-__All paths must be absolute__
+__All paths must be absolute.__
 
 ## Source files
 
@@ -86,7 +86,7 @@ After that Python uses compiled files.
 
 # After process compilation
 
-The results can be found in path that you set in propertes.ini file, parameter __save_load_path__.
+The results can be found in path that you set in _properties.ini_ file, parameter __save_load_path__.
 
 ---
 
@@ -177,4 +177,4 @@ Peale mida juba Python kasutab ise kompileeritud faile.
 
 # Protessi lõppedes
 
-Tulemusfailid leiab teest, mis seadistati _properties.ini_ faili parameetri __save_load_path__.
+Tulemusfailid leiab kaustast, mis seadistati _properties.ini_ faili parameetri __save_load_path__.
