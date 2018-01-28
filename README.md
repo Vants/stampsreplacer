@@ -1,6 +1,6 @@
 # Stamps replacer
 
-# Tutorial in english.
+# Tutorial in English.
 
 Estonian below/ Eesti keeles allpool.
 
@@ -10,58 +10,58 @@ Estonian below/ Eesti keeles allpool.
 
 Application is written in Python 3.6.3.
 
-First it is recommenced to make Python virtual envrionment using _virtualevn_. Do not use 
+First it is recommended to make Python virtual environment using _virtualenv_. Do not use 
 Anaconda/ conda virtual environment, because you can't load dependencies to conda. In this example 
 command we make virtual environment named "virtenv".
  
-`virtualenv virtevn`
+`virtualenv virtenv`
 
 Then you need to activate it with this command (in Windows).
 
-`C:\Users\<UserName>\Anaconda3\envs\virtevn\Scripts\activate`
+`C:\Users\<UserName>\Anaconda3\envs\virtenv\Scripts\activate`
 
 In Linux the command is:
 
-`source virtevn/bin/activate`
+`source virtenv/bin/activate`
 
 Then you load dependencies from file  _env.txt_ or _env\_intel.txt_:
 
 `pip install -r env.txt`
 
-First one is ordinary Python and _env\_intel.txt_ is for Intel Python MKL. For last one you need to 
+First one is for ordinary Python and _env\_intel.txt_ is for Intel Python MKL. For last one you need to 
 download Numpy and SciPy packages separately. For Windows you can find them here 
 https://www.lfd.uci.edu/~gohlke/pythonlibs/.
 
 ## Properties and parameters
 
-Copy file _StampsReplacer\resources\properties.ini.sample_ and remove _.sample_.
+Clone file _StampsReplacer\resources\properties.ini.sample_ and remove _.sample_.
 
-Parameters in file are:
-* __path__ - Source files path.
+Parameters in the file are:
+* __path__ - Input/ data files path.
 * __patch_folder__ - When PATCH folder is in other folder (like _tmp_) then put that folder here.
 * __geo_file__ - .dim file that is used for processing.
-* __save_load_path__ - Save and load path or work directory. 
+* __save_load_path__ - Save and load path or work directory. Results file can be found in this path.
 * __rand_dist_cached__ - Is randomly generated file loaded from temporary files (from 
 path __save_load_path\tmp__). It reduces PsEstGamma process time. If the processed file or area is 
 new is then you should first delete cached file.
 
-For tests there is seperate propertes file _properties.ini_. Copy file from 
+For tests there is seperate properties file _properties.ini_. Clone file from 
 _StampsReplacer\tests\resources\properties.ini.sample_ and delete _.sample_ from the end.
 
-Parameters in file are:
-* __tests_files_path__ - Tests files path. Test classes are looking source files from that locations.
+Parameters in the file are:
+* __tests_files_path__ - Tests files path. Test classes are looking source files from that location.
 * __patch_folder__ - When PATCH folder is in other folder (like _tmp_) then put that folder here.
 
-Other parameters, are the same. __tests_files_path__ is the same that __path__ in not test propertes file. 
+Other parameters are the same. __tests_files_path__ is the same __path__ that in not test propertes file. 
 
 __All paths must be absolute__
 
 ## Source files
 
-### Fails made with SNAP in this code repository
+### Files made with SNAP in this code repository
 
 Pay attention that when you are using files that are in this repository that _pscphase.in_ and _rsc.txt_
-correspond to your file system. This like that because program reads paths from those files.
+correspond to your file system. This is because program reads paths from those files.
 
 ### Errors related to missing .npz files
 
@@ -69,24 +69,28 @@ When you see error that tells that there is missing .npz file. Error like this:
 
 `FileNotFoundError: [Errno 2] No such file or directory: 'StampsReplacer/tests/resources/process_saves/ps_files.npz'`
 
-This is because test doesn't find file from previous process. Then you need to first run that 
-process and then that other. You don't need to run whole test class, it is enough to run only save-load test.
+This is because test doesn't find file from previous process. Then you need to run test class that creates that file.
+You don't need to run whole test class, it is enough to run only save-load test. After that test sould not raise this error.
 
 ## Cython
 
-Cython compiles Python code into C. It may affect performance positively.
+Cython compiles Python code into C. It may affect performance positively in some steps.
 
 ### For compiling
 
-Compiled files are written in _cython_seutp.py_. You need to run with this command:
+Compiled files are written in _cython_setup.py_. You need to run with this command:
 
 `python cython_setup.py build_ext --inplace`
 
 After that Python uses compiled files.
 
+# After process compilation
+
+The results can be found in path that you set in propertes.ini file, parameter __save_load_path__.
+
 ---
 
-# Eesti keelne õpetus
+# Eestikeelne õpetus
 
 # Enne käivitamist
 
@@ -97,15 +101,15 @@ Rakendus on kirjutatud Python'i versioonis 3.6.3.
 Esmalt tuleb luua virtualenv'iga keskkond. Siin luuakse virtuaalkeskkond virtualenv'iga nimetusega
 _virtevn_. Virtuaalkeskkonda ei või teha Anaconda/ conda'ga, sest muidu ei saa laadida sõltuvusi sinna keskkonda.
 
-`virtualenv virtevn`
+`virtualenv virtenv`
 
 Siis see aktiveerida Windows’is järgneva käsuga:
 
-`C:\Users\<Kasutaja>\Anaconda3\envs\virtevn\Scripts\activate`
+`C:\Users\<Kasutaja>\Anaconda3\envs\virtenv\Scripts\activate`
 
 või Linux'is
 
-`source virtevn/bin/activate`
+`source virtenv/bin/activate`
 
 Ning siis laadida sõltuvused failist _env.txt_ või _env\_intel.txt_:
 
@@ -170,3 +174,7 @@ Failid mida kompileeritakse on kirjas _cython_setup.py_. See tuleb ka käivitada
 `python cython_setup.py build_ext --inplace`
 
 Peale mida juba Python kasutab ise kompileeritud faile.
+
+# Protessi lõppedes
+
+Tulemusfailid leiab teest, mis seadistati _properties.ini_ faili parameetri __save_load_path__.
