@@ -1,5 +1,7 @@
 # Stamps replacer
 
+Python rewrite of application named StaMPS https://homepages.see.leeds.ac.uk/~earahoo/stamps/.
+
 # Tutorial in English
 
 Estonian below/ Eesti keeles allpool.
