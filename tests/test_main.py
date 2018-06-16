@@ -18,8 +18,7 @@ class TestMain(MetaTestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Laeme conf'i uuesti sest Main töötab päris propertes.ini peal, mitte
-        testi omade peal"""
+        """Load configuartion for testing."""
         super().setUpClass()
 
         cls._config = ConfigUtils(RESOURCES_PATH)
@@ -39,8 +38,8 @@ class TestMain(MetaTestCase):
 
     @unittest.skip("Skiping whole process test")
     def test_run_whole_process(self):
-        """Selle testiga tasub ettevaatlik olla. See võtab väga kaua aega ja kustutab ära kõik
-        savlestatud failid SAVE_LOAD_PATH."""
+        """Please be cautios with this test. This takes very long time and deletes all files in
+        SAVE_LOAD_PATH directory."""
 
         main = Main()
         main.run()
@@ -51,7 +50,7 @@ class TestMain(MetaTestCase):
         main = Main()
         main.run(0, 0)
 
-        # geo_ref_product parameeter võib olla tühi, sest me laeme salvestatud andmeid
+        # geo_ref_product parameter may be empty cause we use saved data
         lonlat_process = CreateLonLat(self._PATH, "")
         lonlat_process.load_results(self._SAVE_LOAD_PATH)
 
@@ -64,7 +63,7 @@ class TestMain(MetaTestCase):
         main = Main()
         main.run(1, 1)
 
-        # Paneme siia tühjad array, sest neid pole vaja andmete laadmisel täita
+        # Let's put empty arrays here. These are not needed when loading data
         ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, CreateLonLat(self._PATH, ""))
         ps_files_loaded.load_results(self._SAVE_LOAD_PATH)
 
@@ -78,7 +77,7 @@ class TestMain(MetaTestCase):
         main = Main()
         main.run(1, 2)
 
-        # Paneme siia tühjad array, sest neid pole vaja andmete laadmisel täita
+        # Let's put empty arrays here. These are not needed when loading data
         ps_files_loaded = PsFiles(self._PATH_PATCH_FOLDER, CreateLonLat(self._PATH, ""))
         ps_files_loaded.load_results(self._SAVE_LOAD_PATH)
 
@@ -90,8 +89,7 @@ class TestMain(MetaTestCase):
         self.assert_array_not_empty(ps_est_gamma_loaded.low_pass)
 
     def __delete_saved_files(self, path, file_name=None):
-        """PALUN pange tähele, et see siin kustutab ära kõik eelnevalt salvestatud .npz failid mis
-        on päris protsessi kaustas juhul kui faili nimi (file_name) pole määratud"""
+        """This deletes all .npz files in path directory when file name is not showed."""
 
         self.__logger.info("Deleting .npz files in " + path)
         for file in os.listdir(path):
