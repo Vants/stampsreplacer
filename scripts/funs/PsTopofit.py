@@ -5,9 +5,10 @@ import math
 from scripts.utils.ArrayUtils import ArrayUtils
 from scripts.utils.MatlabUtils import MatlabUtils
 
-# Todo klassile testid!
+
+# Todo tests for class
 class PsTopofit:
-    """Topofit arvutamise objekt. Põhiprotsess toimub topofit ps_topofit_loop funkstioonis"""
+    """Class or calculation Topofit. Main logic in topofit ps_topofit_loop function"""
 
     k_ps = np.ndarray
     c_ps = np.ndarray
@@ -26,10 +27,18 @@ class PsTopofit:
 
     def ps_topofit_loop(self, ph: np.ndarray, ph_patch: np.ndarray, bprep: np.ndarray,
                         nr_trial_wraps: float, ifg_ind=None):
-        """Tegemist on topofit'i leidmise for loopiga, kus täidetakse ära kõik konstruktoris tehtud
-        sisemised muutujad.
-        ifg_ind on massiiv mis leitakse PsSelect'is ja seal tehakse tegevusi natuke omamoodi, aga üldiselt
-        samamoodi"""
+        """
+        Function for calculation topofit. Arrays that are initialized in constructor are filled with
+        values in this function.
+
+        :param ph:
+        :param ph_patch:
+        :param bprep:
+        :param nr_trial_wraps:
+        :param ifg_ind:
+        :return: None. Calculated values are written in class parameters (k_ps, c_ps, coh_ps, n_opt,
+         ph_res).
+        """
 
         for i in range(self.__nr_ps):
             psdph = np.multiply(ph[i, :], ph_patch[i, :].conj())
@@ -56,14 +65,14 @@ class PsTopofit:
 
     @staticmethod
     def ps_topofit_fun(phase: np.ndarray, bperp_meaned: np.ndarray, nr_trial_wraps: float):
-        # Et edasipidi oleksid tulemid õiged teeme bperp'i veerumaatriksiks
+        # To be sure that results are correct we need col.matrix
         if (len(bperp_meaned.shape) == 1):
             bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
 
-        # Siin ei saa get_nr_trial_wraps leitut kasutada, kuna seal oli see üldisem
+        # get_nr_trial_wraps result isn't correct in this case, so we find it again
         bperp_range = np.amax(bperp_meaned) - np.amin(bperp_meaned)
 
-        CONST = 8 * nr_trial_wraps  # todo aga mis const? Miks see 8 on?
+        CONST = 8 * nr_trial_wraps  # todo what const? Why 8
         trial_multi_start = -np.ceil(CONST)
         trial_multi_end = np.ceil(CONST)
         trial_multi = ArrayUtils.arange_include_last(trial_multi_start, trial_multi_end, 1)
@@ -71,7 +80,7 @@ class PsTopofit:
         trial_phase = bperp_meaned / bperp_range * math.pi / 4
         trial_phase = np.exp(np.outer(-1j * trial_phase, trial_multi))
 
-        # Selleks, et korrutamine õnnestuks teeme ta veeruvektoriks
+        # For np.multiply we need to make it column matrix
         phase = ArrayUtils.to_col_matrix(phase)
         phase_tile = np.tile(phase, (1, len(trial_multi)))
         phaser = np.multiply(trial_phase, phase_tile)
@@ -90,21 +99,21 @@ class PsTopofit:
         weigth = np.abs(phase)
         bperp_meaned_weighted = weigth * bperp_meaned
         re_phase_weighted = weigth * re_phase
-        # linalg funkstioonid toimivad ainult kahemõõtmeliste massiividega
+        # linalg functions work only with 2d array
         if len(bperp_meaned_weighted.shape) > 2:
             bperp_meaned_weighted = bperp_meaned_weighted[0]
         if len(re_phase_weighted.shape) > 2:
             re_phase_weighted = re_phase_weighted[0]
 
         mopt = np.linalg.lstsq(bperp_meaned_weighted, re_phase_weighted)[0][0]
-        # StaMPS'is k0
+        # In StaMPS k0
         k_0 = k_0 + mopt
 
         phase_residual = np.multiply(phase, np.exp(-1j * (k_0 * bperp_meaned)))
         phase_residual_sum = MatlabUtils.sum(phase_residual)
-        # StaMPS'os oli see c0
+        # In StaMPS c0
         static_offset = np.angle(phase_residual_sum)
-        # StaMPS'is oli see coh0
+        # In StaMPS coh0
         coherence_0 = np.abs(phase_residual_sum) / MatlabUtils.sum(np.abs(phase_residual))
 
         return phase_residual, coherence_0, static_offset, k_0

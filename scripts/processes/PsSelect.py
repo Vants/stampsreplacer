@@ -15,7 +15,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsSelect(MetaSubProcess):
-    """Stabiilsete pikslite valimine, et neist teha püsivpeegeldajad"""
+    """Select stabile pixels that become persistent scatterer"""
 
 
     __B = np.array([])
@@ -32,20 +32,20 @@ class PsSelect(MetaSubProcess):
         self.__set_internal_params()
 
     def __set_internal_params(self):
-        """StaMPS'is loeti need setparami'iga süteemi sisse ja pärast getparam'iga välja.
-        Kõik väärtused on võetud, et small_baseline_flag on 'N'
+        """In StaMPS these where saved with setparam and getparam.
+        All values are that small_baseline_flag = 'N'.
 
-        StaMPS'is oli max_desinty_rand ja max_percent_rand muutujad eraldi ja sarnaselt neile siin.
-        Siin aga saadakse see funktsioonist __get_max_rand.
+        In StaMPS max_desinty_rand ja max_percent_rand where two seperate varaibles, there we get
+        them using function __get_max_rand.
         """
         self.__slc_osf = 1
         self.__clap_alpha = 1
         self.__clap_beta = 0.3
         self.__clap_win = 32
-        self.__select_method = self._SelectMethod.DESINTY  # DESINITY või PERCENT
-        # todo mis see on?
+        self.__select_method = self._SelectMethod.DESINTY  # DESINITY or PERCENT
+        # todo Why is this here
         self.__gamma_stdev_reject = 0
-        # TODO StaMPS'is oli []
+        # TODO This was [] in Stamps
         self.__drop_ifg_index = np.array([])
         self.__low_coh_tresh = 31  # 31/100
 
@@ -53,10 +53,8 @@ class PsSelect(MetaSubProcess):
                                              np.asmatrix(MatlabUtils.gausswin(7)).conj().transpose())
 
     class __DataDTO(object):
-        """Klass millega vahetada funkstioonide vahel muutujaid.
-        Loodud eelõige seepärast, et näiteks self.ps_files.nr_ifgs on natuke liiga pikk kirjutada ja
-        vahel on meil vaja enne nende kasutamist veel muuta (funkstioon load_ps_params).
-        Siin objektis ei toimu töötlust, see on vaid andmete kapseldamiseks"""
+        """This is inner data transfer object. It is because some functions take very many
+        paramters, so we use this class. It is filled in load_ps_params function"""
 
         def __init__(self, ph: np.ndarray, nr_ifgs: int, xy: np.ndarray,
                      da: np.ndarray, ifg_ind: np.ndarray, da_max: np.ndarray,
@@ -71,13 +69,14 @@ class PsSelect(MetaSubProcess):
 
     @enum.unique
     class _SelectMethod(enum.Enum):
-        """Sisemise muutuja 'select_method' võimalikud väärtused"""
+        """Internal varaible 'select_method' possible values"""
         DESINTY = 1
         PERCENT = 2
 
     def start_process(self):
-        """Siin on tähtis, et min_coh, coh_thresh ja coh_thresh_ind oleksid leitud võimalikult täpselt.
-        Seda seepärast, et ka 0.001'ne täpsus võib rikkuda coh_threh tulemust"""
+        """Please note that min_coh, coh_thresh and coh_thresh_ind params must be precise as
+        possible. Because 0.0001 offset may ruin coh_threh result"""
+
         self.__logger.info("Start")
 
         data = self.__load_ps_params()
@@ -102,32 +101,32 @@ class PsSelect(MetaSubProcess):
         coh_ps, topofit = self.__topofit(ph_patch, coh_thresh_ind, data)
         self.__logger.debug("coh_ps.len: {0}".format(len(coh_ps)))
 
-        # Ja nüüd leitakse uue coh_ps'iga uuesti min_coh, da_mean ja coh_thresh (viimase jaoks on
-        # tegelikult tarvis kahte esimest) uuesti
+        # And now we find coh_thresh again using new coh_os. For that we also need to find min_coh
+        # and da_mean.
 
         min_coh, da_mean, is_min_coh_nan_array = self.__get_min_coh_and_da_mean(
             coh_ps, max_rand, data)
         self.__logger.debug("Second run min_coh.len: {0} ; da_mean.len: {1}"
                             .format(len(min_coh), len(da_mean)))
 
-        # Tähele tuleb panna, et da massiiv on filtreeritud coh_thresh_ind alusel
+        # Please note that da array is filtered by coh_thresh_ind
         coh_thresh = self.__get_coh_thresh(min_coh, da_mean, is_min_coh_nan_array,
                                            data.da[coh_thresh_ind])
         self.__logger.debug("Second run coh_thresh.len: {0}".format(len(coh_thresh)))
 
-        # todo äkki filteeriks kohe saadud tulemid?
+        # todo Maybe filter when you find those results
         keep_ind = self.__get_keep_ind(topofit.coh_ps, coh_thresh, coh_thresh_ind,
                                                    topofit.k_ps)
         self.__logger.debug("keep_ind.len: {0}"
                             .format(len(keep_ind)))
 
-        # Leitud tulemused klassimuutujatesse
+        # Results to class variables
         self.coh_thresh = coh_thresh
         self.ph_patch = ph_patch
         self.coh_thresh_ind = coh_thresh_ind
         self.keep_ind = keep_ind
-        self.coh_ps = coh_ps # StaMPS'is salvestati see muutuja eelmisest protsessist üle
-        self.coh_ps2 = topofit.coh_ps #todo parem nimi
+        self.coh_ps = coh_ps # In StaMPS this result was overriden from last process
+        self.coh_ps2 = topofit.coh_ps # Find better name
         self.ph_res = topofit.ph_res
         self.k_ps = topofit.k_ps
         self.c_ps = topofit.c_ps
@@ -165,8 +164,8 @@ class PsSelect(MetaSubProcess):
         self.ifg_ind = data['ifg_ind']
 
     def __load_ps_params(self) -> __DataDTO:
-        """Leiab parameetritest ps_files väärtused mida on hiljem vaja ning vajadusel muudab neid.
-        Natuke kattub __load_ps_params meetodiga PsEstGamma funkstioonis"""
+        """Finds values that are needed from ps_files and changes them a bit. It is similar to
+        load_ps_params method in PsEstGamma function."""
 
         def get_da_max(da):
             # todo miks 10000?
@@ -177,8 +176,7 @@ class PsSelect(MetaSubProcess):
                 else:
                     bin_size = 2000
 
-                # bin_size - 1 on selleks, et võtta täpselt need elemendid nende indeksitega
-                # mis Matlab'is
+                # bin_size - 1 is for that to take elements with correct indexes that are in Matlab
                 da_max = np.concatenate(
                     (np.zeros(1), da_sorted[bin_size - 1: -bin_size - 1: bin_size],
                      np.array([da_sorted[-1]])))
@@ -189,7 +187,7 @@ class PsSelect(MetaSubProcess):
             return da_max, da
 
         def filter_params_based_on_ifgs_and_master(ph: np.ndarray, bperp: np.ndarray, nr_ifgs: int):
-            """Filteerime ph ja bperp massiividest välja masteri veeru"""
+            """Filter out master row form ph and bperp arrays"""
 
             comp_fun = lambda x, y: x < y
 
@@ -209,22 +207,23 @@ class PsSelect(MetaSubProcess):
 
         ph, bperp, nr_ifgs, _, xy, da = self.__ps_files.get_ps_variables()
 
-        # StaMPS'is tehti see siis kui small_baseline_flag ei olnud 'y'. Siin protsessis on see alati sedasi
+        # In StaMPS this was done when small_base_line flag was not 'y'. Beacause this process is
+        # made as small_baseline_flag value is 'n' we also make this always
         ifg_ind, ph, bperp, nr_ifgs = filter_params_based_on_ifgs_and_master(ph, bperp, nr_ifgs)
 
         da_max, da = get_da_max(da)
 
-        # StaMPS'is oli see nimetatud nr_dist
+        # nr_dist in StaMPS
         rand_dist = self.__ps_est_gamma.rand_dist
 
         data_dto = self.__DataDTO(ph, nr_ifgs, xy, da, ifg_ind, da_max, rand_dist)
         return data_dto
 
     def __get_max_rand(self, da_max: np.ndarray, xy: np.ndarray):
-        """Funkstioon leidmaks muutuja mis oli StaMPS'is nimega 'max_percent_rand'.
+        """This function finds variable that in StaMPS was called 'max_percent_rand'.
 
-        StaMPS'is loeti see parameetritest sisse, aga kuna seda ka muudetakse vajadusel siis
-        selle leidmine siin eraldi toodud"""
+        In StaMPS this variable was read in parameters. But in this process we also change it a bit
+        we calculate this here"""
 
         DEF_VAL = 20
 
@@ -240,37 +239,36 @@ class PsSelect(MetaSubProcess):
     def __get_min_coh_and_da_mean(self, coh_ps: np.ndarray, max_rand: float, data: __DataDTO) -> (
             np.ndarray, np.ndarray, bool):
 
-        # Paneme kohalikesse muutujatesse eelmistest protsessidest saadud tulemused,
-        # kuna täisnimetusi on paha kirjutada
+        # Internal parameters because full names are bad to write and read all the time
         coherence_bins = self.__ps_est_gamma.coherence_bins
         rand_dist = self.__ps_est_gamma.rand_dist
 
         array_size = data.da_max.size - 1
 
         min_coh = np.zeros(array_size)
-        # StaMPS'is tehti see size(da_max, 1), mis on sama mis length(da_max)
+        # In StaMPS this was size(da_max, 1) what is same as length(da_max)
         da_mean = np.zeros(array_size)
         for i in range(array_size):
-            # Bitwize selleks, et katsetada. Võib kasutada ka np.all ja np.logical_and'i
+            # You can use np.all or np.logical here too. Bitwize isn't must
             coh_chunk = coh_ps[(data.da > data.da_max[i]) & (data.da <= data.da_max[i + 1])]
 
             da_mean[i] = np.mean(
                 data.da[(data.da > data.da_max[i]) & (data.da <= data.da_max[i + 1])])
-            # Eelmaldame pikslid millel koherentsust ei leitud
+            # Remove pixels that we could not find coherence
             coh_chunk = coh_chunk[coh_chunk != 0]
-            # StaMSP'is oli see muutuja 'Na'
+            # In StaMPS this was called 'Na'
             hist, _ = MatlabUtils.hist(coh_chunk, coherence_bins)
 
             hist_low_coh_sum = MatlabUtils.sum(hist[:self.__low_coh_tresh])
             rand_dist_low_coh_sum = MatlabUtils.sum(rand_dist[:self.__low_coh_tresh])
-            nr = rand_dist * hist_low_coh_sum / rand_dist_low_coh_sum  # todo Mis on muutuja nimi 'nr'
+            nr = rand_dist * hist_low_coh_sum / rand_dist_low_coh_sum  # todo What does this 'nr' mean?
 
-            # Siin oli vahel ka mingi joonise tegemine
+            # In StaMPS here was also possibility to make graph
 
             hist[hist == 0] = 1
 
-            # Percent_rand'i leidmine
-            # np.flip võimaldab vastu võtta ühemõõtmelisi massive, seepärast ei kasuta np.fliplr
+            # Percent_rand calculate
+            # np.flip allows to use one-dimencional arrays, thats why we don't use np.fliplr
             nr_cumsum = np.cumsum(np.flip(nr, axis=0), axis=0)
             if self.__select_method is self._SelectMethod.PERCENT:
                 hist_cumsum = np.cumsum(np.flip(hist, axis=0), axis=0) * 100
@@ -281,19 +279,18 @@ class PsSelect(MetaSubProcess):
             ok_ind = np.where(percent_rand < max_rand)[0]
 
             if len(ok_ind) == 0:
-                # Kui koherentsuse väärtused ületavad lubatu väärtuse
+                # When coherence is over limit
                 min_coh[i] = 1
             else:
-                # Järgnevatele leitavatele indeksitele liidetavad maagilised konstandid on identsed
-                # StaMPS'iga hoolimata asjaolust, et Matlab'is on indeksid ühe võrra väiksemad. Seda
-                # seepärast et selle ühega arvestamine tehakse juba 'ok_ind' massiivi loomisel ära
+                # Here we don't need to add one to indexes because on 'ok_ind' array it is already
+                # done. This means that all those 'magical constants' are that where in StaMPS
 
-                min_fit_ind = MatlabUtils.min(ok_ind) - 3  # todo miks 3?
+                min_fit_ind = MatlabUtils.min(ok_ind) - 3  # todo Why 3?
 
                 if min_fit_ind <= 0:
                     min_coh[i] = np.nan
                 else:
-                    max_fit_ind = MatlabUtils.min(ok_ind) + 2  # todo miks 2?
+                    max_fit_ind = MatlabUtils.min(ok_ind) + 2  # todo Why 2?
 
                     # StaMPS'is oli suuruse asemel konstant 100
                     if max_fit_ind > len(percent_rand) - 1:
@@ -306,11 +303,12 @@ class PsSelect(MetaSubProcess):
                     min_coh[i] = MatlabUtils.polyfit_polyval(x_cordinates, y_cordinates, 3,
                                                              max_rand)
 
-        # Leiame kas min_coh on täis nan'e ja on täiesti kasutamatu.
-        # See osa oli natuke teisem StaMPS'is, Siin olen ma toonud kogu min_coh'i ja da_mean'iga tegevused ühte meetodi
+        # Check if min_coh is unusable (full of nan's
+        # This was bit different on StaMPS. I find min_coh'i ja da_mean in same method and in
+        # same time
         not_nan_ind = np.where(min_coh != np.nan)[0]
         is_min_coh_nan_array = sum(not_nan_ind) == 0
-        # Kui erinevusi ei olnud siis pole ka mõtet võtta array'idest osasid
+        # When there isn't differences then we don't need to take subsets of arrays
         if not is_min_coh_nan_array or (not_nan_ind == array_size):
             min_coh = min_coh[not_nan_ind]
             da_mean = da_mean[not_nan_ind]
@@ -319,17 +317,18 @@ class PsSelect(MetaSubProcess):
 
     def __get_coh_thresh(self, min_coh: np.ndarray, da_mean: np.ndarray,
                          is_min_coh_nan_array: bool, da: np.ndarray):
-        """Siin ei tagatsata coh_tresh_coffs'i kuna seda seda kasutati StaMPS'is vaid joonistamiseks"""
+        """Here we don't return coh_tresh_coffs'i because it was used only for graphs"""
         DEF_COH_THRESH = 0.3
 
         if is_min_coh_nan_array:
             self.__logger.warn(
                 'Not enough random phase pixels to set gamma threshold - using default threshold of '
                 + str(DEF_COH_THRESH))
-            # Tavaväärtus pannakse üksikult massiivi, et pärast kontollida selle jägi
+            # Default value is put into array for others to use. Other functions expect array
+            # that's why we can't use just float
             coh_thresh = np.array([DEF_COH_THRESH])
         else:
-            # Kuna eelmises funktsioonis muutsime juba vastavalt min_coh ja da_mean parameetreid
+            # Because we have already changed min_coh ja da_mean arrays
             if len(min_coh) > 1:
                 coh_thresh_coffs = np.polyfit(da_mean, min_coh, 1)
 
@@ -357,10 +356,10 @@ class PsSelect(MetaSubProcess):
         coh_ps = self.__ps_est_gamma.coh_ps
         ph_res = self.__ps_est_gamma.ph_res
 
-        # reshape on vajalik, et where saaks hakkama, see massiiv on natuke imelik
-        # [0] on vajalik where pärast, mis tagastab tuple
+        # We use reshape because this array is bit different
+        # [0] is needed because where function returns tuple
         coh_thresh_ind_fun = lambda: np.where(coh_ps.reshape(len(coh_ps)) > coh_thresh)[0]
-        # StaMPS'is oli see nimetatud 'ix'
+        # 'ix' in StaMPS
         coh_thresh_ind = make_coh_thresh_ind_array(coh_thresh_ind_fun)
 
         if self.__gamma_stdev_reject > 0:
@@ -368,7 +367,7 @@ class PsSelect(MetaSubProcess):
 
             coh_std = np.zeros(len(coh_thresh_ind))
             for i in range(len(coh_thresh_ind)):
-                # todo kuidas teha bootstrp'i Numpys?
+                # todo Who to make bootstrp'i in Numpy?
                 # bootstrap = np.boots
                 # coh_std[i] = MatlabUtils.std()
                 pass
@@ -376,9 +375,10 @@ class PsSelect(MetaSubProcess):
             coh_thresh_filter_fun = lambda: coh_thresh_ind[coh_std < self.__gamma_stdev_reject]
             coh_thresh_ind = make_coh_thresh_ind_array(coh_thresh_filter_fun)
 
-            # todo siin oli StaMPS'is loogika reest_flag'iga. kas seda on vaja?
+            # todo In StaMPS here was logic rest_flag. Is it needed?
             # for i in range(self.__drop_ifg_index):
-            # todo siin oli StaMPS'is loogika koos small baseline flag'iga, mis minu puhul on võetud N'ina
+            # Beacause this process is made as small_baseline_flag = 'N' we don't have more here.
+            # But in StaMPS'is there was
 
         return coh_thresh_ind
 
@@ -402,23 +402,24 @@ class PsSelect(MetaSubProcess):
                                                        end=ps_bit_col + slc_osf).astype(np.int32)
             ind_array = ind_array[(ind_array > 0) & (0 <= ph_bit_len)]
 
-            # Tühjast list'ist ei oska Python midagi võtta
+            # Python can't take anything from empty/ no values list
             if len(ind_array) == 0:
                 ind_array = np.zeros(1).astype(np.int16)
 
             return ind_array
 
         def ph_path_loop():
-            # StaMPS'is siin hetkel kusutati eelmisest protsessist saadud 'ph_res' ja 'ph_patch'
+            # In StaMPS this was the place where to delete 'ph_res' and 'ph_patch' that were found
+            # from last process
 
             NR_PS = len(coh_thresh_ind)
             ph_patch = self.__zero_ph_array(NR_PS, data.nr_ifgs)
 
-            # Sarnane 'nr_i' ja 'nr_j' oli juba PsEstGammas
+            # Similar logic with 'nr_i' ja 'nr_j' already exists in PsEstGamma process
             nr_i = MatlabUtils.max(self.__ps_est_gamma.grid_ij[:, 0])
             nr_j = MatlabUtils.max(self.__ps_est_gamma.grid_ij[:, 1])
 
-            # StaMPS'is oli sel muutujal nimes taga '2'
+            # In StaMPS this variable had '2' at the end of the name
             ph_filt = np.zeros((self.__clap_win, self.__clap_win, data.nr_ifgs), np.complex128)
 
             for i in range(ph_patch.shape[0]):
@@ -427,20 +428,20 @@ class PsSelect(MetaSubProcess):
                 i_min, i_max = get_max_min(ps_ij[0] - 1, nr_i)
                 j_min, j_max = get_max_min(ps_ij[1] - 1, nr_j)
 
-                # Kui siin ei tee copy't siis muudatused tehakse ka ph_grid'is
+                # If you don't make copy then changes are made also in ph_grid variable
                 ph_bit = np.copy(self.__ps_est_gamma.ph_grid[i_min:i_max + 1, j_min:j_max + 1, :])
 
                 ps_bit_i = int(ps_ij[0] - i_min - 1)
                 ps_bit_j = int(ps_ij[1] - j_min - 1)
                 ph_bit[ps_bit_i, ps_bit_j, :] = 0
 
-                # todo mingi JJS oversample update
+                # todo Some kind of JJS oversample update
                 ph_bit_len = len(ph_bit) + 1
                 ph_bit_ind_i = get_ph_bit_ind_array(ps_bit_i, ph_bit_len)
                 ph_bit_ind_j = get_ph_bit_ind_array(ps_bit_j, ph_bit_len)
                 ph_bit[ph_bit_ind_i, ph_bit_ind_j, 0] = 0
 
-                # Sarnane küll PsEstGammas oleva ph_flit'iga, aga siisiki erinev
+                # It is similar with PsEstGammas ph_flit process but still not the same
                 for j in range(ph_patch.shape[1]):
                     ph_filt[:, :, j] = self.__clap_filt_for_patch(ph_bit[:, :, j],
                                                                   self.__ps_est_gamma.low_pass)
@@ -476,7 +477,7 @@ class PsSelect(MetaSubProcess):
 
     def __clap_filt_for_patch(self, ph, low_pass):
         """Combined Low-pass Adaptive Phase filtering on 1 patch.
-        StaMPS'is eraldi funktsioon clap_filt_patch"""
+        In StaMPS this was in separate function clap_filt_patch"""
 
         alpha = self.__clap_alpha
         beta = self.__clap_beta
@@ -486,8 +487,9 @@ class PsSelect(MetaSubProcess):
 
         ph = np.nan_to_num(ph)
 
-        # todo see ph_fft jne on väga sarnane PhEstGammas oleva clap_filt'iga
-        ph_fft = np.fft.fft2(ph) #fixme mingil põhjusel erineb kolmanda tiiruga
+        # todo This ph_fft its very similar with PhEstGamma function clap_filt
+        # todo There where problems (incorrect value) with this part when calling third time
+        ph_fft = np.fft.fft2(ph)
         smooth_resp = np.abs(ph_fft)
         smooth_resp = np.fft.ifftshift(
             MatlabUtils.filter2(self.__gaussian_window, np.fft.fftshift(smooth_resp)))
@@ -517,7 +519,7 @@ class PsSelect(MetaSubProcess):
         topofit.ps_topofit_loop(ph, ph_patch, bperp, self.__ps_est_gamma.nr_trial_wraps,
                                 data.ifg_ind)
 
-        # StaMPS'is muudeti eelmisena saadud tulemust. Siin nii ei tee
+        # In StaMPS old value was overridden here
         coh_ps = self.__ps_est_gamma.coh_ps.copy()
         coh_ps[coh_thresh_ind] = topofit.coh_ps
 
@@ -525,13 +527,13 @@ class PsSelect(MetaSubProcess):
 
     def __get_keep_ind(self, coh_ps : np.ndarray, coh_thresh : np.ndarray,
                        coh_thresh_ind : np.ndarray, k_ps2: np.ndarray) -> np.ndarray:
-        """Stamps'is oli samasugune asi nimetatud 'keep_ix'"""
+        """In Stamps variable was named 'keep_ix'"""
 
         bperp_meaned = self.__ps_files.bperp_meaned
         k_ps = self.__ps_est_gamma.k_ps[coh_thresh_ind]
         bperp_delta = np.max(bperp_meaned) - np.min(bperp_meaned)
 
-        # Reshape on vajalik selleks, et ei tekiks massiivi massiivis
+        # Reshape is needed because otherwise we get array in array
         coh_ps_len = len(coh_ps)
         coh_ps_reshaped = coh_ps.reshape(coh_ps_len)
         delta = (np.abs(k_ps - k_ps2) < 2 * np.pi / bperp_delta).reshape(coh_ps_len) #todo parem nimi
@@ -539,12 +541,11 @@ class PsSelect(MetaSubProcess):
 
         return keep_ind
 
-    # todo mingi parem lahendus siia ehk?
-    # Konstruktor tühja pusivpeegeladajate info massiivi loomiseks
-    # TODO: Samasugune asi oli juba PsEstGammas, Refacto?
+    # todo Maybe some other solution here? PsEstGamma has already this kind of logic.
     def __zero_ps_array(self, shape):
+        """Constuctor for making empty array for persistent scatterers data"""
         return np.zeros(shape)
 
-    # TODO: Miks see on erinev PsEstGammast?
+    # TODO: Why not the same as in PsEstGamma?
     def __zero_ph_array(self, nr_ps, nr_ifgs):
         return np.zeros((nr_ps, nr_ifgs), np.complex128)

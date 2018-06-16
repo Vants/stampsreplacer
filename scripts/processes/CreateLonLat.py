@@ -14,7 +14,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 class CreateLonLat(MetaSubProcess):
     __ARRAY_TYPE = np.float32
 
-    # Seda on tarvis pärast PsFiles protsessis andmete laadisel
+    # Needed in PsFiles process to load data
     pscands_ij = None
     lonlat = None
 
@@ -47,13 +47,10 @@ class CreateLonLat(MetaSubProcess):
                 y = int(line[1])
                 x = int(line[2])
 
-                # Ajutine tmp__pixel_array on vajalik seepärast, et readPixels tagastab kolmanda
-                # parameertina kui palju
-                # (massiivis x sihis), aga puudub parameeter mis piiraks massiivi y'it
-                # ning see täidab palju on võimalik.
-                # See aga võib olla üks koht kuidas optimeerida,
-                # et massiivi laetakse kõik väärtused ja
-                # siis ainult täidab lonlat massiivi
+                # tmp__pixel_array is needed because readPixels returns x-size that much what is set
+                # in third parameter. But there isn't any limiter for y-size and this means it takes
+                # how much it can.
+                # This needs optimization. That you load all rows in one take and set them to lonlat.
                 tmp__pixel_array = np.zeros((1, 1), dtype=self.__ARRAY_TYPE)
                 tmp_lonlat = np.zeros((1, 2), dtype=self.__ARRAY_TYPE)
                 self.__read_pixel(x, y, lon_band, tmp__pixel_array)
@@ -88,13 +85,13 @@ class CreateLonLat(MetaSubProcess):
         self.pscands_ij = data["pscands_ij_array"]
         self.lonlat = data["lonlat"]
 
-    # TODO kõige aeglasem koht
+    # TODO slowest part
     # noinspection PyMethodMayBeStatic
     def __read_pixel(self, x, y, band, tmp_array):
         band.readPixels(x, y, 1, 1, tmp_array)
 
     def __add_to_pscands_array(self, arr1: int, arr2: int, arr3: int):
-        """Samal ajal kui me käime läbi seda listi me täidame lisaks array algsete väärtustega"""
+        """When we process this we append values to pscands"""
         if (self.pscands_ij is None):
             self.pscands_ij = []
 
@@ -109,7 +106,7 @@ class CreateLonLat(MetaSubProcess):
 
     def __load_pscands(self):
         if self.__PATCH_FOLDER.is_dir():
-            # TODO Kontroll kui juba on seal kaustas
+            # TODO Check if it is in this folder
             path_to_pscands = Path(self.__PATCH_FOLDER, "pscands.1.ij")
             if path_to_pscands.exists():
                 return path_to_pscands.open()

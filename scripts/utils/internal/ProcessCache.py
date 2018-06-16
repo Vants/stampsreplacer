@@ -6,16 +6,15 @@ from numpy.lib.npyio import NpzFile
 from scripts.utils.internal.FolderConstants import FolderConstants
 from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
-
-# Todo kas seda klassi saab teha dünaamilisemaks? Et tagastab kohe õiged asjad kui käss on ja kui ei ole
-# vaatab funkstioonist (mis oleks callback parameetrina) dünaamiliselt mis tagastatakse
+# todo Is it possible to make this mode dynamical? Return correct things when there are cached
+# parameters to be returned (callback maybe?)
 class ProcessCache:
     @staticmethod
     def get_from_cache(file_name: str, *params: str) -> NpzFile:
         save_path = os.path.join(FolderConstants.CACHE_PATH, file_name + ".npz")
         loaded = np.load(save_path)
 
-        # Kontollime, et on ka samad asjad
+        # Check if it is same file by checking if parameters exist
         for param in params:
             if not loaded.files.__contains__(param):
                 raise FileNotFoundError

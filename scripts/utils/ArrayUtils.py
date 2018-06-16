@@ -4,11 +4,10 @@ import numpy as np
 class ArrayUtils:
     @staticmethod
     def arange_include_last(start: float, end: float, step: float = 1.0):
-        """Funktsioon on mõeldud selleks, et kui on vaja maatriksit algusest lõpuni vastava sammuga
-        ning on tähtis, et viimane element oleks olemas. np.arange ei kindlusta seda, et viimane
-        element oleks olemas."""
+        """Fixes np.arange function. np.arange function does not guarentee that you have that
+        last element in the end. Using this function you have that."""
 
-        # Nii peab tegema, sest muidu on tagastusmassiiv tüübiga float64
+        # You need to do it like that, otherwise you get return type float64
         if step == 1.0:
             aranged = np.arange(start, end)
         else:
@@ -21,9 +20,8 @@ class ArrayUtils:
 
     @staticmethod
     def to_col_matrix(array: np.array):
-        """Sisse antud maatriks transponeeritakse ning tehakse veerumaatriksiks,
-         mis on Matlab'is levinud viis.
-         Maatriksi puhul ei kontrollita kas tegemist on veeru- või reamaatriksiga."""
+        """Input array is transposed and made to column matrix.
+        There isn't check if it is col - or row matrix."""
 
         return array[np.newaxis].transpose()
 

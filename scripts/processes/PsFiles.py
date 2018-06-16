@@ -22,35 +22,35 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsFiles(MetaSubProcess):
-    """Siin täidame ära kõik muutujad mida võib pärast vaja minna.
-    Tehtud StaMPS'i ps_load_inital_gamma järgi."""
+    """Here we initialize and fill all variables that are needed later.
+    Made after StaMPS'i ps_load_inital_gamma."""
 
     heading: float = 0.0
     mean_range: float = 0.0
     wavelength: float = 0.0
     mean_incidence: float = 0.0
-    master_nr: int = -1  # Stamps'is oli master_ix
+    master_nr: int = -1  # 'master_ix' in Stamps
     bperp_meaned: np.ndarray
-    bperp: np.ndarray  # Stamps'is oli see bperp_mat
+    bperp: np.ndarray  # 'bperp_mat' in Stamps
     ph: np.ndarray
     ll: np.ndarray
     xy: np.ndarray
     da: np.ndarray
-    sort_ind: np.matrix  # Stamps'is oli see la1.mat'is olev la
+    sort_ind: np.matrix  # In Stamps this is la from la1.mat
     master_date: date
-    ifgs: np.ndarray  # todo privaatseks muutujaks?
+    ifgs: np.ndarray  # todo to private variable?
     hgt: np.ndarray
-    ifg_dates: list = []  # Stamps'is oli 'day'
+    ifg_dates: list = []  # 'day' in Stamps
 
     __FILE_NAME = "ps_files"
 
     def __init__(self, path: str, create_lonlat: CreateLonLat):
-        # Parameetrid mis failidest sisse loetakse ja pärast läheb edasises töös vaja
+        # Parameters that are read from different files and are needed later other processes
 
         self.__path = Path(path)
         self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
-        # Kuna muutujaid on vaid kaks mida laadida siis laeme need siin
+        # Beacause there are only two paramters to load we can do it here, in constructor
         self.pscands_ij = np.asmatrix(create_lonlat.pscands_ij)
         self.lonlat = np.asmatrix(create_lonlat.lonlat)
 
@@ -71,7 +71,7 @@ class PsFiles(MetaSubProcess):
 
         params = self.__load_params_from_rsc_file()
 
-        # Parameetrid mida läheb väljaspool seda protsessi tarvis. Matlab'is loeti need param'itesse
+        # In Stamps these where loaded to Matlab params
         self.heading = float(params['heading'])
         self.mean_range = float(params['center_range_slc'])
 
@@ -147,16 +147,16 @@ class PsFiles(MetaSubProcess):
         self.ifg_dates = data['ifg_dates']
 
     def __get_wavelength(self, params: dict):
-        velocity = 299792458  # Signaali levimise kiirus (m/s)
-        freg = float(params['radar_frequency']) * math.pow(10, 9)  # Signaali sagedus (GHz)
+        velocity = 299792458  # Speed of signal (m/s)
+        freg = float(params['radar_frequency']) * math.pow(10, 9)  # Signal frequency (GHz)
         return velocity / freg
 
     def __get_bprep(self, ifgs: np.ndarray, sat_look_angle: np.ndarray, params: dict):
-        """Leitakse bprep_meaned ja bprep_arr. StaMPS'is vastavalt bperp ja bperp_mat. 
-        Salvestan mõlemad igaksjuhuks.
-        
-        StaMPS'is loeti terve ij fail kohaliku muutujasse ja tehti tehteid maatriksi
-        kolmanda veeruga. Python'is on selline protsess liiga aeglane (ligi 30 sekundit)"""
+        """Here we find bprep_meaned and bprep_arr that were in Stamps accordingly bperp
+        and bperp_mat. Saving both of varaibles just in case.
+
+        In StaMPS ij fail where loaded locally and calculations where done with matrix third column.
+        In Python this process is too slow (lmost 30 seconds)."""
         ARRAY_TYPE = np.float64
 
         cos_sat_look_angle = np.cos(sat_look_angle)
@@ -180,15 +180,15 @@ class PsFiles(MetaSubProcess):
             bperp[:, i] = bprep_line
 
         bprep_meaned = np.mean(bperp, 0).transpose()
-        # Kustutame püsivpeegeldajate asukohast veeru
+        # Removing master column (column where are persistent scatterers)
         bperp = MatrixUtils.delete_master_col(bperp, self.master_nr)
 
-        # Tagastame array'id et pärast ei tekiks probleeme
+        # Return array not matrix
         return ArrayUtils.matrix_to_array(bprep_meaned), ArrayUtils.matrix_to_array(bperp)
 
     def __get_ph(self, nr_ifgs):
-        """pscands.1.ph lugemine. Tegemist on binaarkujul failiga kus on kompleksarvud"""
-        BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "big-endian" 64bit kompleksarvud
+        """pscands.1.ph file load. In this file there are complex binary numbers"""
+        BINARY_COMPLEX_TYPE = np.dtype('>c8')  # "big-endian" 64bit complex
 
         COMPLEX_TYPE = np.complex64
 
@@ -222,9 +222,9 @@ class PsFiles(MetaSubProcess):
         return incidence.mean()
 
     def __get_baseline_params(self, ifg_name: np.str_):
-        """Tagastab kaks muutujat tcn (initial baseline) ja baseline_rate. 
-        Need leitakse inteferogrammile vastavast .base failist. Igasühes on 
-        np.narray kolme muutujaga"""
+        """Returns two parameters: tcn (initial baseline) ja baseline_rate.
+        These are find in .base files. For every interferogram there is one file.
+        There is array sized three each one of these."""
 
         name_and_ext = ifg_name.split(".")
         base_file_name = name_and_ext[0] + ".base"
@@ -250,8 +250,7 @@ class PsFiles(MetaSubProcess):
             raise FileNotFoundError(base_file_name + " not found.")
 
     def __load_params_from_rsc_file(self) -> dict:
-        """Esimesest failist loetakse teise faili asukoht, kus on sateliidi metadata.
-        Lubatud parameetrid salvestame params dict'i mille tagastame."""
+        """From this file we read satelite metadata. Loaded params are put into dict and returned"""
 
         params = {}
 
@@ -275,7 +274,7 @@ class PsFiles(MetaSubProcess):
             if rsc_par_file.exists():
                 with rsc_par_file.open() as rsc_par:
                     for line in rsc_par:
-                        # Sellest parameetrist alates pole meil enam vaja
+                        # This is last parameter. After that we can stop processing
                         if line == "state_vector_position_1":
                             break
 
@@ -284,7 +283,7 @@ class PsFiles(MetaSubProcess):
 
                         if key in ALLOWED_PARAMS:
                             if key == 'date':
-                                # Kui on näiteks mitte komaga või üldse sõne siis puhastab tühikutest
+                                # If not seprated with coma or is not string then removes spaces
                                 value = re.sub("[\t\n\v]", "", splited[1])
                             else:
                                 value = value_regex.findall(splited[1])[0]
@@ -297,8 +296,8 @@ class PsFiles(MetaSubProcess):
             return params
 
     def __get_master_date(self, params: dict):
-        """load_params_from_rsc_file saadud 'date' on masteri kuupäev. Selle splitime ja teeme
-        datetime'iks"""
+        """'date' is from load_params_from_rsc_file and is master date. We split that string here
+        and make it datetime"""
         date_arr = params["date"].split('  ')
         return date(int(date_arr[0]), int(date_arr[1]), int(date_arr[2]))
 
@@ -311,8 +310,8 @@ class PsFiles(MetaSubProcess):
             raise FileNotFoundError("No file " + name + ". Abs.path " + str(file_path.absolute()))
 
     def __load_ifg_info_from_pscphase(self):
-        """pscphase.in failis on inteferogammide asukohad (kataloogiteed). Need teed ka tagastatakse
-        siin fuksioonis. Failinimes on mis on masteri kuupäev ja mis on inteferogammi pildi kuupäev."""
+        """In pscphase.in file there are paths to inteferograms. Those are returned in this
+        function. In filename there is master date and inteferogram date."""
 
         path = self.__path.joinpath("pscphase.in")
         if path.exists():
@@ -323,7 +322,7 @@ class PsFiles(MetaSubProcess):
                 str(path.absolute())))
 
     def __get_nr_ifgs_less_than_master(self, master_date: date, ifgs: np.ndarray):
-        """Mitu intefegorammi on enne masteri kuupäeva"""
+        """How many inteferograms there are before master"""
         comp_fun = lambda x, y: x > y
         return self.get_nr_ifgs_copared_to_master(comp_fun, ifgs, master_date)
 
@@ -331,10 +330,9 @@ class PsFiles(MetaSubProcess):
         return (MatlabUtils.max(self.lonlat) + MatlabUtils.min(self.lonlat)) / 2
 
     def __get_xy(self):
-        """Võetakse ij massiivist x ja y väärtused (viimased kaks veergu). 
-        Korrutatakse skalaaridega läbi, püütakse pilti parandada keeramise teel ning sorteeritakse 
-        y järgi kogu massiv. Siin saadakse ka sorteerimise indeks massiiv mille järgi pärast teised
-        sorteerida"""
+        """ij array is taken last two columns that are x an y.
+        This is multiplied with scalar, fixes data by turning picture and later sorted by y column.
+        Here we additionally also add sorting index column that other arrays can use."""
 
         xy = np.fliplr(self.pscands_ij.copy())[:, 0:2]
         xy[:, 0] *= 20
@@ -342,19 +340,19 @@ class PsFiles(MetaSubProcess):
 
         xy = self.__scene_rotate(xy)
 
-        # Lõpus on ningunii vaja array'id mitte maatriksit. Teeme selle siis siin õigeks
+        # Return value is array. Make it correct here
         xy = ArrayUtils.matrix_to_array(xy)
 
         sort_ind = np.lexsort((xy[:, 0], xy[:, 1]))
         sorted_xy = xy[sort_ind]
 
-        # TODO Korrutame läbi et ümarada millimeetrini? Aga see on juba int
+        # TODO Multiply to closest millimeter. But why it is already int
         sorted_xy = np.around(sorted_xy * 1000) / 1000
 
         return sorted_xy, sort_ind
 
     def __scene_rotate(self, xy: np.matrix):
-        # TODO leida parem muutuja nimi
+        # TODO find better name for this variable
         theta = (180 - self.heading) * math.pi / 180
         if theta > math.pi:
             theta -= 2 * math.pi
@@ -363,7 +361,7 @@ class PsFiles(MetaSubProcess):
         xy = xy.H
 
         rotated_xy = rotm * xy
-        # Ei kasuta siin massiivi veergude järgi max'i, kuna siin on vaja suurimat elementi
+        # We need maximum element, that's why we don't use axis paramter
         is_improved = np.amax(rotated_xy[0]) - np.amin(rotated_xy[0]) < np.amax(xy[0]) - np.amin(
             xy[0]) and np.amax(rotated_xy[1]) - np.amin(rotated_xy[1]) < np.amax(xy[1]) - np.amin(
             xy[1])
@@ -385,7 +383,7 @@ class PsFiles(MetaSubProcess):
         self.hgt = self.hgt[sort_ind]
 
     def __get_da(self):
-        """Kuna failis on vaid üks tulp siis on loadtxt piisavalt kiire"""
+        # Because file is small (only one column) then loadtxt function is quick enought
         return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))
 
     def __get_look_angle(self, rg: np.ndarray, params):
@@ -426,7 +424,7 @@ class PsFiles(MetaSubProcess):
         return ifg_dates
 
     def get_ps_variables(self):
-        """Meetod millega eksportida muutujad mida läheb PsEstGamma ja PsSelect is vaja"""
+        """For exporting variables that are used in PsEstGamma and PsSelect"""
 
         nr_ifgs = len(self.ifgs)
         nr_ps = len(self.pscands_ij)
@@ -435,15 +433,22 @@ class PsFiles(MetaSubProcess):
 
     def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[date, date], bool],
                                       ifgs=np.array([]), master_date: date=None):
-        """Mitu intefegorammi on enne masteri kuupäeva juurde liidetud üks.
-         Kuupäev saadakse failiteest (ifgs muutja)"""
+        """
+        How many images there are after or before master image plus one. Dates are parsed are from filename.
+
+        :param comp_fun: Comparison function. Example: x > y (two params, returns boolean)
+        :param ifgs: File paths that are used to get date
+        :param master_date: Master date (optional). If not set then self.master_date is used.
+        :return: integer, that shows how many image
+        """
+
         if ifgs is None or len(ifgs) == 0:
             ifgs = self.ifgs
 
         if master_date is None:
             master_date = self.master_date
 
-        result = 1  # StaMPS'is liideti üks juurde peale töötlust
+        result = 1  # In StaMPS they added one after this processing, in return
         for ifg_path in ifgs:
             ifg_date_str_yyyymmdd = ifg_path[-13:-5]
             ifg_datetime = date(int(ifg_date_str_yyyymmdd[:4]),

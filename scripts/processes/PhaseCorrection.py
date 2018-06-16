@@ -10,7 +10,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PhaseCorrection(MetaSubProcess):
-    """Tehtud 'ps_correct_phase' järgi"""
+    """In StaMPS it was 'ps_correct_phase' fail"""
 
     __FILE_NAME = "phase_correction"
 
@@ -59,7 +59,7 @@ class PhaseCorrection(MetaSubProcess):
         self.ph_reref = data['ph_reref']
 
     def __load_ps_params(self) -> __DataDTO:
-        master_nr = self.__ps_files.master_nr - 1  # Stamps'is oli see master_ix
+        master_nr = self.__ps_files.master_nr - 1  # In Stamps this is master_ix
 
         nr_ifgs = len(self.__ps_files.ifgs)
 
@@ -70,7 +70,7 @@ class PhaseCorrection(MetaSubProcess):
     def __get_ph_rc(self, data: __DataDTO):
         bperp = data.bperp
         master_nr = data.master_nr
-        # Justkui pistame vahele
+        # It is like insert in middle
         bperp_master_col_zeros = np.insert(bperp, master_nr, values=0, axis=1)
 
         nr_ifgs = data.nr_ifgs

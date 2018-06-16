@@ -26,7 +26,7 @@ class TestPsWeed(MetaTestCase):
 
         cls.__est_gamma_process: PsEstGamma = None
 
-        # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
+        # ps_est_gamma may be None cause we load it from ps_select
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__est_gamma_process)
         cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
@@ -46,9 +46,9 @@ class TestPsWeed(MetaTestCase):
         np.testing.assert_array_almost_equal(np.where(self.__ps_weed_process.selectable_ps2)[0],
                                              bool_to_int_array(weed_mat['ix_weed2']))
 
-        # Kuna 'drop_noisy' meetodis saadakse weighted_least_sqrt2 teisem kui Snap'is siis selle
-        # tulemusena on ka need väärtused natuke teisemad. Küll aga see erinevus ei kandu edasi
-        # selectable_ps ja selectable_ps2 massiividele
+        # Because 'drop_noisy' result 'weighted_least_sqrt2' differs a bit than in Snap so those
+        # arrays are also different and needs to checked like this. But this error does not go
+        # further to selectable_ps and selectable_ps2
         PS_RTOL = 0.28
         PS_ATOL = 0.055
         np.testing.assert_allclose(self.__ps_weed_process.ps_std, np.squeeze(weed_mat['ps_std']),
@@ -95,7 +95,7 @@ class TestPsWeed(MetaTestCase):
 
         ps = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'ps2.mat'))
 
-        # Täpselt nagu PsFiles testis me ei vaata esimest veergu, sest meil pole seda lihtsalt
+        # Just like PsFiles test we check only last two columns
         np.testing.assert_array_almost_equal(xy, ps['xy'][:, 1:])
         np.testing.assert_array_almost_equal(pscands_ij, ps['ij'])
         np.testing.assert_array_almost_equal(lonlat.view(np.ndarray), ps['lonlat'], self._PLACES)
@@ -116,7 +116,7 @@ class TestPsWeed(MetaTestCase):
         self.__ps_weed_process = PsWeed(self._PATH_PATCH_FOLDER, self.__ps_files, self.__est_gamma_process, self.__ps_select)
         self.__ps_weed_process.start_process()
 
-    # todo sama asi juba test_psSelect
+    # todo Sama as in PsSelect
     def __fill_est_gamma_with_matlab_data(self):
         pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
         self.__est_gamma_process = PsEstGamma(self.__ps_files, False)

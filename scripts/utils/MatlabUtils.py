@@ -31,9 +31,12 @@ class MatlabUtils:
 
     @staticmethod
     def gausswin(M: int, alpha=2.5):
-        """Gaussi meetod töötab Maltlab'is natuke teisiti kui SciPy (scipy.signal.gaussian). 
-        See funktioon töötab nagu Matlab'is.
-        Idee: https://github.com/openworm/open-worm-analysis-toolbox/blob/master/open_worm_analysis_toolbox/utils.py"""
+        """
+        This function works like Matlab's Gaussian function. In SciPy (scipy.signal.gaussian) it
+        originally works bit differently.
+
+        Idea: https://github.com/openworm/open-worm-analysis-toolbox/blob/master/open_worm_analysis_toolbox/utils.py
+        """
 
         N = M - 1
         n = np.arange(start=0, stop=M) - N / 2
@@ -43,9 +46,8 @@ class MatlabUtils:
 
     @staticmethod
     def hist(a: np.ndarray, bins: np.ndarray, density=False):
-        """Selleks, et Matlab'i ja Numpy hist funktsioonid oleksd võrdsed paneme bin'idele lõppu
-        lõpmatuse.
-        density=True aitab sellega, et vastustesse tekikisd murdarvud"""
+        """Adds np.Inf to the bins end to make Numpy histograms equal to Matlab's.
+        Density helps with decimal values in response."""
 
         new_bins = np.r_[-np.Inf, 0.5 * (bins[:-1] + bins[1:]), np.Inf]
         return np.histogram(a, new_bins, density=density)
@@ -67,8 +69,8 @@ class MatlabUtils:
 
     @staticmethod
     def polyfit_polyval(x: np.ndarray, y: np.ndarray, deg: int, max_desinty_or_percent_rand: float):
-        """Funkstioon mis teeb seda mida Matlab'is teeb polyfit ja polyval'i, kus polyfit tagastab
-        kolm muutujat S ja mu.
+        """
+        Function that works like polyfit and polyval where polyfit returns three values.
 
         https://stackoverflow.com/questions/45338872/matlab-polyval-function-with-three-outputs-equivalent-in-python-numpy/45339206#45339206
         """

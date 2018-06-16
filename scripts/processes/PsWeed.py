@@ -21,7 +21,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsWeed(MetaSubProcess):
-    """Pikslite filtreerimine teiste naabrusest. Valitakse hulgast vaid selgemad"""
+    """Pixels filtering/ weeding from arround others. Select only best/ clearest"""
 
     __IND_ARRAY_TYPE = np.int32
     __DEF_NEIGHBOUR_VAL = -1
@@ -39,7 +39,7 @@ class PsWeed(MetaSubProcess):
 
         self.__time_win = 730
         self.__weed_standard_dev = 1
-        self.__weed_max_noise = sys.maxsize  # Stampsis oli tavaväärtus inf
+        self.__weed_max_noise = sys.maxsize  # In StaMPS this was inf
         self.__weed_zero_elevation = False
         self.__weed_neighbours = True
         # todo drop_ifg_index on juba PsSelect'is
@@ -49,11 +49,12 @@ class PsWeed(MetaSubProcess):
         self.__logger.debug("self.__ps_weed_edge_data.len: " + str(len(self.__ps_weed_edge_data)))
 
     def __load_psweed_edge_file(self, path: str) -> (int, np.ndarray):
-        """Põhjus miks me ei loe seda faili sisse juba PsFiles'ides on see, et me ei pruugi
-        PsWeed protsessi jõuda enda töötluses ja seda läheb ainult siin vaja.
+        """We load this file here because our process may not reach in this step and this file's
+        data is needed only here.
 
-        Stamps'is võeti päisest ka number, kui suur massiiv on, aga ma ei näe mõtet sellel"""
-        # todo selle võib teha @lazy'ga PsFiles'idesse
+
+        In StaMPS also where read how large is array (for header) but I don't see a point for that"""
+        # todo Maybe use @lazy and put this to PsFiles class
 
         file_name = "psweed.2.edge"
         psweed_path = Path(path, FolderConstants.PATCH_FOLDER_NAME, file_name)
@@ -95,7 +96,7 @@ class PsWeed(MetaSubProcess):
         self.__logger.info("Start")
 
         data = self.__load_ps_params()
-        # Stamps'is oli see nimetatud kui nr_ps, aga see on meil juba olemas
+        # In Stamps this was called 'nr_ps' but we already have that named variable
         coh_thresh_ind_len = len(data.coh_thresh_ind)
         if coh_thresh_ind_len == 0:
             self.__logger.warn("coh_thresh_ind is empty")
@@ -112,7 +113,7 @@ class PsWeed(MetaSubProcess):
         # todo kas saab logida ka tühjade arvu?
         self.__logger.debug("neighbour_ps.len: {0}".format(len(neighbour_ps)))
 
-        # Stamps'is oli see 'ix_weed'
+        # 'ix_weed' in StaMPS
         selectable_ps = self.__select_best(neighbour_ps, coh_thresh_ind_len, data.coh_ps, data.hgt)
         self.__logger.debug("selectable_ps.len: {0}, true vals: {1}"
                             .format(len(selectable_ps), np.count_nonzero(selectable_ps)))
@@ -120,13 +121,13 @@ class PsWeed(MetaSubProcess):
 
         selectable_ps = self.__filter_xy(data.xy, selectable_ps, data.coh_ps)
 
-        # PsWeed'is tehakse oma inteferogrammide massiiv. Stamps'is oli muutuja nimi 'ifg_index'
+        # In PsWeed we make our own intefrograms array. In Stamps'is this was called 'ifg_index'
         ifg_ind = np.arange(0, data.nr_ifgs, dtype=self.__IND_ARRAY_TYPE)
         if len(self.__drop_ifg_index) > 0:
             self.__logger.debug("Dropping indexes {0}".format(self.__drop_ifg_index))
             np.setdiff1d(ifg_ind, self.__drop_ifg_index)
 
-        # Stamps'is oli selle asemel 'no_weed_noisy'
+        # In Stamps there was paramter 'no_weed_noisy' that was calculated similarly
         if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
             edge_std, edge_max = self.__drop_noisy(data, selectable_ps, ifg_ind,
                                                    self.__ps_weed_edge_data)
@@ -144,7 +145,7 @@ class PsWeed(MetaSubProcess):
             self.__logger.error("weed_standard_dev or weed_max_noise where bigger than pi")
             raise NotImplemented("weed_standard_dev or weed_max_noise where bigger than pi")
 
-        # Leitud tulemused klassimuutujatesse
+        # Results to class variables
         self.selectable_ps = selectable_ps
         self.selectable_ps2 = selectable_ps2 # todo parem nimi
         self.ifg_ind = ifg_ind
@@ -173,11 +174,11 @@ class PsWeed(MetaSubProcess):
         self.ps_std = data["ps_std"]
 
     def get_filtered_results(self, load_path: str = None):
-        """Kuna filteerimine selectable_ps'iga alusel tehakse muutjate põhjal mis on siin juba
-        leitud sisendmuutujate leidmisel ja filteeritud näiteks 'ps_select.keep_ind' siis on siin
-        klassis seda oluliselt lihtsam teha.
+        """Because filtering is made using selectable_ps values and we already have all those
+        parameters (also class privates and paramters that are loaded only or this process) that
+        are filtered here we can do that filtering in this class.
 
-        Stamps'is tehti uued .mat failid nende salvestamiseks"""
+        In StaMPS they made new .mat files for saving results."""
 
         self.__logger.info("Finding filtered results")
 
@@ -230,17 +231,17 @@ class PsWeed(MetaSubProcess):
             return ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps
 
         def get_from_ps_files(ps_files: PsFiles, coh_thresh_ind: np.ndarray):
-            # Kasutame väärtuste saamiseks tavapärast funksiooni
+            # Lets use get_variables function to get parameters
             ph, _, nr_ifgs, nr_ps, xy, _ = ps_files.get_ps_variables()
 
-            # Ja siis filterdame coh_thresh alusel
+            # And then filter based on coh_thresh
             pscands_ij = ps_files.pscands_ij[coh_thresh_ind]
             xy = xy[coh_thresh_ind]
             ph = ph[coh_thresh_ind]
             lonlat = ps_files.lonlat[coh_thresh_ind]
             hgt = ps_files.hgt[coh_thresh_ind]
 
-            # Ja siis on mõned asjad mida me ei filterda
+            # And then get parameters that are not filtered
             master_nr = ps_files.master_nr
             ifg_dates = ps_files.ifg_dates
             bperp_meaned = ps_files.bperp_meaned
@@ -261,8 +262,8 @@ class PsWeed(MetaSubProcess):
 
         ph_patch_org = get_from_ps_est_gamma(self.__ps_est_gamma)
 
-        # Stamps'is oli siin oli ka lisaks 'all_da_flag' ja leiti teised väärtused muutujatele k_ps,
-        # c_ps, coh_ps, ph_patch_org, ph_res
+        # In Stamps there also was param 'all_da_flag' and found variables k_ps, c_ps, coh_ps,
+        # ph_patch_org, ph_res
 
         return self.__DataDTO(ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, pscands_ij, xy,
                               lonlat, hgt, ph, ph_patch_org, bperp_meaned, nr_ifgs, nr_ps,
@@ -276,9 +277,8 @@ class PsWeed(MetaSubProcess):
         return ij_shift
 
     def __init_neighbours(self, ij_shift: np.ndarray, coh_ps_len: int) -> np.ndarray:
-        """Stamps'is täideti massiiv nullidega siis mina täidan siin -1'ega (DEF_NEIGHBOUR_VAL).
-        Kuna täidetakse massiiv indeksitest ja Numpy's/ Python'is hakkavad indeksid nullist siis
-        täidame -1'ega ja siis uute väärtustega"""
+        """In StaMPS the init value was zero, I use -1 (DEF_NEIGHBOUR_VAL). Beacause 0 is correct
+        index value in Python, but not in Matlab. -1 is not index in Python"""
 
         def arange_neighbours_select_arr(i, ind):
             return ArrayUtils.arange_include_last(ij_shift[i, ind] - 2, ij_shift[i, ind])
@@ -298,9 +298,9 @@ class PsWeed(MetaSubProcess):
             start = arange_neighbours_select_arr(i, 0)
             end = arange_neighbours_select_arr(i, 1)
 
-            # Selleks, et saada len(start) * len(end) massiivi tuleb numpy's sedasi selekteerida
-            # Võib kasutada ka neighbour_ind[start, :][:, end], aga see ei luba pärast sama moodi
-            # väärtustada
+            # To get len(start) * len(end) array in Numpy we need to select it like that.
+            # You can use neighbour_ind[start, :][:, end] but then you need to add values some other
+            # way
             neighbours_val = neighbour_ind[np.ix_(start, end)]
             neighbours_val[(neighbours_val == self.__DEF_NEIGHBOUR_VAL) & (miss_middle == True)] = i
 
@@ -310,7 +310,7 @@ class PsWeed(MetaSubProcess):
 
     def __find_neighbours(self, ij_shift: np.ndarray, coh_thresh_ind_len: int,
                           neighbour_ind: np.ndarray) -> np.ndarray:
-        # Loome tühja listi, kus on sees tühjad numpy massivid
+        # List of empty Numpy arrays
         neighbour_ps = [np.array([], self.__IND_ARRAY_TYPE)] * (coh_thresh_ind_len + 1)
         for i in range(coh_thresh_ind_len):
             ind = neighbour_ind[ij_shift[i, 0] - 1, ij_shift[i, 1] - 1]
@@ -321,6 +321,10 @@ class PsWeed(MetaSubProcess):
 
     def __select_best(self, neighbour_ps: np.ndarray, coh_thresh_ind_len: int,
                       coh_ps: np.ndarray, htg: np.ndarray) -> np.ndarray:
+        """
+        Returns boolean array what is used to filter other arrays. In StaMPS it was array of int's.
+        """
+
         """Tagastab boolean'idest array, et pärast selle järgi filteerida ülejäänud massiivid.
         Stamps'is oli tegemist massiiv int'intidest"""
         selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)
@@ -332,7 +336,7 @@ class PsWeed(MetaSubProcess):
                 while j < len(ps_ind):
                     ps_i = ps_ind[j]
                     ps_ind = np.append(ps_ind, neighbour_ps[ps_i]).astype(self.__IND_ARRAY_TYPE)
-                    neighbour_ps[ps_i] = np.array([]) # Mis on loetud tühjendame
+                    neighbour_ps[ps_i] = np.array([]) # Make empty that is read
                     j += 1
 
                 ps_ind = np.unique(ps_ind)
@@ -354,22 +358,23 @@ class PsWeed(MetaSubProcess):
         return selectable_ps
 
     def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray, coh_ps: np.ndarray) -> np.ndarray:
-        """Leiame xy massiiv filteeritult
-        Siin oli veel lisaks kas tehtud dublikaatide massiv on tühi, aga selle peale leti weeded_xy
-        uuesti, aga mina sellisel tegevusel mõtet ei näinud"""
+        """Find xy array filtered.
+        In StaMPS there was also logic to find if dublicates array is empty and when it was
+        it found weeded_xy array again. Here that kind of logic isn't because I didn't find point
+        for that"""
 
-        weeded_xy = xy[selectable_ps] # Stamps'is oli see 'xy_weed'
+        weeded_xy = xy[selectable_ps] # 'xy_weed' Stamps
 
-        weed_ind = np.flatnonzero(selectable_ps) # Stamsp*is oli see 'ix_weed_num'
+        weed_ind = np.flatnonzero(selectable_ps) # 'ix_weed_num' in StaMPS
         unique_rows = np.unique(weeded_xy, return_index=True, axis=0)[1].astype(self.__IND_ARRAY_TYPE)
-        # Stamps'is transponeeriti ka veel seda järgmist, aga siin ei tee see midagi
+        # In Stamps there was also additional transposing but in this case this does not do anything
         last = np.arange(0, len(weed_ind))
-        # Stamps'is oli see 'dps'. Pikslid topelt lon/ lat'iga
+        # In Stamps this was called 'dps'. Pixels that have same lon/ lat
         duplicates = np.setxor1d(unique_rows, last)
 
         for duplicate in duplicates:
             weeded_duplicates_ind = np.where((weeded_xy[:, 0] == weeded_xy[duplicate, 0]) &
-                                      ((weeded_xy[:, 1]) == weeded_xy[duplicate, 1])) # 'dups_ix_weed' oli originaalis
+                                      ((weeded_xy[:, 1]) == weeded_xy[duplicate, 1])) # 'dups_ix_weed' in StaMPS
             duplicates_ind = weed_ind[weeded_duplicates_ind]
             high_coh_ind = coh_ps[duplicates_ind].argmax()
             selectable_ps[duplicates_ind != high_coh_ind] = False
@@ -384,14 +389,14 @@ class PsWeed(MetaSubProcess):
             exped = np.exp(-1j * (k_ps * bperp.conj().transpose()))
             ph_weed = np.multiply(ph, exped)
             ph_weed = np.divide(ph_weed, np.abs(ph_weed))
-            # Masteri müra lisamine. Tehti juhul kui Stamps'is oli small_baseline_flag != 'y'
-            # rehsape on vajalik seepärast, et c_ps on massiiv kus sees on massiivid
+            # Adding master noise. It was done when small_baseline_flag != 'y'. Reshape is needed
+            # because 'c_ps' is array of array's
             ph_weed[:, (master_nr - 1)] = np.exp(1j * c_ps).reshape(len(ph_weed))
 
             return ph_weed
 
         def get_time_deltas_in_days(index: int) -> np.ndarray:
-            """Selleks, et saaks date objektst päevade vahemiku int'ides teeme järgnevalt"""
+            """For getting days in ints from date object"""
             return np.array([(ifg_dates[index] - ifg_dates[x]).days for x in np.nditer(ifg_ind)])
 
         def get_dph_mean(dph_space, edges_len, weight_factor):
@@ -412,9 +417,9 @@ class PsWeed(MetaSubProcess):
         dph_space = np.multiply(ph_weed[edges[:, 2] - 1], ph_weed[edges[:, 1] - 1].conj())
         dph_space = dph_space[:, ifg_ind]
 
-        #todo drop_ifg_index loogika
+        #todo drop_ifg_index logic
 
-        # Järgnev tehti ainult siis kui small_baseline_flag != 'y'
+        # This all was made when small_baseline_flag != 'y'
 
         dph_shape = (len(edges), len(ifg_ind))
         dph_smooth = np.zeros(dph_shape).astype(np.complex128)
@@ -430,21 +435,22 @@ class PsWeed(MetaSubProcess):
             dph_mean_adj = np.angle(np.multiply(dph_space, repmat))
 
             G = np.array([np.ones(len(ifg_ind)), time_delta]).transpose()
-            # Stamps'is oli 'm'
+            # 'm' in Stamps
             weighted_least_sqrt = MatlabUtils.lscov(G, dph_mean_adj.conj().transpose(),
                                                     weight_factor)
-            #todo parem muutja nimi
+            #todo Find better name
             least_sqrt_G = np.asarray((np.asmatrix(G) * np.asmatrix(weighted_least_sqrt))
                                       .conj().transpose())
             dph_mean_adj = np.angle(np.exp(1j * (dph_mean_adj - least_sqrt_G)))
-            # Stamps'is oli 'm2'
+            # 'm2' in Stamps
             weighted_least_sqrt2 = MatlabUtils.lscov(G, dph_mean_adj.conj().transpose(),
                                                      weight_factor)
 
-            # weighted_least_sqrt'te juures jätame transponeerimise tegemata sest see ei mõjuta midagi
+            # We don't make transpose for weighted_least_sqrt because it doesn't
+            # do anything in this case
             dph_smooth_val_exp = np.exp(1j * (weighted_least_sqrt[0, :] + weighted_least_sqrt2[0, :]))
             dph_smooth[:, i] = np.multiply(dph_mean, dph_smooth_val_exp)
-            weight_factor[i] = 0 # Jätame ennast välja
+            weight_factor[i] = 0 # Let's make ourselves as zero
 
             dph_smooth2[:, i] = get_dph_mean(dph_space, len(edges), weight_factor)
 

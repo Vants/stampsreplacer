@@ -6,6 +6,16 @@ from scripts.utils.internal.LoggerFactory import LoggerFactory
 
 class ProcessDataSaver:
     def __init__(self, file_path: str, file_name: str, log_level="debug"):
+        """
+        This creates "saver" object instance. Uses np.savez function.
+        To load saved files use np.save.
+
+        :param file_path: Where to save (usually FolderConstants.SAVE_FOLDER)
+        :param file_name: File name (usaually some class variable)
+        :param log_level: Log_level for logger. Default value 'debug'. If you don't want logging in
+            saving then set this to None.
+        """
+
         """Loob salvestaja. 'File_path' on koht kuhu fail salvestatake (tavaliselt
         FolderConstants.SAVE_FOLDER) ja 'file_name' on faili nimi (tavaliselt klassimuutja, et
         oleks lihtsam pärast salvestatut laadida).

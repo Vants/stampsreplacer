@@ -23,10 +23,18 @@ class Main:
         self.__process_factory = self.__make_process_factory()
 
     def run(self, start=0, end=8):
-        """Parameetrid start ja stop näitavad mitmendast protsessist alusustatakse (start) ja
-        lõpetada (stop). Väikseim parameeter on 0 ja suurim 5 (tulenev len(self.processes)).
+        """
+        Parameters start and stop indicate what process to start and when to stop processing.
+        Smallest number is 0 and greatest 5 (see len(self.processes))
 
-        Ühte ainsat protsessi saab kävitada kui panna start ja end võrdseks. Näiteks run(0, 0)."""
+        You can run one process at the time when you set start and stop to equal value
+        (ex. run(0, 0).
+
+        :param start: step value where to start processing
+        :param end: step value where to end processing
+        :return: saves result(s) to save_load_path that is configuration
+        """
+
         step = -1
         try:
             for step in range(len(self.processes)):
@@ -75,7 +83,7 @@ class Main:
         config = ConfigUtils(RESOURCES_PATH)
         initial_path = config.get_default_section('path')
         patch_folder = config.get_default_section('patch_folder')
-        # Stamps'i või SNAP'i failid / vahekaust(mida ei pea olema) / PATCH_1
+        # Stamps'i/ SNAP'i files/folder(not mandatory)/PATCH_1
         path = os.path.join(initial_path, patch_folder)
 
         geo_file = config.get_default_section('geo_file')

@@ -8,7 +8,7 @@ from tests import TEST_RESOURCES_PATH
 
 
 class MetaTestCase(TestCase):
-    """See klass on justkui abstraktne klass testidele. Siin on üldmeetodi ja setup testidele"""
+    """Abstract class for tests. Setup function and some helper functions"""
     _PLACES = 5
 
     @classmethod

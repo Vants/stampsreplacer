@@ -27,7 +27,7 @@ class TestPsFiles(MetaTestCase):
         self.__start_process()
 
         ps1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'ps1.mat'))
-        # Need on salvestatud Matlab 7.3'es
+        # These are saved using Matlab 7.3
         ph1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'ph1.mat'), 'ph')
         bp1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'bp1.mat'), 'bperp_mat')
         da1 = self.__load_mat73(os.path.join(self._PATCH_1_FOLDER, 'da1.mat'), 'D_A')
@@ -38,13 +38,13 @@ class TestPsFiles(MetaTestCase):
         np.testing.assert_allclose(self._ps_files.bperp, bp1)
 
         self.assertEqual(len(self._ps_files.da), len(da1))
-        # Loadmat'is on muutujad omakorda ühemõõtmeliste massiivide sees
+        # Loadmat results are arrays in array
         np.testing.assert_allclose(np.reshape(self._ps_files.da, (len(self._ps_files.da), 1)), da1)
 
         ps1_mat_bperp = np.reshape(ps1_mat['bperp'], len(ps1_mat['bperp']))
         np.testing.assert_allclose(self._ps_files.bperp_meaned, ps1_mat_bperp)
         np.testing.assert_allclose(self._ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
-        # Meie protsessis esimest veergu ei ole, seetõttu võtame viimased kaks algsest
+        # In our process there isin't first column. That's why we take last two
         np.testing.assert_allclose(self._ps_files.xy, ps1_mat['xy'][:, 1:])
 
         self.assertAlmostEqual(self._ps_files.mean_range, ps1_mat['mean_range'])
@@ -56,7 +56,7 @@ class TestPsFiles(MetaTestCase):
 
         np.testing.assert_allclose(self._ps_files.lonlat, ps1_mat['lonlat'])
 
-        # Kuna neil pole mat'ides kontrollväärtuseid siis neid kontrollib kas on täidetud
+        # Because those values aren't added to .mat files so we can only check if these are filled
         self.assertNotEqual(self._ps_files.wavelength, 0)
         self.assertIsNotNone(self._ps_files.heading)
 
@@ -68,23 +68,21 @@ class TestPsFiles(MetaTestCase):
             np.array([date.toordinal(x) + 366 for x in self._ps_files.ifg_dates]))
         np.testing.assert_array_equal(ifg_date_days, ps1_mat['day'])
 
-        # Matlab'os hakkavad väärtused ühest, siis lisame lõppu ühe ja võtame algusest ühe ära
         np.testing.assert_allclose(self._ps_files.sort_ind.view(np.ndarray), la1)
 
         self.assertEqual(len(self._ps_files.ifgs), ps1_mat['n_ifg'])
 
         self.assertEqual(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
 
-        # hgt1 on array array's seepärast on reshape vajalik
-        # Teised väärtused on meil leitud maatriksitena üldse ja võrreldakse kasutades view'sid
+        # hgt1 is array in array, need to reshape
         np.testing.assert_allclose(self._ps_files.hgt, np.reshape(hgt1, len(hgt1)))
 
         self.assertEqual(len(self._ps_files.ph), len(ph1))
         self.assert_ph(self._ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
-        """Matlab'i mat falides pole kompleksarvud defineeritud nii nagu Numpy's.
-        Seepärast peab tegama selliselt selle võrdluse"""
+        """Those Matlab complex digits aren't defined same way as Numpy's. That's why we can't just
+        compare two arrays"""
         for row_num in range(len(ph_expected) - 1):
             row_actual = ph_actual[row_num]
             row_expected = ph_expected[row_num]

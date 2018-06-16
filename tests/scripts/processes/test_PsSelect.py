@@ -27,11 +27,9 @@ class TestPsSelect(MetaTestCase):
 
     def test_start_process_with_matlab_data(self):
         def get_keep_ix():
-            """Selleks, et saaks Matlab'i tulemitest kätte keep_ix massiivi mida saaks kasutada
-            ka Numpy array'de juures.
-            Põhiline asi on, et Numpy's on olemas boolean indexing, aga Matlab'ist tulevad
-            väärtused 1'de ja 0'dena. Selleks teeme hoopis massiivi indeksiteks mida selekeertida,
-            kasutades np.where'i"""
+            """Used to get keep_ix array to use in Numpy arrys.
+            This conversion is needed because in Numpy there is boolean indexing, but on Matlab
+            there are 1/ 0. For that we make array of boolean using np.where."""
             keep_ix = select1_mat['keep_ix']
             keep_ix = np.reshape(keep_ix, len(select1_mat['keep_ix']))
             keep_ix = np.where(keep_ix == 1)
@@ -44,9 +42,10 @@ class TestPsSelect(MetaTestCase):
 
         select1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'select1.mat'))
 
-        # Kuna Matlab'i indeksid hakkavad ühest siis liidame siin juurde
+        # Matlab indexes begin from zero and Numpy arrays from one.
+        # So we need to add one to Numpy's array
         np.testing.assert_array_almost_equal(np.add(self._ps_select.ifg_ind, 1), select1_mat['ifg_index'][0])
-        # Reshape, et saaks võrrelda omavahel. Matlab'i massiv on kahtlane veerumassiiv
+        # Reshape because Matlab's array is col-array
         np.testing.assert_array_almost_equal(np.add(self._ps_select.coh_thresh_ind, 1),
                                    select1_mat['ix'].reshape(len(select1_mat['ix'])))
         np.testing.assert_array_almost_equal(self._ps_select.ph_patch, select1_mat['ph_patch2'],

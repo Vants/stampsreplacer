@@ -28,10 +28,10 @@ class TestPhaseCorrection(MetaTestCase):
 
         cls.__ps_est_gamma = PsEstGamma(cls.__ps_files)
 
-        self = TestPhaseCorrection() # Selleks, et saaks asju väljapool @classmethod kasutada
+        self = TestPhaseCorrection() # This is needed to use variables outside @classmethod
         self.__fill_est_gamma_with_matlab_data()
 
-        # Siin võib ps_est_gamma olla none, sest me laeme ps_select'i eelnevalt salvestatult failist
+        # ps_est_gamma may be None cause we load it from ps_select
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__ps_est_gamma)
         cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
@@ -64,7 +64,7 @@ class TestPhaseCorrection(MetaTestCase):
         self.__phase_correction = PhaseCorrection(self.__ps_files, self.__ps_weed)
         self.__phase_correction.start_process()
 
-    # todo sama asi juba test_psSelect
+    # todo Same as test_psSelect
     def __fill_est_gamma_with_matlab_data(self):
         pm1_mat = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'pm1.mat'))
         self.__ps_est_gamma.coherence_bins = pm1_mat['coh_bins'][0]

@@ -24,7 +24,7 @@ class TestPsEstGamma(MetaTestCase):
         cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls.ps_files.load_results(cls._SAVE_LOAD_PATH)
 
-        # Seda kasutame teistes testides ja None'i on lihtsam kontrollida ja see protsess on natuke pikk
+        # This we use in other tests
         cls._est_gamma_process = None
 
     def test_start_process_rand_dist_cached_file(self):
@@ -40,7 +40,7 @@ class TestPsEstGamma(MetaTestCase):
             pm1_mat['coh_bins'][0])
 
         np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
-        # math.radians tekitab selle, et täpsus on natuke vähem kui tavaliselt
+        # math.radians makes we can't use default five places after decimal
         np.testing.assert_array_almost_equal(
             self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
 
@@ -62,7 +62,7 @@ class TestPsEstGamma(MetaTestCase):
                                       est_gamma_process_expected['low_pass'])
 
     def test_start_process_outter_rand_dist(self):
-        """Anname Stamps'is loodud juhuslike arvude massiivi ette"""
+        """In this test we use array of random numbers what is made by StaMPS"""
         org_Nr = scipy.io.loadmat(os.path.join(self._PATCH_1_FOLDER, 'org_Nr.mat'))['Nr'][0]
 
         self._est_gamma_process = PsEstGamma(self.ps_files, False, org_Nr)
@@ -78,7 +78,7 @@ class TestPsEstGamma(MetaTestCase):
             pm1_mat['coh_bins'][0])
 
         np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
-        # math.radians tekitab selle, et täpsus on natuke vähem kui tavaliselt
+        # Because we use math.radians not exact value it doesn't mach as well
         np.testing.assert_array_almost_equal(
             self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
 
@@ -101,7 +101,7 @@ class TestPsEstGamma(MetaTestCase):
 
         self._est_gamma_process.save_results(self._SAVE_LOAD_PATH)
 
-        # Loome uue, mille sisse laeme salvestatud failid
+        # New object where to put saved files
         est_gamma_loaded = PsEstGamma(self.ps_files)
         est_gamma_loaded.load_results(self._SAVE_LOAD_PATH)
 

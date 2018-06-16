@@ -21,7 +21,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsEstGamma(MetaSubProcess):
-    """Analüüsitakse võimalike püsivpeegeldajate faasimüra"""
+    """In this process we analize potential phasenoise Analüüsitakse võimalike püsivpeegeldajate faasimüra"""
 
     low_pass = np.ndarray
     weights = np.ndarray
@@ -33,10 +33,10 @@ class PsEstGamma(MetaSubProcess):
 
     def __init__(self, ps_files: PsFiles, rand_dist_cached_file=False,
                  outter_rand_dist=np.array([])) -> None:
-        """rand_dist_cached_file=True laeb eelnevalt leitud massiivi juhuslikkest arvudest failist
-        'tmp_rand_dist'. Täpsem loogika meetodis 'self.__make_random_dist'.
-        outter_rand_dist on massiiv juhuslikkest arvudest, mis muidu leitakse meetodiga
-        'self.__make_random_dist'. Eelkõige kasutatakse testimisekss"""
+        """rand_dist_cached_file= when True loads array of random numbers 'tmp_rand_dist' from cache
+        (see function 'self.__make_random_dist')
+        outter_rand_dist = array array of random numbers that usually if found with function
+        'self.__make_random_dist'. This is used for testing"""
 
         self.__logger = LoggerFactory.create("PsEstGamma")
 
@@ -45,33 +45,33 @@ class PsEstGamma(MetaSubProcess):
         self.rand_dist_cached = rand_dist_cached_file
         self.outter_rand_dist = outter_rand_dist
 
-        # StaMPS'is oli see 'coh_bins'
+        # In StaMPS'is this was called 'coh_bins'
         self.coherence_bins = ArrayUtils.arange_include_last(0.005, 0.995, 0.01)
 
     def __set_internal_params(self):
-        """StaMPS'is loeti need setparam'iga süsteemi. Väärtused on saadud ps_params_default failist.
-        Selgtused on leitud Hooperi Stamps'i kasutusjuhendist"""
+        """In StaMPS these where loaded to Matlab environment using setparam. All values are from
+        ps_params_default fail. Explantions are from Hooper's StaMPS/MTI Manual (Version 3.3b1)"""
 
-        # Pixel size of grid (meetrites)
+        # Pixel size of grid (in meters)
         self.__filter_grid_size = 50
         # Weighting scheme (PS probability squared)
         self.__filter_weighting = 'P-square'
-        # CLAP (Combined Low-pass and Adaptive Phase) libiseva akna suurus.
+        # CLAP (Combined Low-pass and Adaptive Phase).
         self.__clap_win = 32
-        # Selllest suuremad lainepikkused pääsevad läbi
+        # Wavelenghts that are greater than that are passed through
         self.__clap_low_pass_wavelength = 800
 
         self.__clap_alpha = 1
         self.__clap_beta = 0.3
-        # Maksimaalne DEM'i (digitaalse kõrgusmudeli) viga (meetrites).
-        # Sellest suurema väärtusega ei arvestata
+        # Maximum uncorrelated DEM error (in meters).
+        # Greater than this value is not accepted
         self.__max_topo_err = 5
-        # Lubatud muutuste keskmine väärtus. Koherentsuse sarnane väärtus.
+        # Threshold for change in change in mean value of γ(coherence like value)
         self.__gamma_change_convergence = 0.005
         # mean range - need only be approximately correct
         self.__mean_range = 830000
 
-        self.__low_coherence_thresh = 31  # Võrdne 31/100'jaga
+        self.__low_coherence_thresh = 31  # Equal to 31/100
 
     def start_process(self):
         self.__logger.info("Started")
@@ -157,34 +157,34 @@ class PsEstGamma(MetaSubProcess):
         return np.fft.fftshift(np.asmatrix(butter_i).conj().transpose() * butter_i)
 
     def __load_ps_params(self):
-        """Loeb sisse muutujad ps_files'ist ja muudab neid vastavalt"""
+        """Loads needed parameters from ps_files object and takes what it needs"""
 
         ph, bperp, nr_ifgs, nr_ps, xy, da = self.__ps_files.get_ps_variables()
-        nr_ifgs -= 1 # Teistes protsessides kus seda muutjat kasutatakse seda teha ei tohi. StaMPS'is small_basline=n
+        # In StaMPS small_basline=n
+        nr_ifgs -= 1 # This is only for this process. In other proecesses nr_ifgs must remain unchanged
 
         ph = MatrixUtils.delete_master_col(ph, self.__ps_files.master_nr)
         ph_abs = np.abs(ph)
-        ph_abs[np.where(ph_abs == 0)] = 1 # Selleks, et nulliga jagamine välistada
+        ph_abs[np.where(ph_abs == 0)] = 1 # Excluding possibility dividing with zero
         ph = np.divide(ph, ph_abs)
 
-        # bprep_meaned on massiiv ridadest, mitte veergudest
-        # siis tavaline delete_master_col ei tööta
+        # Because bprep_meaned on is row array not column array delete_master_col function does not
+        # work
         bprep_meaned = np.delete(self.__ps_files.bperp_meaned, self.__ps_files.master_nr - 1)
 
-        # Matlab'is oli 0.052 selle math.radians(3) asemel
-        # Stamps'is oli nimetatud 'inc_mean'
+        # In Stamps there was 0.052 instead of math.radians(3). Variable was named 'inc_mean'
         sort_ind_meaned = np.mean(self.__ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
 
     def __get_nr_trial_wraps(self, bperp_meaned, sort_ind_meaned) -> np.float64:
-        # todo mis on k?
+        # todo what is k?
         k = self.__ps_files.wavelength * self.__mean_range * np.sin(sort_ind_meaned) / 4 / math.pi
         max_k = self.__max_topo_err / k
 
         bperp_range = MatlabUtils.max(bperp_meaned) - MatlabUtils.min(bperp_meaned)
 
-        # todo kas miks see max_k / (2 * math.pi)?
+        # todo why such formula?
         return bperp_range * max_k / (2 * math.pi)
 
     def __make_random_dist(self, nr_ps, nr_ifgs, bperp_meaned, nr_trial_wraps):
@@ -216,7 +216,7 @@ class PsEstGamma(MetaSubProcess):
             return rand_dist, nr_max_nz_ind
 
         def random_dist():
-            NR_RAND_IFGS = nr_ps  # StaMPS'is oli see 300000
+            NR_RAND_IFGS = nr_ps  # In StaMPS'is it is 300000
             random = np.random.RandomState(2005)
 
             rnd_ifgs = 2 * math.pi * random.rand(NR_RAND_IFGS, nr_ifgs)
@@ -224,7 +224,7 @@ class PsEstGamma(MetaSubProcess):
             random_coherence = np.zeros((NR_RAND_IFGS, 1))
             for i in range(NR_RAND_IFGS - 1, 0, -1):
                 phase = np.exp(1j * rnd_ifgs[i])
-                # Siin juhul kasutame ainult koherentsust
+                # We need only coherence here
                 _, coherence_0, _, _ = PsTopofit.ps_topofit_fun(phase, bperp_meaned, nr_trial_wraps)
                 random_coherence[i] = coherence_0[0]
 
@@ -249,8 +249,9 @@ class PsEstGamma(MetaSubProcess):
     def __get_grid_ij(self, xy: np.ndarray):
 
         def fill_cols_with_xy_values(xy_col: np.ndarray):
-            # Float32 on vajalik selleks, et komakohti ei tekiks liiga palju. Kui komakohti on
-            # liiga palju siis võib juhtuda, et arvud on näiteks 2224.000001, mis ümardatakse 2225'eni
+            # Float32 is needed because with default type you get too many decimal places. But when
+            # there is too many declimal places round up(celi) makes 2224.00001 to 2225 what is
+            # wrong value
             col_formula = lambda x: np.ceil((x - np.amin(x) + 1e-6).astype(np.float32) / self.__filter_grid_size)
 
             grid_ij_col = col_formula(xy_col)
@@ -289,9 +290,9 @@ class PsEstGamma(MetaSubProcess):
 
         def make_ph_grid(ph_grid_shape: tuple, grid_ij: np.ndarray, weights: np.ndarray,
                          loop_nr: int) -> np.ndarray:
-            # Tüüp peab olema np.complex128, sest pydsm.relab.shiftdim tagastab selles tüübis
-            # ph_grid'i ja ph_filt peab uuesti looma. Vastasel juhul jäävad vanad tulemused sisse
-            # ja väärtused on valed
+            # np.complex128 is needed because this is the type that pydsm.relab.shiftdim returns.
+            # ph_grid and ph_filt are needed to make again. Otherwise there are old values in those
+            # arrays
             ph_grid = np.zeros(ph_grid_shape, np.complex128)
             for id in range(loop_nr):
                 x_ind = int(grid_ij[id, 0]) - 1
@@ -334,12 +335,12 @@ class PsEstGamma(MetaSubProcess):
         k_ps = zero_ps_array_cont()
 
         # Est topo error
-        # Siin me loome muutujad, et returnida, refacto
+        # Initializing variables that are retunred in the end
         c_ps = zero_ps_array_cont()
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
 
-        log_i = 0 # Logimiseks int, et näha mitmendat tiiru tehakse
+        log_i = 0 # Used for logging to see how many cycle we have done
         self.__logger.debug("is_gamma_in_change_delta loop begin")
         while not is_gamma_in_change_delta():
             log_i += 1
@@ -359,7 +360,7 @@ class PsEstGamma(MetaSubProcess):
 
             del ph_filt
 
-            # See on siin protsessis kõige aeglasem koht
+            # This is the slowest part in this process
             topofit = PsTopofit(SW_ARRAY_SHAPE, nr_ps, nr_ifgs)
             topofit.ps_topofit_loop(ph, ph_patch, bprep, nr_trial_wraps)
             k_ps = topofit.k_ps.copy()
@@ -374,7 +375,7 @@ class PsEstGamma(MetaSubProcess):
 
             gamma_change_rms = np.sqrt(np.sum(np.power(coh_ps - coh_ps_result, 2) / nr_ps))
             gamma_change_delta = gamma_change_rms - gamma_change
-            # Salvestame ajutistesse muutujatesse gamma ja koherentsuse_mida pärast tagastada
+            # Saving gamma and coherence that are returned later to temp variables
             gamma_change = gamma_change_rms
             coh_ps_result = coh_ps
 
@@ -382,9 +383,10 @@ class PsEstGamma(MetaSubProcess):
                                 + str(not is_gamma_in_change_delta() and
                                       self.__filter_weighting == 'P-square'))
             if not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square':
-                hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins) # Stamps'is oli see 'Na'
+                # In Stamps it was named 'Na'
+                hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins)
                 self.__logger.debug("hist[0:3] " + str(hist[:3]))
-                # Juhuslikud sagedused tehakse reaalseteks
+                # Random values get real here
                 low_coh_thresh_ind = self.__low_coherence_thresh
                 real_distr = np.sum(hist[:low_coh_thresh_ind]) / np.sum(
                     self.rand_dist[:low_coh_thresh_ind])
@@ -393,23 +395,23 @@ class PsEstGamma(MetaSubProcess):
                 hist[hist == 0] = 1
                 p_rand = np.divide(self.rand_dist, hist)
                 p_rand[:low_coh_thresh_ind] = 1
-                p_rand[self.nr_max_nz_ind:] = 0 #Stampsis liideti nr_max_nz_ind'le üks juurde
+                p_rand[self.nr_max_nz_ind:] = 0 # In Stampsis nr_max_nz_ind was added one
                 p_rand[p_rand > 1] = 1
                 p_rand_added_ones = np.append(np.ones(7), p_rand)
                 filtered = scipy.signal.lfilter(MatlabUtils.gausswin(7), [1], p_rand_added_ones)
                 p_rand = filtered / np.sum(MatlabUtils.gausswin(7))
                 p_rand = p_rand[7:]
 
-                # Leidsin, et quadratic on natuke täpsem kui tavaline cubic
+                # Found that 'quadratic' is bit more accurate than 'cubic'
                 p_rand = MatlabUtils.interp(np.append([1.0], p_rand), 10, 'quadratic')[:-9]
 
-                # coh_ps'ist teeme indeksite massiivi. astype on vajalik sest Numpy jaoks peavad
-                # indeksid olema int'id. reshape on vajalik seepärast, et coh_ps on massiiv
-                # massiividest
+                # Here we covert coh_ps to indexes array. astype is needed because in Numpy all
+                # indexes must be int type.
+                # reshape is needed because coh_ps is array on arrays.
                 coh_ps_as_ind = np.round(coh_ps * 1000).astype(np.int)
                 if len(coh_ps_as_ind.shape) > 1:
                     coh_ps_as_ind = np.squeeze(coh_ps_as_ind)
-                # Stampsis oli see 'Prand_ps'
+                # In Stamps this was 'Prand_ps'
                 ps_rand = p_rand[coh_ps_as_ind].conj().transpose()
 
                 weights = np.reshape(np.power(1 - ps_rand, 2), SW_ARRAY_SHAPE)
@@ -417,11 +419,11 @@ class PsEstGamma(MetaSubProcess):
         return ph_patch, k_ps, c_ps, coh_ps_result, n_opt, ph_res, ph_grid, low_pass
 
     def __clap_filt(self, ph: np.ndarray, low_pass: np.ndarray):
-        """CLAP_FILT Combined Low-pass Adaptive Phase filtering. 
-        Muutujad nr_win, nr_pad olid StaMPS'is sisendmuutujad ning need korrutati läbi
-        enne funktsiooni poole pöördumist sama moodi nagu tehakse siin. 
-        Samuti olid sisendmuutujad clap_alpha ja clap_beta, aga kuna need on globaalsed muutujad 
-        siis ei teinud neid funkstiooni sisenditeks"""
+        """CLAP_FILT Combined Low-pass Adaptive Phase filtering.
+        Variables nr_win, nr_pad where inputs in StaMPS but these were multiplied before inputing
+        into function. Here it is done intrenally here.
+        Also clap_alpha ja clap_beta where inputs but in this case those are global class variables
+        so we can use them and don't need for inputs"""
 
         def create_grid(nr_win: int):
             # todo Kuidas siin see -1 asju katki ei tee?
@@ -436,14 +438,14 @@ class PsEstGamma(MetaSubProcess):
             WIND_FUNC_TYPE = np.float64
             wind_func = np.array(np.append(grid, np.fliplr(grid), axis=1), WIND_FUNC_TYPE)
             wind_func = np.array(np.append(wind_func, np.flipud(wind_func), axis=0), WIND_FUNC_TYPE)
-            # Selleks, et äärtes ei läheks nulli
+            # In order to prevent zeros in corners
             wind_func += 1e-6
 
             return wind_func
 
         def get_indexes(loop_index: int, inc: int, nr_win: int) -> (int, int):
             i1 = loop_index * inc
-            # Siin ei tee -1, sest kui me selekteerime massiivist siis viimast ei võeta
+            # We don't do -1 because otherwise last element in array is not selected
             i2 = i1 + nr_win
 
             return i1, i2
@@ -459,14 +461,14 @@ class PsEstGamma(MetaSubProcess):
         ph_i_len = ph.shape[0] - 1
         ph_j_len = ph.shape[1] - 1
         nr_inc = int(np.floor(nr_win / 4))
-        # Kuna indeksid hakkavad 0'ist siis need väärtused on ühe võrra suuremad võrreldes Stamps'iga
+        # Indexes begin from zero on Python. That's why those values are greater than StaMPS
         nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 3)
         nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 3) + 1
 
         wind_func = make_wind_func(create_grid(nr_win))
 
-        # Selleks, et transponeerimine töötaks nagu Matlab'is teeme need maatriksiteks
-        # todo: samasugune asi on juba PsSelect'is
+        # To make transpose work like Matlab we need to convert thos to matrix
+        # todo: PsSelect has similar thing
         B = np.multiply(np.asmatrix(MatlabUtils.gausswin(7)),
                         np.asmatrix(MatlabUtils.gausswin(7)).transpose())
 
@@ -490,9 +492,8 @@ class PsEstGamma(MetaSubProcess):
 
                 if j2 > ph_j_len:
                     j_shift = j2 - ph_j_len - 1
-                    # Kuna massiivi pikkus (ph_i_len ja ph_j_len) on niigi lühem ja numpy ei võta
-                    # viimast numbrit selekteerimisel arvesse siis liidame ühe juurde indeksitele
-                    # juurde
+                    # Because array lenghts, ph_i_len and ph_j_len, are already smaller and Numpy
+                    # does not take last index when selecting, then we need to add one more
                     j2 = ph_j_len + 1
                     j1 = ph_j_len - nr_win + 1
                     w_f2 = np.append(np.zeros((nr_win, j_shift)), w_f2[:, :nr_win - j_shift],
@@ -500,9 +501,9 @@ class PsEstGamma(MetaSubProcess):
 
                 ph_bit[:nr_win, :nr_win] = ph[i1: i2, j1: j2]
 
-                ph_fft = np.fft.fft2(ph_bit) # todo viiendast komakohast lähevad tulemused vääraks
-                # ph_fft = fftw.interfaces.numpy_fft.fft2(ph_bit) # todo viiendast komakohast lähevad tulemused vääraks
-                smooth_resp = np.abs(ph_fft) # Stamps*is oli see 'H'
+                ph_fft = np.fft.fft2(ph_bit) # todo Todo from fifth decimal point the values are not equal to Stamps result
+                # ph_fft = fftw.interfaces.numpy_fft.fft2(ph_bit) #  todo Todo from fifth decimalpoint the values are not equal to Stamps result
+                smooth_resp = np.abs(ph_fft) # 'H' in Stamps
                 smooth_resp = np.fft.ifftshift(
                     MatlabUtils.filter2(B, np.fft.ifftshift(smooth_resp)))
                 # smooth_resp = fftw.interfaces.numpy_fft.ifftshift(
@@ -514,11 +515,11 @@ class PsEstGamma(MetaSubProcess):
 
                 smooth_resp = np.power(smooth_resp, self.__clap_alpha)
 
-                # todo Väärtused alla mediaani nulliks. Milleks see osa?
+                # todo Values under median to zero. Why that?
                 smooth_resp -= 1
                 smooth_resp[smooth_resp < 0] = 0
 
-                # todo mida tähistab G?
+                # todo What is G?
                 G = smooth_resp * self.__clap_beta + low_pass
                 ph_filt = np.fft.ifft2(np.multiply(ph_fft, G))
                 # ph_filt = fftw.interfaces.numpy_fft.ifft2(np.multiply(ph_fft, G))
