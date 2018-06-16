@@ -28,7 +28,7 @@ class Main:
         Smallest number is 0 and greatest 5 (see len(self.processes))
 
         You can run one process at the time when you set start and stop to equal value
-        (ex. run(0, 0).
+        (ex. run(0, 0)).
 
         :param start: step value where to start processing
         :param end: step value where to end processing
