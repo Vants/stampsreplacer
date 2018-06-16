@@ -38,13 +38,13 @@ class TestPsFiles(MetaTestCase):
         np.testing.assert_allclose(self._ps_files.bperp, bp1)
 
         self.assertEqual(len(self._ps_files.da), len(da1))
-        # Loadmat results are arrays in array
+        # Loadmat results are array of arrays
         np.testing.assert_allclose(np.reshape(self._ps_files.da, (len(self._ps_files.da), 1)), da1)
 
         ps1_mat_bperp = np.reshape(ps1_mat['bperp'], len(ps1_mat['bperp']))
         np.testing.assert_allclose(self._ps_files.bperp_meaned, ps1_mat_bperp)
         np.testing.assert_allclose(self._ps_files.pscands_ij.view(np.ndarray), ps1_mat['ij'])
-        # In our process there isin't first column. That's why we take last two
+        # In our process there isn't first column. That's why we take last two
         np.testing.assert_allclose(self._ps_files.xy, ps1_mat['xy'][:, 1:])
 
         self.assertAlmostEqual(self._ps_files.mean_range, ps1_mat['mean_range'])
@@ -74,15 +74,15 @@ class TestPsFiles(MetaTestCase):
 
         self.assertEqual(len(self._ps_files.pscands_ij), ps1_mat['n_ps'])
 
-        # hgt1 is array in array, need to reshape
+        # hgt1 is array of arrays, need to reshape
         np.testing.assert_allclose(self._ps_files.hgt, np.reshape(hgt1, len(hgt1)))
 
         self.assertEqual(len(self._ps_files.ph), len(ph1))
         self.assert_ph(self._ps_files.ph, ph1)
 
     def assert_ph(self, ph_actual, ph_expected):
-        """Those Matlab complex digits aren't defined same way as Numpy's. That's why we can't just
-        compare two arrays"""
+        """Those Matlab complex digits aren't defined same way as Numpy's. That's why we can't
+        compare two arrays the same way"""
         for row_num in range(len(ph_expected) - 1):
             row_actual = ph_actual[row_num]
             row_expected = ph_expected[row_num]

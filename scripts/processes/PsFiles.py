@@ -23,7 +23,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 class PsFiles(MetaSubProcess):
     """Here we initialize and fill all variables that are needed later.
-    Made after StaMPS'i ps_load_inital_gamma."""
+    Based on StaMPS ps_load_inital_gamma."""
 
     heading: float = 0.0
     mean_range: float = 0.0
@@ -45,12 +45,12 @@ class PsFiles(MetaSubProcess):
     __FILE_NAME = "ps_files"
 
     def __init__(self, path: str, create_lonlat: CreateLonLat):
-        # Parameters that are read from different files and are needed later other processes
+        # Parameters that are read from different files and are needed in other processes
 
         self.__path = Path(path)
         self.__patch_path = Path(path, FolderConstants.PATCH_FOLDER_NAME)
 
-        # Beacause there are only two paramters to load we can do it here, in constructor
+        # Because there are only two parameters to load we can do it here, in constructor
         self.pscands_ij = np.asmatrix(create_lonlat.pscands_ij)
         self.lonlat = np.asmatrix(create_lonlat.lonlat)
 
@@ -153,10 +153,10 @@ class PsFiles(MetaSubProcess):
 
     def __get_bprep(self, ifgs: np.ndarray, sat_look_angle: np.ndarray, params: dict):
         """Here we find bprep_meaned and bprep_arr that were in Stamps accordingly bperp
-        and bperp_mat. Saving both of varaibles just in case.
+        and bperp_mat. Saving both of variables just in case.
 
-        In StaMPS ij fail where loaded locally and calculations where done with matrix third column.
-        In Python this process is too slow (lmost 30 seconds)."""
+        In StaMPS ij file where loaded locally and calculations where done with matrix third column.
+        In Python this process is too slow (about 30 seconds)."""
         ARRAY_TYPE = np.float64
 
         cos_sat_look_angle = np.cos(sat_look_angle)
@@ -250,7 +250,7 @@ class PsFiles(MetaSubProcess):
             raise FileNotFoundError(base_file_name + " not found.")
 
     def __load_params_from_rsc_file(self) -> dict:
-        """From this file we read satelite metadata. Loaded params are put into dict and returned"""
+        """From this file we read satellite metadata. Loaded params are put into dict and returned"""
 
         params = {}
 
@@ -330,10 +330,10 @@ class PsFiles(MetaSubProcess):
         return (MatlabUtils.max(self.lonlat) + MatlabUtils.min(self.lonlat)) / 2
 
     def __get_xy(self):
-        """ij array is taken last two columns that are x an y.
-        This is multiplied with scalar, fixes data by turning picture and later sorted by y column.
-        Here we additionally also add sorting index column that other arrays can use."""
 
+        """ij array is taken last two columns that are x an y.
+        This is multiplied with scalar, fixes data by rotating image and later sorted by y column.
+        Here we additionally also add sorting index column that other arrays can use."""
         xy = np.fliplr(self.pscands_ij.copy())[:, 0:2]
         xy[:, 0] *= 20
         xy[:, 1] *= 4
@@ -361,7 +361,7 @@ class PsFiles(MetaSubProcess):
         xy = xy.H
 
         rotated_xy = rotm * xy
-        # We need maximum element, that's why we don't use axis paramter
+        # We need maximum element, that's why we don't use axis parameter
         is_improved = np.amax(rotated_xy[0]) - np.amin(rotated_xy[0]) < np.amax(xy[0]) - np.amin(
             xy[0]) and np.amax(rotated_xy[1]) - np.amin(rotated_xy[1]) < np.amax(xy[1]) - np.amin(
             xy[1])
@@ -383,7 +383,7 @@ class PsFiles(MetaSubProcess):
         self.hgt = self.hgt[sort_ind]
 
     def __get_da(self):
-        # Because file is small (only one column) then loadtxt function is quick enought
+        # Because the file is small (only one column) then loadtxt function is quick enough
         return np.loadtxt(str(Path(self.__patch_path, "pscands.1.da")))
 
     def __get_look_angle(self, rg: np.ndarray, params):
@@ -434,12 +434,13 @@ class PsFiles(MetaSubProcess):
     def get_nr_ifgs_copared_to_master(self, comp_fun: Callable[[date, date], bool],
                                       ifgs=np.array([]), master_date: date=None):
         """
-        How many images there are after or before master image plus one. Dates are parsed are from filename.
+        How many images there are after or before master image plus one. Dates are parsed are from
+        filename.
 
         :param comp_fun: Comparison function. Example: x > y (two params, returns boolean)
         :param ifgs: File paths that are used to get date
         :param master_date: Master date (optional). If not set then self.master_date is used.
-        :return: integer, that shows how many image
+        :return: integer, number of images
         """
 
         if ifgs is None or len(ifgs) == 0:

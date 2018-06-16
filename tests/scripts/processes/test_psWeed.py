@@ -26,7 +26,7 @@ class TestPsWeed(MetaTestCase):
 
         cls.__est_gamma_process: PsEstGamma = None
 
-        # ps_est_gamma may be None cause we load it from ps_select
+        # ps_est_gamma may be None because we load it from ps_select
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__est_gamma_process)
         cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 

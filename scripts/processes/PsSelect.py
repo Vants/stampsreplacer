@@ -45,7 +45,7 @@ class PsSelect(MetaSubProcess):
         self.__select_method = self._SelectMethod.DESINTY  # DESINITY or PERCENT
         # todo Why is this here
         self.__gamma_stdev_reject = 0
-        # TODO This was [] in Stamps
+        # TODO This is [] in Stamps
         self.__drop_ifg_index = np.array([])
         self.__low_coh_tresh = 31  # 31/100
 
@@ -54,7 +54,7 @@ class PsSelect(MetaSubProcess):
 
     class __DataDTO(object):
         """This is inner data transfer object. It is because some functions take very many
-        paramters, so we use this class. It is filled in load_ps_params function"""
+        parameters, so we use this class. It is filled in load_ps_params function"""
 
         def __init__(self, ph: np.ndarray, nr_ifgs: int, xy: np.ndarray,
                      da: np.ndarray, ifg_ind: np.ndarray, da_max: np.ndarray,
@@ -125,7 +125,7 @@ class PsSelect(MetaSubProcess):
         self.ph_patch = ph_patch
         self.coh_thresh_ind = coh_thresh_ind
         self.keep_ind = keep_ind
-        self.coh_ps = coh_ps # In StaMPS this result was overriden from last process
+        self.coh_ps = coh_ps # In StaMPS this result is overriden from last process
         self.coh_ps2 = topofit.coh_ps # Find better name
         self.ph_res = topofit.ph_res
         self.k_ps = topofit.k_ps
@@ -207,7 +207,7 @@ class PsSelect(MetaSubProcess):
 
         ph, bperp, nr_ifgs, _, xy, da = self.__ps_files.get_ps_variables()
 
-        # In StaMPS this was done when small_base_line flag was not 'y'. Beacause this process is
+        # In StaMPS this is done when small_base_line flag is not 'y'. Beacause this process is
         # made as small_baseline_flag value is 'n' we also make this always
         ifg_ind, ph, bperp, nr_ifgs = filter_params_based_on_ifgs_and_master(ph, bperp, nr_ifgs)
 
@@ -220,16 +220,16 @@ class PsSelect(MetaSubProcess):
         return data_dto
 
     def __get_max_rand(self, da_max: np.ndarray, xy: np.ndarray):
-        """This function finds variable that in StaMPS was called 'max_percent_rand'.
+        """This function finds variable that in StaMPS is called 'max_percent_rand'.
 
-        In StaMPS this variable was read in parameters. But in this process we also change it a bit
+        In StaMPS this variable is read in parameters. But in this process we also change it a bit
         we calculate this here"""
 
         DEF_VAL = 20
 
         if self.__select_method is self._SelectMethod.DESINTY:
-            # StaMPS'is tagastati min'ist ja max'ist massiivid milles oli üks element
-            patch_area = np.prod(MatlabUtils.max(xy) - MatlabUtils.min(xy)) / 1e6  # km'ites
+            # In Stamps min and max values are in separate arrays with a single element.
+            patch_area = np.prod(MatlabUtils.max(xy) - MatlabUtils.min(xy)) / 1e6  # In km
             max_rand = DEF_VAL * patch_area / (len(da_max) -1)
         else:
             max_rand = DEF_VAL
@@ -246,7 +246,7 @@ class PsSelect(MetaSubProcess):
         array_size = data.da_max.size - 1
 
         min_coh = np.zeros(array_size)
-        # In StaMPS this was size(da_max, 1) what is same as length(da_max)
+        # In StaMPS this is size(da_max, 1) what is same as length(da_max)
         da_mean = np.zeros(array_size)
         for i in range(array_size):
             # You can use np.all or np.logical here too. Bitwize isn't must
@@ -256,14 +256,14 @@ class PsSelect(MetaSubProcess):
                 data.da[(data.da > data.da_max[i]) & (data.da <= data.da_max[i + 1])])
             # Remove pixels that we could not find coherence
             coh_chunk = coh_chunk[coh_chunk != 0]
-            # In StaMPS this was called 'Na'
+            # In StaMPS this is called 'Na'
             hist, _ = MatlabUtils.hist(coh_chunk, coherence_bins)
 
             hist_low_coh_sum = MatlabUtils.sum(hist[:self.__low_coh_tresh])
             rand_dist_low_coh_sum = MatlabUtils.sum(rand_dist[:self.__low_coh_tresh])
             nr = rand_dist * hist_low_coh_sum / rand_dist_low_coh_sum  # todo What does this 'nr' mean?
 
-            # In StaMPS here was also possibility to make graph
+            # In StaMPS here is also possibility to make graph
 
             hist[hist == 0] = 1
 
@@ -292,7 +292,7 @@ class PsSelect(MetaSubProcess):
                 else:
                     max_fit_ind = MatlabUtils.min(ok_ind) + 2  # todo Why 2?
 
-                    # StaMPS'is oli suuruse asemel konstant 100
+                    # In StaMPS this is just constant 100. Not length of array.
                     if max_fit_ind > len(percent_rand) - 1:
                         max_fit_ind = len(percent_rand) - 1
 
@@ -304,7 +304,7 @@ class PsSelect(MetaSubProcess):
                                                              max_rand)
 
         # Check if min_coh is unusable (full of nan's
-        # This was bit different on StaMPS. I find min_coh'i ja da_mean in same method and in
+        # This is bit different on StaMPS. I find min_coh'i ja da_mean in same method and in
         # same time
         not_nan_ind = np.where(min_coh != np.nan)[0]
         is_min_coh_nan_array = sum(not_nan_ind) == 0
@@ -317,7 +317,7 @@ class PsSelect(MetaSubProcess):
 
     def __get_coh_thresh(self, min_coh: np.ndarray, da_mean: np.ndarray,
                          is_min_coh_nan_array: bool, da: np.ndarray):
-        """Here we don't return coh_tresh_coffs'i because it was used only for graphs"""
+        """Here we don't return coh_tresh_coffs'i because it is used only for graphs"""
         DEF_COH_THRESH = 0.3
 
         if is_min_coh_nan_array:
@@ -375,10 +375,9 @@ class PsSelect(MetaSubProcess):
             coh_thresh_filter_fun = lambda: coh_thresh_ind[coh_std < self.__gamma_stdev_reject]
             coh_thresh_ind = make_coh_thresh_ind_array(coh_thresh_filter_fun)
 
-            # todo In StaMPS here was logic rest_flag. Is it needed?
+            # todo In StaMPS here is logic rest_flag. Is it needed?
             # for i in range(self.__drop_ifg_index):
-            # Beacause this process is made as small_baseline_flag = 'N' we don't have more here.
-            # But in StaMPS'is there was
+            # Because this process is made as small_baseline_flag = 'N' we don't have more here.
 
         return coh_thresh_ind
 
@@ -409,7 +408,7 @@ class PsSelect(MetaSubProcess):
             return ind_array
 
         def ph_path_loop():
-            # In StaMPS this was the place where to delete 'ph_res' and 'ph_patch' that were found
+            # In StaMPS this is the place where to delete 'ph_res' and 'ph_patch' that were found
             # from last process
 
             NR_PS = len(coh_thresh_ind)
@@ -477,7 +476,7 @@ class PsSelect(MetaSubProcess):
 
     def __clap_filt_for_patch(self, ph, low_pass):
         """Combined Low-pass Adaptive Phase filtering on 1 patch.
-        In StaMPS this was in separate function clap_filt_patch"""
+        In StaMPS this is in separate function clap_filt_patch"""
 
         alpha = self.__clap_alpha
         beta = self.__clap_beta
@@ -519,7 +518,7 @@ class PsSelect(MetaSubProcess):
         topofit.ps_topofit_loop(ph, ph_patch, bperp, self.__ps_est_gamma.nr_trial_wraps,
                                 data.ifg_ind)
 
-        # In StaMPS old value was overridden here
+        # In StaMPS old value is overridden here
         coh_ps = self.__ps_est_gamma.coh_ps.copy()
         coh_ps[coh_thresh_ind] = topofit.coh_ps
 
@@ -527,13 +526,13 @@ class PsSelect(MetaSubProcess):
 
     def __get_keep_ind(self, coh_ps : np.ndarray, coh_thresh : np.ndarray,
                        coh_thresh_ind : np.ndarray, k_ps2: np.ndarray) -> np.ndarray:
-        """In Stamps variable was named 'keep_ix'"""
+        """In Stamps variable is named 'keep_ix'"""
 
         bperp_meaned = self.__ps_files.bperp_meaned
         k_ps = self.__ps_est_gamma.k_ps[coh_thresh_ind]
         bperp_delta = np.max(bperp_meaned) - np.min(bperp_meaned)
 
-        # Reshape is needed because otherwise we get array in array
+        # Reshape is needed because otherwise we get array of arrays
         coh_ps_len = len(coh_ps)
         coh_ps_reshaped = coh_ps.reshape(coh_ps_len)
         delta = (np.abs(k_ps - k_ps2) < 2 * np.pi / bperp_delta).reshape(coh_ps_len) #todo parem nimi

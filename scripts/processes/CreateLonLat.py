@@ -50,7 +50,7 @@ class CreateLonLat(MetaSubProcess):
                 # tmp__pixel_array is needed because readPixels returns x-size that much what is set
                 # in third parameter. But there isn't any limiter for y-size and this means it takes
                 # how much it can.
-                # This needs optimization. That you load all rows in one take and set them to lonlat.
+                # This needs optimization. That you load all rows in one take and set them to lonlat
                 tmp__pixel_array = np.zeros((1, 1), dtype=self.__ARRAY_TYPE)
                 tmp_lonlat = np.zeros((1, 2), dtype=self.__ARRAY_TYPE)
                 self.__read_pixel(x, y, lon_band, tmp__pixel_array)
@@ -91,7 +91,7 @@ class CreateLonLat(MetaSubProcess):
         band.readPixels(x, y, 1, 1, tmp_array)
 
     def __add_to_pscands_array(self, arr1: int, arr2: int, arr3: int):
-        """When we process this we append values to pscands"""
+        """When we process the list, we append initial values to pscands"""
         if (self.pscands_ij is None):
             self.pscands_ij = []
 

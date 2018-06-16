@@ -24,14 +24,14 @@ class Main:
 
     def run(self, start=0, end=8):
         """
-        Parameters start and stop indicate what process to start and when to stop processing.
-        Smallest number is 0 and greatest 5 (see len(self.processes))
+        The parameters start and end indicate the index of the process start and when to end
+        processing. The smallest number is 0 and the greatest 5 (see len(self.processes)).
 
-        You can run one process at the time when you set start and stop to equal value
-        (ex. run(0, 0)).
+        You can run one process at the time when you set start and end to equal value
+        (:e.g. run(0, 0)).
 
-        :param start: step value where to start processing
-        :param end: step value where to end processing
+        :param start: step index where to start processing
+        :param end: step index where to end processing
         :return: saves result(s) to save_load_path that is configuration
         """
 
@@ -83,7 +83,7 @@ class Main:
         config = ConfigUtils(RESOURCES_PATH)
         initial_path = config.get_default_section('path')
         patch_folder = config.get_default_section('patch_folder')
-        # Stamps'i/ SNAP'i files/folder(not mandatory)/PATCH_1
+        # Stamps or SNAP files/folder(not mandatory)/PATCH_1
         path = os.path.join(initial_path, patch_folder)
 
         geo_file = config.get_default_section('geo_file')

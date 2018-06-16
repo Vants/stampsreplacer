@@ -10,7 +10,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PhaseCorrection(MetaSubProcess):
-    """In StaMPS it was 'ps_correct_phase' fail"""
+    """In StaMPS is 'ps_correct_phase' file"""
 
     __FILE_NAME = "phase_correction"
 
@@ -70,7 +70,7 @@ class PhaseCorrection(MetaSubProcess):
     def __get_ph_rc(self, data: __DataDTO):
         bperp = data.bperp
         master_nr = data.master_nr
-        # It is like insert in middle
+        # Insert zeros filled column into bperp array. This represents master image data.
         bperp_master_col_zeros = np.insert(bperp, master_nr, values=0, axis=1)
 
         nr_ifgs = data.nr_ifgs

@@ -8,7 +8,7 @@ from scripts.utils.MatlabUtils import MatlabUtils
 
 # Todo tests for class
 class PsTopofit:
-    """Class or calculation Topofit. Main logic in topofit ps_topofit_loop function"""
+    """Class calculation for Topofit. The main logic in topofit ps_topofit_loop function"""
 
     k_ps = np.ndarray
     c_ps = np.ndarray
@@ -28,7 +28,7 @@ class PsTopofit:
     def ps_topofit_loop(self, ph: np.ndarray, ph_patch: np.ndarray, bprep: np.ndarray,
                         nr_trial_wraps: float, ifg_ind=None):
         """
-        Function for calculation topofit. Arrays that are initialized in constructor are filled with
+        The Function for calculating topofit. The arrays that are initialized in constructor are filled with
         values in this function.
 
         :param ph:
@@ -36,8 +36,8 @@ class PsTopofit:
         :param bprep:
         :param nr_trial_wraps:
         :param ifg_ind:
-        :return: None. Calculated values are written in class parameters (k_ps, c_ps, coh_ps, n_opt,
-         ph_res).
+        :return: None. The calculated values are written in the class parameters (k_ps, c_ps, coh_ps,
+        n_opt, ph_res).
         """
 
         for i in range(self.__nr_ps):
@@ -65,11 +65,11 @@ class PsTopofit:
 
     @staticmethod
     def ps_topofit_fun(phase: np.ndarray, bperp_meaned: np.ndarray, nr_trial_wraps: float):
-        # To be sure that results are correct we need col.matrix
+        # To make sure that the results are correct we transform bperp_meaned into column matrix
         if (len(bperp_meaned.shape) == 1):
             bperp_meaned = ArrayUtils.to_col_matrix(bperp_meaned)
 
-        # get_nr_trial_wraps result isn't correct in this case, so we find it again
+        # The result of get_nr_trial_wraps is not correct in this case, so we need to find it again
         bperp_range = np.amax(bperp_meaned) - np.amin(bperp_meaned)
 
         CONST = 8 * nr_trial_wraps  # todo what const? Why 8
@@ -80,7 +80,7 @@ class PsTopofit:
         trial_phase = bperp_meaned / bperp_range * math.pi / 4
         trial_phase = np.exp(np.outer(-1j * trial_phase, trial_multi))
 
-        # For np.multiply we need to make it column matrix
+        # In order to successfully multiply, we need to transform 'phase' array to column matrix
         phase = ArrayUtils.to_col_matrix(phase)
         phase_tile = np.tile(phase, (1, len(trial_multi)))
         phaser = np.multiply(trial_phase, phase_tile)
@@ -99,7 +99,7 @@ class PsTopofit:
         weigth = np.abs(phase)
         bperp_meaned_weighted = weigth * bperp_meaned
         re_phase_weighted = weigth * re_phase
-        # linalg functions work only with 2d array
+        # Numpy linalg functions work only with 2d array
         if len(bperp_meaned_weighted.shape) > 2:
             bperp_meaned_weighted = bperp_meaned_weighted[0]
         if len(re_phase_weighted.shape) > 2:

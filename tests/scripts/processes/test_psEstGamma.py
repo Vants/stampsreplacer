@@ -24,7 +24,7 @@ class TestPsEstGamma(MetaTestCase):
         cls.ps_files = PsFiles(cls._PATH_PATCH_FOLDER, lonlat_process)
         cls.ps_files.load_results(cls._SAVE_LOAD_PATH)
 
-        # This we use in other tests
+        # We use this in the other tests
         cls._est_gamma_process = None
 
     def test_start_process_rand_dist_cached_file(self):
@@ -78,7 +78,7 @@ class TestPsEstGamma(MetaTestCase):
             pm1_mat['coh_bins'][0])
 
         np.testing.assert_array_equal(self._est_gamma_process.grid_ij, pm1_mat['grid_ij'])
-        # Because we use math.radians not exact value it doesn't mach as well
+        # Because we use math.radians not exact value it doesn't match as well
         np.testing.assert_array_almost_equal(
             self._est_gamma_process.nr_trial_wraps, pm1_mat['n_trial_wraps'], 4)
 

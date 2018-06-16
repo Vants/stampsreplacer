@@ -21,7 +21,7 @@ from scripts.utils.internal.ProcessDataSaver import ProcessDataSaver
 
 
 class PsWeed(MetaSubProcess):
-    """Pixels filtering/ weeding from arround others. Select only best/ clearest"""
+    """Pixels filtering/ weeding from around others. Select only best/ clearest"""
 
     __IND_ARRAY_TYPE = np.int32
     __DEF_NEIGHBOUR_VAL = -1
@@ -39,7 +39,7 @@ class PsWeed(MetaSubProcess):
 
         self.__time_win = 730
         self.__weed_standard_dev = 1
-        self.__weed_max_noise = sys.maxsize  # In StaMPS this was inf
+        self.__weed_max_noise = sys.maxsize  # In StaMPS this is inf
         self.__weed_zero_elevation = False
         self.__weed_neighbours = True
         # todo drop_ifg_index on juba PsSelect'is
@@ -96,7 +96,7 @@ class PsWeed(MetaSubProcess):
         self.__logger.info("Start")
 
         data = self.__load_ps_params()
-        # In Stamps this was called 'nr_ps' but we already have that named variable
+        # In Stamps this is called 'nr_ps' but we already have that named variable
         coh_thresh_ind_len = len(data.coh_thresh_ind)
         if coh_thresh_ind_len == 0:
             self.__logger.warn("coh_thresh_ind is empty")
@@ -121,13 +121,14 @@ class PsWeed(MetaSubProcess):
 
         selectable_ps = self.__filter_xy(data.xy, selectable_ps, data.coh_ps)
 
-        # In PsWeed we make our own intefrograms array. In Stamps'is this was called 'ifg_index'
+        # In PsWeed we make our own interferograms array.
+        # In Stamps this variable is called 'ifg_index'
         ifg_ind = np.arange(0, data.nr_ifgs, dtype=self.__IND_ARRAY_TYPE)
         if len(self.__drop_ifg_index) > 0:
             self.__logger.debug("Dropping indexes {0}".format(self.__drop_ifg_index))
             np.setdiff1d(ifg_ind, self.__drop_ifg_index)
 
-        # In Stamps there was paramter 'no_weed_noisy' that was calculated similarly
+        # In Stamps there is parameter 'no_weed_noisy' that is calculated similarly
         if not (self.__weed_standard_dev >= math.pi and self.__weed_max_noise >= math.pi):
             edge_std, edge_max = self.__drop_noisy(data, selectable_ps, ifg_ind,
                                                    self.__ps_weed_edge_data)
@@ -175,7 +176,7 @@ class PsWeed(MetaSubProcess):
 
     def get_filtered_results(self, load_path: str = None):
         """Because filtering is made using selectable_ps values and we already have all those
-        parameters (also class privates and paramters that are loaded only or this process) that
+        parameters (also class privates and parameters that are loaded only or this process) that
         are filtered here we can do that filtering in this class.
 
         In StaMPS they made new .mat files for saving results."""
@@ -262,7 +263,7 @@ class PsWeed(MetaSubProcess):
 
         ph_patch_org = get_from_ps_est_gamma(self.__ps_est_gamma)
 
-        # In Stamps there also was param 'all_da_flag' and found variables k_ps, c_ps, coh_ps,
+        # In Stamps there also is param 'all_da_flag' and found variables k_ps, c_ps, coh_ps,
         # ph_patch_org, ph_res
 
         return self.__DataDTO(ind, ph_res, coh_thresh_ind, k_ps, c_ps, coh_ps, pscands_ij, xy,
@@ -277,7 +278,7 @@ class PsWeed(MetaSubProcess):
         return ij_shift
 
     def __init_neighbours(self, ij_shift: np.ndarray, coh_ps_len: int) -> np.ndarray:
-        """In StaMPS the init value was zero, I use -1 (DEF_NEIGHBOUR_VAL). Beacause 0 is correct
+        """In StaMPS the init value is zero, I use -1 (DEF_NEIGHBOUR_VAL). Because 0 is correct
         index value in Python, but not in Matlab. -1 is not index in Python"""
 
         def arange_neighbours_select_arr(i, ind):
@@ -322,11 +323,9 @@ class PsWeed(MetaSubProcess):
     def __select_best(self, neighbour_ps: np.ndarray, coh_thresh_ind_len: int,
                       coh_ps: np.ndarray, htg: np.ndarray) -> np.ndarray:
         """
-        Returns boolean array what is used to filter other arrays. In StaMPS it was array of int's.
+        Returns boolean array what is used to filter other arrays. In StaMPS it is array of int's.
         """
 
-        """Tagastab boolean'idest array, et pärast selle järgi filteerida ülejäänud massiivid.
-        Stamps'is oli tegemist massiiv int'intidest"""
         selectable_ps = np.ones(coh_thresh_ind_len, dtype=bool)
 
         for i in range(coh_thresh_ind_len):
@@ -336,7 +335,7 @@ class PsWeed(MetaSubProcess):
                 while j < len(ps_ind):
                     ps_i = ps_ind[j]
                     ps_ind = np.append(ps_ind, neighbour_ps[ps_i]).astype(self.__IND_ARRAY_TYPE)
-                    neighbour_ps[ps_i] = np.array([]) # Make empty that is read
+                    neighbour_ps[ps_i] = np.array([]) # Empty the read array elements
                     j += 1
 
                 ps_ind = np.unique(ps_ind)
@@ -359,7 +358,7 @@ class PsWeed(MetaSubProcess):
 
     def __filter_xy(self, xy: np.ndarray, selectable_ps: np.ndarray, coh_ps: np.ndarray) -> np.ndarray:
         """Find xy array filtered.
-        In StaMPS there was also logic to find if dublicates array is empty and when it was
+        In StaMPS there is also logic to find if duplicates array is empty and when it is
         it found weeded_xy array again. Here that kind of logic isn't because I didn't find point
         for that"""
 
@@ -367,9 +366,9 @@ class PsWeed(MetaSubProcess):
 
         weed_ind = np.flatnonzero(selectable_ps) # 'ix_weed_num' in StaMPS
         unique_rows = np.unique(weeded_xy, return_index=True, axis=0)[1].astype(self.__IND_ARRAY_TYPE)
-        # In Stamps there was also additional transposing but in this case this does not do anything
+        # In Stamps there is also additional transposing but in this case this does not do anything
         last = np.arange(0, len(weed_ind))
-        # In Stamps this was called 'dps'. Pixels that have same lon/ lat
+        # In Stamps this is called 'dps'. Pixels that have same lon/ lat
         duplicates = np.setxor1d(unique_rows, last)
 
         for duplicate in duplicates:
@@ -389,7 +388,7 @@ class PsWeed(MetaSubProcess):
             exped = np.exp(-1j * (k_ps * bperp.conj().transpose()))
             ph_weed = np.multiply(ph, exped)
             ph_weed = np.divide(ph_weed, np.abs(ph_weed))
-            # Adding master noise. It was done when small_baseline_flag != 'y'. Reshape is needed
+            # Adding master noise. It is done when small_baseline_flag != 'y'. Reshape is needed
             # because 'c_ps' is array of array's
             ph_weed[:, (master_nr - 1)] = np.exp(1j * c_ps).reshape(len(ph_weed))
 
@@ -419,7 +418,7 @@ class PsWeed(MetaSubProcess):
 
         #todo drop_ifg_index logic
 
-        # This all was made when small_baseline_flag != 'y'
+        # This all is made when small_baseline_flag != 'y'
 
         dph_shape = (len(edges), len(ifg_ind))
         dph_smooth = np.zeros(dph_shape).astype(np.complex128)

@@ -35,7 +35,7 @@ class PsEstGamma(MetaSubProcess):
                  outter_rand_dist=np.array([])) -> None:
         """rand_dist_cached_file= when True loads array of random numbers 'tmp_rand_dist' from cache
         (see function 'self.__make_random_dist')
-        outter_rand_dist = array array of random numbers that usually if found with function
+        outter_rand_dist = array of random numbers that are usually if found in function
         'self.__make_random_dist'. This is used for testing"""
 
         self.__logger = LoggerFactory.create("PsEstGamma")
@@ -45,26 +45,26 @@ class PsEstGamma(MetaSubProcess):
         self.rand_dist_cached = rand_dist_cached_file
         self.outter_rand_dist = outter_rand_dist
 
-        # In StaMPS'is this was called 'coh_bins'
+        # In StaMPS this is called 'coh_bins'
         self.coherence_bins = ArrayUtils.arange_include_last(0.005, 0.995, 0.01)
 
     def __set_internal_params(self):
         """In StaMPS these where loaded to Matlab environment using setparam. All values are from
-        ps_params_default fail. Explantions are from Hooper's StaMPS/MTI Manual (Version 3.3b1)"""
+        ps_params_default file. Explantions are from Hooper's StaMPS/MTI Manual (Version 3.3b1)"""
 
-        # Pixel size of grid (in meters)
+        # Pixel size of the grid (in meters)
         self.__filter_grid_size = 50
-        # Weighting scheme (PS probability squared)
+        # The weighting scheme (PS probability squared)
         self.__filter_weighting = 'P-square'
         # CLAP (Combined Low-pass and Adaptive Phase).
         self.__clap_win = 32
-        # Wavelenghts that are greater than that are passed through
+        # The wavelenghts that are greater than that are passed through
         self.__clap_low_pass_wavelength = 800
 
         self.__clap_alpha = 1
         self.__clap_beta = 0.3
         # Maximum uncorrelated DEM error (in meters).
-        # Greater than this value is not accepted
+        # Any value greater than this is not accepted
         self.__max_topo_err = 5
         # Threshold for change in change in mean value of γ(coherence like value)
         self.__gamma_change_convergence = 0.005
@@ -84,7 +84,7 @@ class PsEstGamma(MetaSubProcess):
         self.nr_trial_wraps = self.__get_nr_trial_wraps(bperp_meaned, sort_ind_meaned)
         self.__logger.debug("nr_trial_wraps: {0}".format(self.nr_trial_wraps))
 
-        # StaMPS'is oli self.rand_dist nimetatud 'Nr'
+        # self.rand_dist in Stamps is named 'Nr'
         self.rand_dist, self.nr_max_nz_ind = self.__make_random_dist(nr_ps, nr_ifgs, bperp_meaned,
                                                                      self.nr_trial_wraps)
         self.__logger.debug("rand_dist.len: {0}, self.nr_max_nz_ind: {1}"
@@ -165,14 +165,14 @@ class PsEstGamma(MetaSubProcess):
 
         ph = MatrixUtils.delete_master_col(ph, self.__ps_files.master_nr)
         ph_abs = np.abs(ph)
-        ph_abs[np.where(ph_abs == 0)] = 1 # Excluding possibility dividing with zero
+        ph_abs[np.where(ph_abs == 0)] = 1 # Excluding the possibility of division by zero
         ph = np.divide(ph, ph_abs)
 
-        # Because bprep_meaned on is row array not column array delete_master_col function does not
-        # work
+        # bprep_meaned is an array of rows (not columns), therefore usual
+        # MatixUtils.delete_master_col function does not work
         bprep_meaned = np.delete(self.__ps_files.bperp_meaned, self.__ps_files.master_nr - 1)
 
-        # In Stamps there was 0.052 instead of math.radians(3). Variable was named 'inc_mean'
+        # In Stamps there is 0.052 instead of math.radians(3). Variable is named 'inc_mean'
         sort_ind_meaned = np.mean(self.__ps_files.sort_ind) + math.radians(3)
 
         return ph, bprep_meaned, bperp, nr_ifgs, nr_ps, xy, da, sort_ind_meaned
@@ -216,7 +216,7 @@ class PsEstGamma(MetaSubProcess):
             return rand_dist, nr_max_nz_ind
 
         def random_dist():
-            NR_RAND_IFGS = nr_ps  # In StaMPS'is it is 300000
+            NR_RAND_IFGS = nr_ps  # In StaMPS it is 300000
             random = np.random.RandomState(2005)
 
             rnd_ifgs = 2 * math.pi * random.rand(NR_RAND_IFGS, nr_ifgs)
@@ -250,7 +250,7 @@ class PsEstGamma(MetaSubProcess):
 
         def fill_cols_with_xy_values(xy_col: np.ndarray):
             # Float32 is needed because with default type you get too many decimal places. But when
-            # there is too many declimal places round up(celi) makes 2224.00001 to 2225 what is
+            # there is too many decimal places round up(ceil) makes 2224.00001 to 2225 which is the
             # wrong value
             col_formula = lambda x: np.ceil((x - np.amin(x) + 1e-6).astype(np.float32) / self.__filter_grid_size)
 
@@ -335,12 +335,12 @@ class PsEstGamma(MetaSubProcess):
         k_ps = zero_ps_array_cont()
 
         # Est topo error
-        # Initializing variables that are retunred in the end
+        # Initializing variables that are returned in the end
         c_ps = zero_ps_array_cont()
         n_opt = zero_ps_array_cont()
         ph_res = np.zeros((nr_ps, nr_ifgs))
 
-        log_i = 0 # Used for logging to see how many cycle we have done
+        log_i = 0 # Used for logging to see how many cycles we have done
         self.__logger.debug("is_gamma_in_change_delta loop begin")
         while not is_gamma_in_change_delta():
             log_i += 1
@@ -383,10 +383,10 @@ class PsEstGamma(MetaSubProcess):
                                 + str(not is_gamma_in_change_delta() and
                                       self.__filter_weighting == 'P-square'))
             if not is_gamma_in_change_delta() and self.__filter_weighting == 'P-square':
-                # In Stamps it was named 'Na'
+                # In Stamps it is named 'Na'
                 hist, _ = MatlabUtils.hist(coh_ps, self.coherence_bins)
                 self.__logger.debug("hist[0:3] " + str(hist[:3]))
-                # Random values get real here
+                # The random values are transformed into real values here
                 low_coh_thresh_ind = self.__low_coherence_thresh
                 real_distr = np.sum(hist[:low_coh_thresh_ind]) / np.sum(
                     self.rand_dist[:low_coh_thresh_ind])
@@ -395,7 +395,7 @@ class PsEstGamma(MetaSubProcess):
                 hist[hist == 0] = 1
                 p_rand = np.divide(self.rand_dist, hist)
                 p_rand[:low_coh_thresh_ind] = 1
-                p_rand[self.nr_max_nz_ind:] = 0 # In Stampsis nr_max_nz_ind was added one
+                p_rand[self.nr_max_nz_ind:] = 0 # In Stamps nr_max_nz_ind is incremented by one
                 p_rand[p_rand > 1] = 1
                 p_rand_added_ones = np.append(np.ones(7), p_rand)
                 filtered = scipy.signal.lfilter(MatlabUtils.gausswin(7), [1], p_rand_added_ones)
@@ -407,11 +407,11 @@ class PsEstGamma(MetaSubProcess):
 
                 # Here we covert coh_ps to indexes array. astype is needed because in Numpy all
                 # indexes must be int type.
-                # reshape is needed because coh_ps is array on arrays.
+                # reshape is needed because coh_ps is array of arrays.
                 coh_ps_as_ind = np.round(coh_ps * 1000).astype(np.int)
                 if len(coh_ps_as_ind.shape) > 1:
                     coh_ps_as_ind = np.squeeze(coh_ps_as_ind)
-                # In Stamps this was 'Prand_ps'
+                # In Stamps this is 'Prand_ps'
                 ps_rand = p_rand[coh_ps_as_ind].conj().transpose()
 
                 weights = np.reshape(np.power(1 - ps_rand, 2), SW_ARRAY_SHAPE)
@@ -421,19 +421,18 @@ class PsEstGamma(MetaSubProcess):
     def __clap_filt(self, ph: np.ndarray, low_pass: np.ndarray):
         """CLAP_FILT Combined Low-pass Adaptive Phase filtering.
         Variables nr_win, nr_pad where inputs in StaMPS but these were multiplied before inputing
-        into function. Here it is done intrenally here.
+        into function. Here it is done internally.
         Also clap_alpha ja clap_beta where inputs but in this case those are global class variables
         so we can use them and don't need for inputs"""
 
         def create_grid(nr_win: int):
-            # todo Kuidas siin see -1 asju katki ei tee?
             grid_array = ArrayUtils.arange_include_last(0, (nr_win / 2) - 1)
             grid_x, grid_y = np.meshgrid(grid_array, grid_array)
             grid = grid_x + grid_y
 
             return grid
 
-        # todo Mida tähendab wind_func. See pole ju massiiv funkstioonidest
+        # todo What does wind_func mean? This isn't array of functions
         def make_wind_func(grid: np.ndarray):
             WIND_FUNC_TYPE = np.float64
             wind_func = np.array(np.append(grid, np.fliplr(grid), axis=1), WIND_FUNC_TYPE)
@@ -461,13 +460,13 @@ class PsEstGamma(MetaSubProcess):
         ph_i_len = ph.shape[0] - 1
         ph_j_len = ph.shape[1] - 1
         nr_inc = int(np.floor(nr_win / 4))
-        # Indexes begin from zero on Python. That's why those values are greater than StaMPS
+        # Indices begin from zero on Python. That's why those values are greater than StaMPS
         nr_win_i = int(np.ceil(ph_i_len / nr_inc) - 3)
         nr_win_j = int(np.ceil(ph_j_len / nr_inc) - 3) + 1
 
         wind_func = make_wind_func(create_grid(nr_win))
 
-        # To make transpose work like Matlab we need to convert thos to matrix
+        # To make transpose work like Matlab we need to convert those to matrix
         # todo: PsSelect has similar thing
         B = np.multiply(np.asmatrix(MatlabUtils.gausswin(7)),
                         np.asmatrix(MatlabUtils.gausswin(7)).transpose())

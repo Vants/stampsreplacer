@@ -31,7 +31,7 @@ class TestPhaseCorrection(MetaTestCase):
         self = TestPhaseCorrection() # This is needed to use variables outside @classmethod
         self.__fill_est_gamma_with_matlab_data()
 
-        # ps_est_gamma may be None cause we load it from ps_select
+        # ps_est_gamma may be None because we load it from ps_select
         cls.__ps_select = PsSelect(cls.__ps_files, cls.__ps_est_gamma)
         cls.__ps_select.load_results(cls._SAVE_LOAD_PATH)
 
