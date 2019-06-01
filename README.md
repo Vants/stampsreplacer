@@ -84,17 +84,23 @@ For starting program/ processing you need to run _Main.py_.
 
 Like so:
 `python Main.py`
+
 This starts from zeroth step and ends final. Runs all steps.
 
 You can also add steps where to start (first parameter) and where to end (end parameter). Example:
+
 `python Main.py 0 5`
+
 This is also equal to previous command.
 
 When we need to run only one step, then both parameters need to be equal. Example:
+
 `python Main.py 0 0`
 
 Also you can show step where to start. It starts from this step and ends with final step. Example:
+
 `python Main.py 0`
+
 This is also equal to first and second command.
 
 What each step do:
@@ -203,17 +209,23 @@ See on seepärast selliselt tehtud, et algandmed võivad kõigil erinevad olla j
 Programm käivitatakse klassist Main, failist Main.py, kus on kaks parameetrit. Esimene parameeter näitab millisest protseduurist alustatakse ja viimane näitab millisega lõpetatakse. Mõlemad parameetrid on täisarvud 0-ist 5-ni. Kui neid ei määra tehakse kogu protsess.
 
 Kui parameetreid ei määra siis tehakse kõik protsessid. See käsk näeb välja selline:
+
 `python Main.py`
 
 Või siis näidata, ette mis sammust alustada ja milliselst lõpetada:
+
 `python Main.py 0 5`
+
 See käsk on võrdne esimesega.
 
 Või kui on soov vaid üks samm teha:
+
 `python Main.py 0 0`
 
 Võib näidata ka vaid algussammu:
+
 `python Main.py 0`
+
 See käsk teeb sama asja mis esimene ja teine.
 
 **Parameetrite numbrid** vastavad järgnevatele protsessidele:
