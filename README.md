@@ -2,6 +2,10 @@
 
 Python rewrite of application named StaMPS https://homepages.see.leeds.ac.uk/~earahoo/stamps/.
 
+**This isn't complete StaMPS rewrite!** This only contains steps that are responsible finding persistent scatterers. There are missing phase unwrapping for complete and standalone work.
+
+The rewrite was done from StaMPS version 3.3b1.
+
 # Tutorial in English
 
 Estonian below/ Eesti keeles allpool.
@@ -73,6 +77,35 @@ When you see error that tells that there is missing .npz file. Error like this:
 
 This is because test doesn't find file from previous process. Then you need to run test class that creates that file.
 You don't need to run whole test class, it is enough to run only save-load test. After that test sould not raise this error.
+
+## Starting program
+
+For starting program/ processing you need to run _Main.py_.
+
+Like so:
+`python Main.py`
+This starts from zeroth step and ends final. Runs all steps.
+
+You can also add steps where to start (first parameter) and where to end (end parameter). Example:
+`python Main.py 0 5`
+This is also equal to previous command.
+
+When we need to run only one step, then both parameters need to be equal. Example:
+`python Main.py 0 0`
+
+Also you can show step where to start. It starts from this step and ends with final step. Example:
+`python Main.py 0`
+This is also equal to first and second command.
+
+What each step do:
+0 - load SNAP files and data to Python and calculate some additional that is needed for next steps.
+1 - Load SNAP files that where made for StaMPS to Python/ Numpy format.
+2 - Estimate phase noise
+3 - Select persistent scatterers
+4 - Filter/ weed out persistent scatterers
+5 - Phase correction
+
+**Please note** that you can't start from first step when you haven't started zeroth step and so on. All steps depend from previous steps.
 
 ## Cython
 
@@ -164,6 +197,36 @@ Kui kõiki teste ei soovi teha siis võib käivitada ainult salvestamise ja laad
 teine test ka edasi minna. 
 
 See on seepärast selliselt tehtud, et algandmed võivad kõigil erinevad olla ja seega ka selle programmi loodud vahetulemus.  
+
+## Käivitamine
+
+Programm käivitatakse klassist Main, failist Main.py, kus on kaks parameetrit. Esimene parameeter näitab millisest protseduurist alustatakse ja viimane näitab millisega lõpetatakse. Mõlemad parameetrid on täisarvud 0-ist 5-ni. Kui neid ei määra tehakse kogu protsess.
+
+Kui parameetreid ei määra siis tehakse kõik protsessid. See käsk näeb välja selline:
+`python Main.py`
+
+Või siis näidata, ette mis sammust alustada ja milliselst lõpetada:
+`python Main.py 0 5`
+See käsk on võrdne esimesega.
+
+Või kui on soov vaid üks samm teha:
+`python Main.py 0 0`
+
+Võib näidata ka vaid algussammu:
+`python Main.py 0`
+See käsk teeb sama asja mis esimene ja teine.
+
+**Parameetrite numbrid** vastavad järgnevatele protsessidele:
+1 - Programmiga SNAP loodud failide lugemine ja töötlemine (klass CreateLonLat).
+2 - Algandmete laadimine. Loetakse ja konverteeritakse SNAP eksporditud failid,
+mis olid tehtud StaMPS programmile formaadiks, Python/ NumPy failideks
+(klass PsFiles).
+3 - Faasimüra hindamine (klass PsEstGamma).
+4 - Püsivpeegeldajate valik (klass PsSelect).
+5 - Püsivpeegeldajate filtreerimine (klass PsWeed).
+6 - Faasikorrektsioon (klass PhaseCorrection).
+
+**NB!** Pole võimalik kävitada samme mille eeldusandmeid ei ole. See tähendab, et kohe ei saa alustada teisest sammust töötlust, sest esimese sammu tulem on puudu.
 
 ## Cython
 
